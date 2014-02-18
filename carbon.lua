@@ -1,9 +1,10 @@
 PLUGIN.Title = "Carbon"
 PLUGIN.Description = "experience. levels. skills. rewards."
-PLUGIN.Version = "1.0.2a"
+PLUGIN.Version = "1.0.4a"
 PLUGIN.Author = "Mischa"
 --[[-----------< CHANGELOG >----------------
-
+02.18.2014
+    CREATED GITHUB
 02.14.14
     ADD WEAPON XP SYSTEM AND BONUSES TO DMG PER WEAPON
 02.13.14
