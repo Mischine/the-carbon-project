@@ -88,10 +88,31 @@ function PLUGIN:Init()
 	self:AddChatCommand("carbon", self.CarbonReload)
     self:AddChatCommand("c", self.cmdCarbon)
     self:AddChatCommand("g", self.cmdGuilds)
+    self:AddChatCommand("debug", self.cmdDebug)
+    self.debugr = false
 	print( "Carbon Loaded!" )
 
     timer.Repeat( 1, function() self.rnd = math.rnd( 0, 100 ) end )
 end
+
+-----------------------------
+-- TURN DEBUG ON OR OFF! DEVELOPERTOOL! DISABLE ON ALPHA!
+-----------------------------
+function PLUGIN:cmdDebug( netuser, cmd , args )
+    if( tostring( args[1] )) == "true" then
+        self.debugr = true
+    elseif( tostring(args[1]) == "false" ) then
+        self.debugr = false
+    else
+        rust.SendChatToUser( netuser, "/debug false or /debug true" )
+    end
+end
+
+-----------------------------
+-- table.containsval - check if the value is in the table [ table.containtsval( table, value ) ]
+-----------------------------
+function table.containsval(t,cv) for _, v in ipairs(t) do  if v == cv then return true  end  end return nil end
+
 -----------------------------
 -- Chat Commands 
 -----------------------------
@@ -150,7 +171,6 @@ end
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 -----------------------------
 function PLUGIN:OnKilled (takedamage, dmg)
-    debugr = true
     if(dmg.extraData) then
         weapon = string.gsub(tostring(dmg.extraData.dataBlock.name), "%s+", "")
     end
@@ -164,8 +184,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
             local netuserdata = self:GetUserData( netuser )
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
             if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
-
-
                 if (netuserdata) then
                     self:GiveXp( netuser, tonumber(math.floor(self.Data.users[vicuserID].xp*self.Config.settings.pkxppercent/100)))
                 end
@@ -189,7 +207,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
         return
     end
 	local targetXp = 0
-	npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
+	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
 	( function ()
         for i, npcController in ipairs(npcController) do
             if (takedamage:GetComponent( npcController )) then
@@ -220,7 +238,6 @@ end
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 -----------------------------
 function PLUGIN:ModifyDamage (takedamage, dmg)
-    debugr = true
     if(dmg.extraData) then
         weapon = string.gsub(tostring(dmg.extraData.dataBlock.name), "%s+", "")
     end
@@ -233,7 +250,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             local dppercentage = netuserDP / self.Data.users[ netuserID ].xp
             local dmgdp = tonumber(dmg.amount * dppercentage)
             dmg.amount = math.ceil(tonumber(dmg.amount - dmgdp))
-            if (debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
+            if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
         end
 
     end
@@ -265,7 +282,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                         local dppercentage = netuserDP / self.Data.users[ netuserID ].xp
                         local dmgdp = tonumber(dmg.amount * dppercentage)
                         dmg.amount = math.ceil(tonumber(dmg.amount - dmgdp))
-                        if (debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
+                        if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
                     end
                     --Randomize damage.
                     local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
@@ -273,40 +290,54 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     local damage = tonumber(damage * self.Data.users[ netuserID ].dmg)
                     --Weapon skill bonus applied
                     local damage = tonumber(damage + weaponDmg)
-                    if (debugr == true) then  rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
+                    if (self.debugr == true) then  rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
                     --Attribute modifiers
                     if (weaponType == "melee") and (netuserSTR>0) then
                         damage = damage + ((netuserSTR+netuserLVL)*.3)
-                    if (debugr == true) then  rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
+                    if (self.debugr == true) then  rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
                     elseif (weaponType == "ranged" ) and (netuserAGI>0) then
                         damage = damage + ((netuserAGI+netuserLVL)*.3)
-                    if (debugr == true) then  rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
+                    if (self.debugr == true) then  rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
                     end
 
                     --Crit check
-                    local diceRoll = math.random(0,100)
-                    local diceRoll = math.random(0,100)
+                    local diceRoll = self.rnd
                     if (netuserAGI>0) then
                         if (weaponType == "melee") then
-                            if (debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.002) .. " | " .. tostring(diceRoll)) end
+                            if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.002) .. " | " .. tostring(diceRoll)) end
                             if ((netuserAGI+netuserLVL)*.002 >= diceRoll) then
                                 damage = damage * 2
                                 rust.InventoryNotice( netuser, "Critical Hit!" )
                             end
                         elseif (weaponType == "ranged") then
-                            if (debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.001) .. " | " .. tostring(diceRoll)) end
+                            if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.001) .. " | " .. tostring(diceRoll)) end
                             if ((netuserAGI+netuserLVL)*.001 >= diceRoll) then
                                 damage = damage * 2
                                 rust.InventoryNotice( netuser, "Critical Hit!" )
                             end
                         end
                     end
+                    --Guild perk modifiers
+                    local guild, guildname = self:getGuild( netuser )
+                    local vicguild, vicguildname = self:getGuild( vicuser )
+                    local isEnemy = self:isRival( guildname, vicguildname )
+                    if( isEnemy ) then
+                        local dmgmod = self:HasRallyPerk( guildname )
+                        if( dmgmod ) then
+                            damage = damage * dmgmod
+                        end
+                        local ddmgmod = self:HasSYGPerk( vicguildname )
+                        if( ddmgmod ) then
+                            damage = damage * ddmgmod
+                        end
+                    end
+
                     --Vic stamina modifier
                     dmg.amount = damage - ((self.Data.users[ vicuserID ].attributes.sta+self.Data.users[ vicuserID ].lvl)*.1)
-                    if (debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
+                    if (self.debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
                     --PERK - STONESKIN
                     self:PerkStoneskin(dmg)
-                    if (debugr == true) then rust.BroadcastChat("Adjusted to target damage after Stoneskin: " .. tostring(dmg.amount)) end
+                    if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage after Stoneskin: " .. tostring(dmg.amount)) end
                     --END ADJUST ATTACKER DAMAGE
                 end
             end
@@ -318,7 +349,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         return dmg
     end
 	local myString = takedamage.gameObject.Name
-	npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
+	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
 	( function ()
         for i, npcController in ipairs(npcController) do
             if (takedamage:GetComponent( npcController )) then
@@ -344,27 +375,26 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         local damage = tonumber(damage * targetDmg)
         --Apply weapon skill bonus
         local damage = tonumber(damage + weaponDmg)
-        if (debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
+        if (self.debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
         --Apply attribute modifiers
         if (weaponType == "melee") and (netuserSTR>0) then
             damage = damage + ((netuserSTR+netuserLVL)*.3)
-            if (debugr == true) then rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
+            if (self.debugr == true) then rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
         elseif (weaponType == "ranged" ) and (netuserAGI>0) then
             damage = damage + ((netuserAGI+netuserLVL)*.3)
-            if (debugr == true) then rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
+            if (self.debugr == true) then rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
         end
         --Crit check
-        local diceRoll = math.random(0,100)
-        local diceRoll = math.random(0,100)
+        local diceRoll = self.rnd
         if (netuserAGI>0) then
             if (weaponType == "melee") then
-                if (debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.002) .. " | " .. tostring(diceRoll)) end
+                if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.002) .. " | " .. tostring(diceRoll)) end
                 if ((netuserAGI+netuserLVL)*.002 >= diceRoll) then
                     damage = damage * 2
                     rust.InventoryNotice( netuser, "Critical Hit!" )
                 end
             elseif (weaponType == "ranged") then
-                if (debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.001) .. " | " .. tostring(diceRoll)) end
+                if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.001) .. " | " .. tostring(diceRoll)) end
                 if ((netuserAGI+netuserLVL)*.001 >= diceRoll) then
                     damage = damage * 2
                     rust.InventoryNotice( netuser, "Critical Hit!" )
@@ -373,7 +403,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         end
 
 		dmg.amount = damage
-        if (debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
+        if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
         return end
         end
     end )()
@@ -394,24 +424,24 @@ function PLUGIN:PerkStoneskin(dmg)
         if (vicuserStoneskin > 0) then
             if (vicuserStoneskin == 1) then
                 dmg.amount = tonumber(dmg.amount - (dmg.amount*.05))
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.05) .. " dmg!") end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.05) .. " dmg!") end
 
                 do return dmg end
             elseif (vicuserStoneskin == 2) then
                 dmg.amount = tonumber(dmg.amount - (dmg.amount*.10))
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.10) .. " dmg!") end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.10) .. " dmg!") end
                 do return dmg end
             elseif (vicuserStoneskin == 3) then
                 dmg.amount = tonumber(dmg.amount - (dmg.amount*.15))
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.15) .. " dmg!") end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.15) .. " dmg!") end
                 do return dmg end
             elseif (vicuserStoneskin == 4) then
                 dmg.amount = tonumber(dmg.amount - (dmg.amount*.20))
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.20) .. " dmg!") end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.20) .. " dmg!") end
                 do return dmg end
             elseif (vicuserStoneskin == 5) then
                 dmg.amount = tonumber(dmg.amount - (dmg.amount*.25))
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.25) .. " dmg!") end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.25) .. " dmg!") end
                 do return dmg end
             end
         end
@@ -424,27 +454,26 @@ function PLUGIN:PerkParry(takedamage, dmg)
         local vicuserParry = self.Data.users[ vicuserID ].perks.Parry.lvl
         --PARRY
         if (vicuserParry > 0) then
-            local parryRoll = math.random(0,100)
-            local parryRoll = math.random(0,100)
+            local parryRoll = self.rnd
             if ((vicuserParry == 1) and (parryRoll <= 3)) then
                 dmg.amount = 0
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 3 > " .. tostring(parryRoll)) end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 3 > " .. tostring(parryRoll)) end
                 do return end
             elseif ((vicuserParry == 2) and (parryRoll <= 6)) then
                 dmg.amount = 0
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 6 > " .. tostring(parryRoll)) end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 6 > " .. tostring(parryRoll)) end
                 do return end
             elseif ((vicuserParry == 3) and (parryRoll <= 9)) then
                 dmg.amount = 0
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 9 > " .. tostring(parryRoll)) end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 9 > " .. tostring(parryRoll)) end
                 do return end
             elseif ((vicuserParry == 4) and (parryRoll <= 12)) then
                 dmg.amount = 0
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 12 > " .. tostring(parryRoll)) end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 12 > " .. tostring(parryRoll)) end
                 do return end
             elseif ((vicuserParry == 5) and (parryRoll <= 15)) then
                 dmg.amount = 0
-                if (debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 15 > " .. tostring(parryRoll)) end
+                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 15 > " .. tostring(parryRoll)) end
                 do return end
             end
         end
@@ -519,6 +548,7 @@ function PLUGIN:GiveDp(vicuser, dp)
     end
     self:DataSave()
 end
+
 -----------------------------
 --PLUGIN:PlayerLvl
 -----------------------------
@@ -584,7 +614,7 @@ function PLUGIN:SleeperRadius(pos, point, rad)
 end
 
 -----------------------------
---PLUGIN:SleeperRadius
+--PLUGIN:Guilds commands
 -----------------------------
 function PLUGIN:Guilds( netuser, cmd, args )
     if( not (args[1] ) ) then
@@ -606,36 +636,50 @@ function PLUGIN:Guilds( netuser, cmd, args )
         if(( args[2] ) and ( args[3] )) then
             local name = tostring( args[2] )
             local tag = tostring( args[3] )
-            if( string.len( tag ) > 3 ) then rust.Notice( netuser, "Can not compute. Error code number B" ) return end
+            tag = string.upper( tag )
+            local blocked = table.containsval( self.Gconfig.settings.blockedtags, tag )
+            if( blocked ) then rust.Notice( netuser, "Can not compute. Error code number B" ) return end
+            if( string.len( tag ) > 3 ) then rust.Notice( netuser, "Guild tag is too long! Maximum of 3 characters allowed" ) return end
             self:CreateGuild( netuser, name, tag )
         else
             rust.SendChatToUser( netuser, self.Config.settings.sysname, "/g create \"Guild Name\" \"Guild Tag\" ")
         end
 
     elseif ( tostring( args[1] ) == "delete") then
-        -- /g delete
+        -- /g delete                                -- Deletes the guild
 
     elseif ( tostring( args[1] ) == "info") then
-        -- /g info
+        -- /g info                                  -- Displays general Guild information
+
+    elseif ( tostring( args[1] ) == "stats") then
+        -- /g stats                                 -- Displays a lists of statistics
 
     elseif ( tostring( args[1] ) == "invite") then
-        -- /g invite name
+        -- /g invite name                           -- Invite a player to the guild
 
     elseif ( tostring( args[1] ) == "kick") then
-        -- /g kick name
+        -- /g kick name                             -- Kick a player from the guild
 
     elseif ( tostring( args[1] ) == "war") then
-        -- /g war guildtag
+        -- /g war guildtag                          -- Engage a war with another guild / other guild will be notified.
 
     elseif ( tostring( args[1] ) == "rank") then
-        -- /g rank list -- shows available ranks
+        -- /g rank list                             -- Shows available ranks
 
-        -- /g rank add 'rank' name -- add a rank to a member
+        -- /g rank add 'rank' name                  -- Add a rank to a member
 
-        -- /g rank delete 'rank' name
+        -- /g rank delete 'rank' name               -- Deletes a rank from a member
 
-        -- /g rank create 'rank' -- create a new custom rank
+        -- /g rank create 'rank'                    -- Create a new custom rank
 
+    elseif ( tostring( args[1] ) == "vault" ) then
+        -- /g vault buy                             -- Buy a vault
+
+        -- /g vault add                             -- Add items/money to the guild vault
+
+        -- /g vault withdraw                        -- withdraw items/money from the guild vault
+
+        -- /g vault upgrade                         -- Upgrade your vault to the next lvl
 
     else
         self:UserMsg( netuser, self.Config.settings.sysname,"Invalid command! Please type /g to view all available guild commands." )
@@ -664,22 +708,71 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     end
 
     local entry = {}
-    entry.tag = tostring( tag )                                                                     -- Guild Tag
-    entry.glvl = 1                                                                                  -- Guild Level
-    entry.xp = 0
-    entry.ranks = { "Leader", "Co-Leader", "War-Leader", "Quartermaster", "Assasin", "Member" }     -- Create default Ranks
-    entry.members = {}                                                                              --
+    entry.tag = "[" .. tag .. "]"                                                                                   -- Guild Tag
+    entry.glvl = 1                                                                                                  -- Guild Level
+    entry.xp = 0                                                                                                    -- Experience
+    entry.xpforLVL = math.ceil((((2*2)+2)/self.Gconfig.settings.lvlmodifier*100-(nextLVL*100)))                     -- xpforLVL
+    entry.ranks = { "Leader", "Co-Leader", "War-Leader", "Quartermaster", "Assasin", "Member" }                     -- Create default Ranks
+    entry.members = {}                                                                                              -- Members
     entry.members[ rust.GetUserID( netuser ) ] = {}
     entry.members[ rust.GetUserID( netuser ) ][ "name" ] = netuser.displayName
     entry.members[ rust.GetUserID( netuser ) ][ "rank" ] = "Leader"
-    entry.members[ rust.GetUserID( netuser ) ][ "con" ] = 0
-    entry.vault = {}
-    entry.vault[ "money" ] = 0
-    entry.vault[ "weapons" ] = {}
-    entry.vault[ "materials" ] = {}
-    entry.collect = 0
-    entry.interval = 0
-    entry.gperks = {}
+    entry.members[ rust.GetUserID( netuser ) ][ "moncon" ] = 0
+    entry.members[ rust.GetUserID( netuser ) ][ "xpcon" ] = 0
+    entry.war = {}                                                                                                  -- Guild is at war with:
+    entry.collect = 0                                                                                               -- Collects money from members
+    entry.gocollect = 0                                                                                             -- time left for next collection
+    entry.interval = 0                                                                                              -- Amount of hours between each collection.
+    entry.unlockedperks = {}                                                                                        -- Perks are unlocked at certain Guild lvls ( Max: 10 )
+    entry.activeperks = {}                                                                                          -- Perks are unlocked at certain Guild lvls ( Max: 10 )
+end
+
+--[[
+    entry.vault = {}                                                                                                -- Vault
+    entry.vault[ "money" ][ "gp" ] = 0                                                                              -- Gold in vault
+    entry.vault[ "money" ][ "sp" ] = 0                                                                              -- Silver in vault
+    entry.vault[ "money" ][ "cp" ] = 0                                                                              -- Copper in vault
+    entry.vault[ "weapons" ] = {}                                                                                   -- Weapons in vault
+    entry.vault[ "weapons" ] = {}                                                                                   -- Armor in vault
+    entry.vault[ "materials" ] = {}                                                                                 -- Metarials in vault
+]]--
+
+-----------------------------
+--PLUGIN:getGuild
+-----------------------------
+function PLUGIN:getGuild( netuser )
+    local userID = rust.GetUserID( netuser )
+    for k, v in pairs( self.Guilds) do
+        local guild = table.containsval( v.members , userID )
+        if ( guild ) then local guildname = tostring( k ) return guild, guildname end
+    end
+    return false, nil
+end
+
+-----------------------------
+--PLUGIN:isRival
+-----------------------------
+function PLUGIN:isRival( guild1, guild2 )
+    local war = table.containsval( self.Guilds[ guild1 ].war, guild2)
+    return war
+end
+
+-----------------------------
+--PLUGIN:HasRallyPerk
+-----------------------------
+function PLUGIN:HasRallyPerk( guild )
+    local Rally = table.containsval( self.Guilds[ guild ].activeperks, "rally" )
+    if ( Rally ) then Rally = ( self.Gconfig.calls.rally.requirements.mod * ( self.Guilds[ guild ].glvl - self.Gconfig.calls.rally.requirements.glvl )) end
+    return ( Rally + 1 )
+end
+
+-----------------------------
+--PLUGIN:HasSYGPerk
+-----------------------------
+function PLUGIN:HasSYGPerk( guild )
+    local syg = table.containsval( self.Guilds[ guild ].activeperks, "syg" )
+    if ( syg ) then syg = ( self.Gconfig.calls.rally.requirements.mod * ( self.Guilds[ guild ].glvl - self.Gconfig.calls.syg.requirements.glvl )) end
+    return ( 1 - syg )
 end
 
 -----------------------------
@@ -688,8 +781,43 @@ end
 function PLUGIN:SetDefaultGuildConfig()
 
     self.Gconfig = {}
-    self.Gconfig[ "prices" ][ "create" ] = 25000
-    self.Gconfig[ "" ][ "" ] = 0
+    self.Gconfig[ "prices" ] = {}
+    self.Gconfig[ "prices" ][ "create" ] = 25000                                                                    -- Cost to create a guild
+    self.Gconfig[ "settings" ][ "vault" ][ "req" ] = 2                                                              -- Required guild lvl to create a vault
+    self.Gconfig[ "settings" ][ "vault" ][ "cost" ] = 50000                                                         -- The cost to enable your guild vault                      -    - MISCHA FIX THIS! -    -
+    self.Gconfig[ "settings" ][ "vault" ][ "slots" ] = 30                                                           -- Slots to begin with/ Increase by 10 slots every level
+    self.Gconfig[ "settings" ][ "glvlmodifier" ] = .1                                                               -- Modifies the xp need for next lvl. The highger you go, the easier it gets. .2 is 200% easier
+    self.Gconfig[ "settings" ][ "blockedtags" ] = { "TIT", "SEX", "FU", "FUK", "FUC", "DIK" }                       -- Blocked Guild Tags.
+    self.Gconfig[ "calls" ][ "rally" ] = {}                                                                         -- Raddy ; Increase damage to rival guild members
+    self.Gconfig[ "calls" ][ "rally" ][ "requirements" ] = {}
+    self.Gconfig[ "calls" ][ "rally" ][ "requirements" ][ "cost" ] = 30000
+    self.Gconfig[ "calls" ][ "rally" ][ "requirements" ][ "glvl" ] = 3
+    self.Gconfig[ "calls" ][ "rally" ][ "requirements" ][ "mod" ] = .05
+    self.Gconfig[ "calls" ][ "syg" ] = {}                                                                           -- Stand your Ground ; Decrease damage from rival guild members
+    self.Gconfig[ "calls" ][ "syg" ][ "requirements" ] = {}
+    self.Gconfig[ "calls" ][ "syg" ][ "requirements" ][ "cost" ] = 30000
+    self.Gconfig[ "calls" ][ "syg" ][ "requirements" ][ "glvl" ] = 3
+    self.Gconfig[ "calls" ][ "syg" ][ "requirements" ][ "mod" ] = .05
+    self.Gconfig[ "calls" ][ "scavenger" ] = {}                                                                     -- Scavenger ; Have a chance to get a random drop from a kill ( MPC only )
+    self.Gconfig[ "calls" ][ "scavenger" ][ "requirements" ] = {}
+    self.Gconfig[ "calls" ][ "scavenger" ][ "requirements" ][ "cost" ] = 20000
+    self.Gconfig[ "calls" ][ "scavenger" ][ "requirements" ][ "glvl" ] = 4
+    self.Gconfig[ "calls" ][ "scavenger" ][ "requirements" ][ "mod" ] = .04
+    self.Gconfig[ "calls" ][ "cotw" ] = {}                                                                          -- Call of the Wild ; Increase damage to wildlife
+    self.Gconfig[ "calls" ][ "cotw" ][ "requirements" ] = {}
+    self.Gconfig[ "calls" ][ "cotw" ][ "requirements" ][ "cost" ] = 25000
+    self.Gconfig[ "calls" ][ "cotw" ][ "requirements" ][ "glvl" ] = 2
+    self.Gconfig[ "calls" ][ "cotw" ][ "requirements" ][ "mod" ] = .05
+    self.Gconfig[ "calls" ][ "forglory" ] = {}                                                                      -- For Glory ; Increase guild xp gains
+    self.Gconfig[ "calls" ][ "forglory" ][ "requirements" ] = {}
+    self.Gconfig[ "calls" ][ "forglory" ][ "requirements" ][ "cost" ] = 25000
+    self.Gconfig[ "calls" ][ "forglory" ][ "requirements" ][ "glvl" ] = 2
+    self.Gconfig[ "calls" ][ "forglory" ][ "requirements" ][ "mod" ] = .05
+    -- self.Gconfig[ "calls" ][ "kos" ] = {}                                                                        -- Kill On Sight ; Mark a player and when he gets close to one of your members, they'll be notified.
+    -- self.Gconfig[ "calls" ][ "kos" ][ "requirements" ] = {}                                                      -- Marked player do not know they're marked, unless they have a high int attribute. They have a change to
+    -- self.Gconfig[ "calls" ][ "kos" ][ "requirements" ][ "cost" ] = 25000                                         -- receive a message saying that they're marked.
+    -- self.Gconfig[ "calls" ][ "kos" ][ "requirements" ][ "glvl" ] = 2
+    -- self.Gconfig[ "calls" ][ "kos" ][ "requirements" ][ "mod" ] = 50
 
     config.Save( "carbon_gld_cfg" )
 end
