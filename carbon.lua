@@ -100,12 +100,12 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
     elseif ((args[1]) and (not(args[2]))) then
         local subject = tostring(args[1])
             if (subject == "xp") then
+                local nextLVL = (self.Data.users[netuserID].lvl+1)
+                local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
+                local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.Data.users[netuserID].xp)
                 self:UserMsg( netuser, "Name: " .. tostring( self.Data.users[netuserID].name ))
                 self:UserMsg( netuser, "Level: " .. tostring( self.Data.users[netuserID].lvl ))
-                self:UserMsg( netuser, "Experience: " .. tostring( self.Data.users[netuserID].xp ))
-                local nextLVL = (self.Data.users[netuserID].lvl+1)
-                local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.Data.users[netuserID].xp)
-                self:UserMsg( netuser, "XP to level: " .. tostring( xptoLVL ))
+                self:UserMsg( netuser, "Experience: " .. tostring( self.Data.users[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. xptoLVL .. ")"))
                 self:UserMsg( netuser, "-")
             self:UserMsg( netuser, "Death Penalty: " .. tostring( self.Data.users[netuserID].dp ))
         end
