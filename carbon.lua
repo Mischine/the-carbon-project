@@ -78,6 +78,8 @@ function PLUGIN:Init()
 	self:AddChatCommand("carbon", self.CarbonReload)
     self:AddChatCommand("c", self.cmdCarbon)
 	print( "Carbon Loaded!" )
+
+    timer.Repeat( 1, function() self.rnd = math.rnd( 0, 100 ) end )
 end
 -----------------------------
 -- Chat Commands 
@@ -108,8 +110,8 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
                 self:UserMsg( netuser, "Level: " .. tostring( self.Data.users[netuserID].lvl ))
                 self:UserMsg( netuser, "Experience: " .. tostring( self.Data.users[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
                 self:UserMsg( netuser, "-")
-            self:UserMsg( netuser, "Death Penalty: " .. tostring( self.Data.users[netuserID].dp ))
-        end
+                self:UserMsg( netuser, "Death Penalty: " .. tostring( self.Data.users[netuserID].dp ))
+            end
     elseif(( args[1] ) and ( args[2] )) then
         local subject = tostring(args[1])
         local value = (args[2])
@@ -153,7 +155,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
             if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
 
 
-                 if (netuserdata) then
+                if (netuserdata) then
                     self:GiveXp( netuser, tonumber(math.floor(self.Data.users[vicuserID].xp*self.Config.settings.pkxppercent/100)))
                 end
                 if (vicuserdata) then
@@ -575,7 +577,6 @@ end
 -----------------------------
 function PLUGIN:SetDefaultConfig()
 
-
 		self.Config.npc.ZombieNPC_SLOW = {}
 			self.Config.npc.ZombieNPC_SLOW.id =  "ZombieNPC_SLOW"
 			self.Config.npc.ZombieNPC_SLOW.ctrl =  "ZombieController"
@@ -674,9 +675,6 @@ function PLUGIN:SetDefaultConfig()
 
     self:ConfigSave()
 end
-
-
-
 
 -----------------------------
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
