@@ -2,7 +2,7 @@ PLUGIN.Title = "Carbon"
 PLUGIN.Description = "experience. levels. skills. rewards."
 PLUGIN.Version = "1.0.4a"
 PLUGIN.Author = "Mischa"
---[[-----------< CHANGELOG >------------------
+--[[-----------< CHANGELOG >----------------
 02.18.2014
     CREATED GITHUB
 02.14.14
@@ -56,6 +56,18 @@ function PLUGIN:Init()
     else
         print( "Creating carbon data files..." )
         self.Data = {}
+        self.Data.users = {}
+        self:DataSave()
+    end
+    -- Load the guilds datafile
+    self.DataFile = util.GetDatafile( "carbon_gld_dat" )
+    local gdat_txt = self.DataFile:GetText()
+    if (gdat_txt ~= "") then
+        self.Guilds = json.decode( gdat_txt )
+        print( "Carbon data files loaded!" )
+    else
+        print( "Creating carbon data files..." )
+        self.Guilds = {}
         self.Data.users = {}
         self:DataSave()
     end
