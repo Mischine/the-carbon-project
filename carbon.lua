@@ -105,7 +105,7 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
                 local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.Data.users[netuserID].xp)
                 self:UserMsg( netuser, "Name: " .. tostring( self.Data.users[netuserID].name ))
                 self:UserMsg( netuser, "Level: " .. tostring( self.Data.users[netuserID].lvl ))
-                self:UserMsg( netuser, "Experience: " .. tostring( self.Data.users[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. xptoLVL .. ")"))
+                self:UserMsg( netuser, "Experience: " .. tostring( self.Data.users[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
                 self:UserMsg( netuser, "-")
             self:UserMsg( netuser, "Death Penalty: " .. tostring( self.Data.users[netuserID].dp ))
         end
