@@ -59,6 +59,7 @@ function PLUGIN:Init()
         self.Data.users = {}
         self:DataSave()
     end
+
     -- Load the guilds datafile
     self.DataFile = util.GetDatafile( "carbon_gld_dat" )
     local gdat_txt = self.DataFile:GetText()
