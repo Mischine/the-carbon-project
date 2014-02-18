@@ -48,6 +48,17 @@ function PLUGIN:Init()
     end
 
     -- Load the user datafile
+    self.GconfigFile = util.GetDatafile( "carbon_gld_cfg" )
+    local gcfg_txt = self.GconfigFile:GetText()
+    if (gcfg_txt ~= "") then
+        self.Gconfig = json.decode( gcfg_txt )
+        print( "Carbon config files loaded!" )
+    else
+        self:SetDefaultGuildConfig()
+
+    end
+
+    -- Load the user datafile
     self.DataFile = util.GetDatafile( "carbon_dat" )
     local dat_txt = self.DataFile:GetText()
     if (dat_txt ~= "") then
@@ -61,22 +72,22 @@ function PLUGIN:Init()
     end
 
     -- Load the guilds datafile
-    self.DataFile = util.GetDatafile( "carbon_gld_dat" )
-    local gdat_txt = self.DataFile:GetText()
+    self.GuildsFile = util.GetDatafile( "carbon_gld_dat" )
+    local gdat_txt = self.GuildsFile:GetText()
     if (gdat_txt ~= "") then
         self.Guilds = json.decode( gdat_txt )
-        print( "Carbon data files loaded!" )
+        print( "Carbon guild files loaded!" )
     else
-        print( "Creating carbon data files..." )
+        print( "Creating carbon guilds files..." )
         self.Guilds = {}
-        self.Data.users = {}
-        self:DataSave()
+        self:GuildsSave()
     end
 
 	self:AddChatCommand("x", self.x) --< TEMPORARY INVISIBLE GEAR : REMOVE !!!!!!!!!!!!!
 	self:AddChatCommand("reset", self.SetDefaultConfig)
 	self:AddChatCommand("carbon", self.CarbonReload)
     self:AddChatCommand("c", self.cmdCarbon)
+    self:AddChatCommand("g", self.cmdGuilds)
 	print( "Carbon Loaded!" )
 
     timer.Repeat( 1, function() self.rnd = math.rnd( 0, 100 ) end )
@@ -573,6 +584,117 @@ function PLUGIN:SleeperRadius(pos, point, rad)
 end
 
 -----------------------------
+--PLUGIN:SleeperRadius
+-----------------------------
+function PLUGIN:Guilds( netuser, cmd, args )
+    if( not (args[1] ) ) then
+        self:UserMsg( netuser, tostring("Carbon RPG [ Version " .. tostring(self.Version) .. " ]" ))
+        self:UserMsg( netuser, tostring("Copyright (c) 2014 The Carbon Project. All rights reserved." ))
+        self:UserMsg( netuser, tostring( "-" ))
+        self:UserMsg( netuser, tostring( "/g help" ))
+        self:UserMsg( netuser, tostring( "For more information on a specific command, type help command-name" ))
+        self:UserMsg( netuser, tostring( "create              Creates guild" ))
+        self:UserMsg( netuser, tostring( "delete              Deletes guild" ))
+        self:UserMsg( netuser, tostring( "info                Displays guild's information that you're currently in." ))
+        self:UserMsg( netuser, tostring( "invite              Invite a player to your guild." ))
+        self:UserMsg( netuser, tostring( "kick                Kicks a player from your guild." ))
+        self:UserMsg( netuser, tostring( "war                 Engage in a war with another guild." ))
+        self:UserMsg( netuser, tostring( "rank                View/assign ranks to your guild members" ))
+        return
+    elseif ( tostring( args[1] ) == "create") then
+        -- /g create "Guild Name" "Guild Tag"
+        if(( args[2] ) and ( args[3] )) then
+            local name = tostring( args[2] )
+            local tag = tostring( args[3] )
+            if( string.len( tag ) > 3 ) then rust.Notice( netuser, "Can not compute. Error code number B" ) return end
+            self:CreateGuild( netuser, name, tag )
+        else
+            rust.SendChatToUser( netuser, self.Config.settings.sysname, "/g create \"Guild Name\" \"Guild Tag\" ")
+        end
+
+    elseif ( tostring( args[1] ) == "delete") then
+        -- /g delete
+
+    elseif ( tostring( args[1] ) == "info") then
+        -- /g info
+
+    elseif ( tostring( args[1] ) == "invite") then
+        -- /g invite name
+
+    elseif ( tostring( args[1] ) == "kick") then
+        -- /g kick name
+
+    elseif ( tostring( args[1] ) == "war") then
+        -- /g war guildtag
+
+    elseif ( tostring( args[1] ) == "rank") then
+        -- /g rank list -- shows available ranks
+
+        -- /g rank add 'rank' name -- add a rank to a member
+
+        -- /g rank delete 'rank' name
+
+        -- /g rank create 'rank' -- create a new custom rank
+
+
+    else
+        self:UserMsg( netuser, self.Config.settings.sysname,"Invalid command! Please type /g to view all available guild commands." )
+    end
+end
+
+-----------------------------
+--PLUGIN:CreateGuild
+-----------------------------
+function PLUGIN:CreateGuild( netuser, name, tag )
+    if( self.Guilds[ name ] ) then
+        rust.Notice( netuser, "This guild name is already used." )
+        return
+    end
+    for k, v in pairs( self.Guilds ) do
+        if( self.Guild[ key ].tag == tag ) then rust.Notice( netuser, "This guild tag is already used!" ) return end
+    end
+
+    -- Check if player has enough money.
+    local bal = api.Call( "economy", "getMoney", netuser )
+    if ( bal >= self.Gconfig.prices.create) then
+        rust.Notice( netuser, "Not enough money! Requires: ".. self.CS .. self.Gconfig.prices.create )
+        return
+    else
+        api.Call( "economy", "takeMoneyFrom", netuser, self.Gconfig.prices.create )
+    end
+
+    local entry = {}
+    entry.tag = tostring( tag )                                                                     -- Guild Tag
+    entry.glvl = 1                                                                                  -- Guild Level
+    entry.xp = 0
+    entry.ranks = { "Leader", "Co-Leader", "War-Leader", "Quartermaster", "Assasin", "Member" }     -- Create default Ranks
+    entry.members = {}                                                                              --
+    entry.members[ rust.GetUserID( netuser ) ] = {}
+    entry.members[ rust.GetUserID( netuser ) ][ "name" ] = netuser.displayName
+    entry.members[ rust.GetUserID( netuser ) ][ "rank" ] = "Leader"
+    entry.members[ rust.GetUserID( netuser ) ][ "con" ] = 0
+    entry.vault = {}
+    entry.vault[ "money" ] = 0
+    entry.vault[ "weapons" ] = {}
+    entry.vault[ "materials" ] = {}
+    entry.collect = 0
+    entry.interval = 0
+    entry.gperks = {}
+end
+
+-----------------------------
+--PLUGIN:SetDefaultGuildConfig
+-----------------------------
+function PLUGIN:SetDefaultGuildConfig()
+
+    self.Gconfig = {}
+    self.Gconfig[ "prices" ][ "create" ] = 25000
+    self.Gconfig[ "" ][ "" ] = 0
+
+    config.Save( "carbon_gld_cfg" )
+end
+
+-----------------------------
 --PLUGIN:SetDefaultConfig
 -----------------------------
 function PLUGIN:SetDefaultConfig()
@@ -722,6 +844,7 @@ function PLUGIN:GetUserData( netuser )
     end
     return data
 end
+
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
     self.ConfigFile:Save()
@@ -734,6 +857,12 @@ function PLUGIN:DataSave()
     self:DataUpdate()
 end
 
+function PLUGIN:GuildsSave()
+    self.GuildsFile:SetText( json.encode( self.Guilds, { indent = true } ) )
+    self.GuildsFile:Save()
+    self.GuildsUpdate()
+end
+
 function PLUGIN:ConfigUpdate()
     self.ConfigFile = util.GetDatafile( "carbon_cfg" )
     local txt = self.ConfigFile:GetText()
@@ -744,6 +873,12 @@ function PLUGIN:DataUpdate()
     self.DataFile = util.GetDatafile( "carbon_dat" )
     local txt = self.DataFile:GetText()
     self.Data = json.decode ( txt )
+end
+
+function PLUGIN:GuildsUpdate()
+    self.GuildsFile = util.GetDatafile( "carbon_gld_dat" )
+    local txt = self.GuildsFile:GetText()
+    self.Guilds = json.decode ( txt )
 end
 
 --api.Call( "economy", "takeMoneyFrom", netuser, value )
