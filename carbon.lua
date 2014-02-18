@@ -2,9 +2,7 @@ PLUGIN.Title = "Carbon"
 PLUGIN.Description = "experience. levels. skills. rewards."
 PLUGIN.Version = "1.0.4a"
 PLUGIN.Author = "Mischa"
---[[-----------< CHANGELOG >----------------
---
- ]]
+--[[-----------< CHANGELOG >------------------
 02.18.2014
     CREATED GITHUB
 02.14.14
