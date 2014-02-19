@@ -1,44 +1,28 @@
 PLUGIN.Title = "Carbon"
 PLUGIN.Description = "experience. levels. skills. rewards."
-PLUGIN.Version = "1.0.4a"
+PLUGIN.Version = "1.0.5a"
 PLUGIN.Author = "Mischa"
---[[-----------< CHANGELOG >----------------
-02.18.2014
-    CREATED GITHUB
-02.14.14
-    ADD WEAPON XP SYSTEM AND BONUSES TO DMG PER WEAPON
-02.13.14
-	ADDED: SKILLS TO USERS TABLE (SKILLS HAVE NO SPACES)
-02.12.14
-	ADDED: DAMAGE MODIFIERS FOR NPC
-	ADDED: LEVEL POP UP MESSAGE
-	ADDED: LEVEL SYSTEM MATHEMATICALLY CALCULATED BASED ON XP
-	ADDED: XP POPUP MESSAGE
-	ADDED: XP +/- SYSTEM
-	ADDED: DP +/- SYSTEM
---------------------------------------------
-------------------TODO----------------------
-[ ]ADD DEATH SKILL PENALTIES TO ATTACK AND DEFENSE
-[ ]ADD LEVEL TO UNLOCK SKILLS
-[ ]ADD DEFENSE BONUSES INCREASE FOR LEVEL
-[ ]ADD ATTACK DMG INCREASE FOR LEVEL
-[ ]ADD PERK +/- SYSTEM
-[ ]ADD PERKS AND BONUSES
-[ ]ADD PERK TRAINER SYSTEM
-------------------------------------------]]
+--[[ SPECIAL NOTES
+
+
+
+
+
+--]]
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:Init | http://wiki.rustoxide.com/index.php?title=Hooks/Init
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:Init()
 	print( "Loading Carbon..." )
-
-    -- Load the user datafile
-    self.ConfigFile = util.GetDatafile( "carbon_cfg" )
+    --LOAD/CREATE RPG CFG FILE
+    self.ConfigFile = util.GetDatafile( "carbon_rpg_cfg" )
     local cfg_txt = self.ConfigFile:GetText()
     if (cfg_txt ~= "") then
+        print( "Carbon rpg cfg file loaded!" )
         self.Config = json.decode( cfg_txt )
-        print( "Carbon config files loaded!" )
     else
-        print( "Creating carbon config file..." )
+        print( "Creating carbon rpg cfg file..." )
         self.Config = {}
         self.Config.npc = {}
         self.Config.weapon = {}
@@ -46,58 +30,55 @@ function PLUGIN:Init()
         self.Config.settings = {}
         self:SetDefaultConfig()
     end
-
-    -- Load the user datafile
-    self.GconfigFile = util.GetDatafile( "carbon_gld_cfg" )
-    local gcfg_txt = self.GconfigFile:GetText()
-    if (gcfg_txt ~= "") then
-        self.Gconfig = json.decode( gcfg_txt )
-        print( "Carbon config files loaded!" )
-    else
-        self:SetDefaultGuildConfig()
-
-    end
-
-    -- Load the user datafile
-    self.DataFile = util.GetDatafile( "carbon_dat" )
+    --LOAD/CREATE RPG DATA FILE
+    self.DataFile = util.GetDatafile( "carbon_rpg_dat" )
     local dat_txt = self.DataFile:GetText()
     if (dat_txt ~= "") then
+        print( "Carbon rpg dat file loaded!" )
         self.Data = json.decode( dat_txt )
-        print( "Carbon data files loaded!" )
     else
-        print( "Creating carbon data files..." )
+        print( "Creating carbon rpg dat file..." )
         self.Data = {}
         self.Data.users = {}
         self:DataSave()
     end
-
-    -- Load the guilds datafile
+    --LOAD/CREATE GUILD CFG FILE
+    self.GconfigFile = util.GetDatafile( "carbon_gld_cfg" )
+    local gcfg_txt = self.GconfigFile:GetText()
+    if (gcfg_txt ~= "") then
+        print( "Carbon gld cfg file loaded!" )
+        self.Gconfig = json.decode( gcfg_txt )
+    else
+        print( "Creating carbon gld cfg file..." )
+        self:SetDefaultGuildConfig()
+    end
+    --LOAD/CREATE GUILD DATA FILE
     self.GuildsFile = util.GetDatafile( "carbon_gld_dat" )
     local gdat_txt = self.GuildsFile:GetText()
     if (gdat_txt ~= "") then
+        print( "Carbon gld dat file loaded!" )
         self.Guilds = json.decode( gdat_txt )
-        print( "Carbon guild files loaded!" )
     else
-        print( "Creating carbon guilds files..." )
+        print( "Creating carbon gld dat file..." )
         self.Guilds = {}
         self:GuildsSave()
     end
-
-	self:AddChatCommand("x", self.x) --< TEMPORARY INVISIBLE GEAR : REMOVE !!!!!!!!!!!!!
+    --TEMPORARY INVISIBLE GEAR COMMAND: REMOVE BEFORE RELEASE
+	self:AddChatCommand("x", self.x)
+    --
 	self:AddChatCommand("reset", self.SetDefaultConfig)
 	self:AddChatCommand("carbon", self.CarbonReload)
     self:AddChatCommand("c", self.cmdCarbon)
     self:AddChatCommand("g", self.cmdGuilds)
     self:AddChatCommand("debug", self.cmdDebug)
     self.debugr = false
-	print( "Carbon Loaded!" )
-
     timer.Repeat( 1, function() self.rnd = math.rnd( 0, 100 ) end )
+    print( "Carbon Loaded!" )
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- TURN DEBUG ON OR OFF! DEVELOPERTOOL! DISABLE ON ALPHA!
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdDebug( netuser, cmd , args )
     if( tostring( args[1] )) == "true" then
         self.debugr = true
@@ -108,28 +89,28 @@ function PLUGIN:cmdDebug( netuser, cmd , args )
     end
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- table.containsval - check if the value is in the table [ table.containtsval( table, value ) ]
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function table.containsval(t,cv) for _, v in ipairs(t) do  if v == cv then return true  end  end return nil end
 
------------------------------
--- Chat Commands 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- CARBON CHAT COMMANDS
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdCarbon(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
     if( not (args[1] ) ) then
-        self:UserMsg( netuser,  "Carbon Character [Version " .. tostring(self.Version) .. "]" )
-        self:UserMsg( netuser,  "Copyright (c) 2014 The Carbon Project. All rights reserved." )
-        self:UserMsg( netuser, tostring( "-" ))
-        self:UserMsg( netuser, tostring( "/c help" ))
-        self:UserMsg( netuser, tostring( "For more information on a specific command, type help command-name" ))
-        self:UserMsg( netuser, tostring( "xp                  Displays characters experience, level, and death penalty." ))
-        self:UserMsg( netuser, tostring( "attr                Displays characters attributes." ))
-        self:UserMsg( netuser, tostring( "skills              Displays or modifies character skills." ))
-        self:UserMsg( netuser, tostring( "perks               Displays or changes character perks." ))
-        self:UserMsg( netuser, tostring( "penalty             View your current penalties and effects." ))
-        self:UserMsg( netuser, tostring( "profession          ... coming soon ... " ))
+        rust.SendChatToUser( netuser,  "Carbon Character [Version " .. tostring(self.Version) .. "]" )
+        rust.SendChatToUser( netuser,  "Copyright (c) 2014 The Carbon Project. All rights reserved." )
+        rust.SendChatToUser( netuser, tostring( "-" ))
+        rust.SendChatToUser( netuser, tostring( "/c help" ))
+        rust.SendChatToUser( netuser, tostring( "For more information on a specific command, type help command-name" ))
+        rust.SendChatToUser( netuser, tostring( "xp                  Displays characters experience, level, and death penalty." ))
+        rust.SendChatToUser( netuser, tostring( "attr                Displays characters attributes." ))
+        rust.SendChatToUser( netuser, tostring( "skills              Displays or modifies character skills." ))
+        rust.SendChatToUser( netuser, tostring( "perks               Displays or changes character perks." ))
+        rust.SendChatToUser( netuser, tostring( "penalty             View your current penalties and effects." ))
+        rust.SendChatToUser( netuser, tostring( "profession          ... coming soon ... " ))
         return
 
     elseif ((args[1]) and (not(args[2]))) then
@@ -138,22 +119,21 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
                 local nextLVL = (self.Data.users[netuserID].lvl+1)
                 local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
                 local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.Data.users[netuserID].xp)
-                self:UserMsg( netuser, "Name: " .. tostring( self.Data.users[netuserID].name ))
-                self:UserMsg( netuser, "Level: " .. tostring( self.Data.users[netuserID].lvl ))
-                self:UserMsg( netuser, "Experience: " .. tostring( self.Data.users[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
-                self:UserMsg( netuser, "-")
-                self:UserMsg( netuser, "Death Penalty: " .. tostring( self.Data.users[netuserID].dp ))
+                rust.SendChatToUser( netuser, "Name: " .. tostring( self.Data.users[netuserID].name ))
+                rust.SendChatToUser( netuser, "Level: " .. tostring( self.Data.users[netuserID].lvl ))
+                rust.SendChatToUser( netuser, "Experience: " .. tostring( self.Data.users[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
+                rust.SendChatToUser( netuser, "-")
+                rust.SendChatToUser( netuser, "Death Penalty: " .. tostring( self.Data.users[netuserID].dp ))
             end
     elseif(( args[1] ) and ( args[2] )) then
         local subject = tostring(args[1])
         local value = (args[2])
     end
 end
-function PLUGIN:CarbonReload(  )
-	plugins.Reload( "carbon" )
-	rust.BroadcastChat( "Carbon Reloaded..." )
-end
 
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--TEMPORARY PLUGIN FOR INVISIBILITY GEAR
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:x( netuser, cmd, args )
 	local helmet = rust.GetDatablockByName( "Invisible Helmet" )
 	local vest = rust.GetDatablockByName( "Invisible Vest" )
@@ -167,13 +147,14 @@ function PLUGIN:x( netuser, cmd, args )
 	local invitem4 = inv:AddItemAmount( boots, 1, pref )
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnKilled (takedamage, dmg)
     if(dmg.extraData) then
-        weapon = string.gsub(tostring(dmg.extraData.dataBlock.name), "%s+", "")
+        weapon = tostring(dmg.extraData.dataBlock.name)
     end
+    --IF PLAYER
     if (takedamage:GetComponent( "HumanController" )) then
         local vicuser = dmg.victim.client.netUser
         local vicuserID = rust.GetUserID( vicuser )
@@ -206,22 +187,22 @@ function PLUGIN:OnKilled (takedamage, dmg)
         end
         return
     end
-	local targetXp = 0
+    -- IF NPC
 	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
 	( function ()
         for i, npcController in ipairs(npcController) do
             if (takedamage:GetComponent( npcController )) then
                 local originalName = tostring(dmg.victim.networkView.name)
                 local targetName = string.gsub(originalName, "%(Clone%)", "")
-                targetXp = tonumber(math.floor(self.Config.npc[targetName].xp*self.Config.settings.xpmodifier))
+                local netuser = dmg.attacker.client.netUser
+                local netuserID = rust.GetUserID( netuser )
+                local targetXp = tonumber(math.floor(self.Config.npc[targetName].xp*self.Config.settings.xpmodifier))
+                self:GiveXp( netuser, targetXp, weapon)
             return end --break out of all loops after finding controller type
 		end
 	end )()
-	if (tonumber(targetXp) > 0) then
-		local netuser = dmg.attacker.client.netUser
-		local netuserID = rust.GetUserID( netuser )
-		self:GiveXp( netuser, targetXp, weapon)
-	elseif (string.find(takedamage.gameObject.Name, "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
+    --IF SLEEPER
+	if (string.find(takedamage.gameObject.Name, "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
 		local actorUser = dmg.attacker.client.netUser
 		local coord = actorUser.playerClient.lastKnownPosition
 		local sleepreId = self:SleeperPos(coord)
@@ -234,12 +215,12 @@ function PLUGIN:OnKilled (takedamage, dmg)
     return
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
     if(dmg.extraData) then
-        weapon = string.gsub(tostring(dmg.extraData.dataBlock.name), "%s+", "")
+        weapon = tostring(dmg.extraData.dataBlock.name)
     end
     --if i have death penalty then lower my damage based on what my death penalty's percentage is.
     if ((dmg.attacker.client) and (dmg.victim.networkView.name)) then
@@ -252,7 +233,6 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             dmg.amount = math.ceil(tonumber(dmg.amount - dmgdp))
             if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
         end
-
     end
     --PERK - PARRY
     self:PerkParry(takedamage, dmg)
@@ -299,7 +279,6 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                         damage = damage + ((netuserAGI+netuserLVL)*.3)
                     if (self.debugr == true) then  rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
                     end
-
                     --Crit check
                     local diceRoll = self.rnd
                     if (netuserAGI>0) then
@@ -331,7 +310,6 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                             damage = damage * ddmgmod
                         end
                     end
-
                     --Vic stamina modifier
                     dmg.amount = damage - ((self.Data.users[ vicuserID ].attributes.sta+self.Data.users[ vicuserID ].lvl)*.1)
                     if (self.debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
@@ -353,58 +331,56 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
 	( function ()
         for i, npcController in ipairs(npcController) do
             if (takedamage:GetComponent( npcController )) then
-
-        local netuser = dmg.attacker.client.netUser
-        local netuserID = rust.GetUserID( netuser )
-        if not self.Data.users[ netuserID ].skills[ weapon ] then
-            self.Data.users[ netuserID ].skills[ weapon ] = {}
-            self.Data.users[ netuserID ].skills[ weapon ].xp = 0
-            self.Data.users[ netuserID ].skills[ weapon ].lvl = 0
-        end
-		local originalName = tostring(dmg.victim.networkView.name)
-		local targetName = string.gsub(originalName, "%(Clone%)", "")
-		local targetDmg = self.Config.npc[targetName].dmg
-        local weaponDmg = self.Data.users[netuserID].skills[weapon].lvl*.3
-        local weaponType = self.Config.weapon[ weapon ].type
-        local netuserAGI = tonumber(self.Data.users[ netuserID ].attributes.agi)
-        local netuserSTR = tonumber(self.Data.users[ netuserID ].attributes.str)
-        local netuserLVL = tonumber(self.Data.users[ netuserID ].lvl)
-        --Randomize damage
-        local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
-        --Apply global victim damage modifier
-        local damage = tonumber(damage * targetDmg)
-        --Apply weapon skill bonus
-        local damage = tonumber(damage + weaponDmg)
-        if (self.debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
-        --Apply attribute modifiers
-        if (weaponType == "melee") and (netuserSTR>0) then
-            damage = damage + ((netuserSTR+netuserLVL)*.3)
-            if (self.debugr == true) then rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
-        elseif (weaponType == "ranged" ) and (netuserAGI>0) then
-            damage = damage + ((netuserAGI+netuserLVL)*.3)
-            if (self.debugr == true) then rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
-        end
-        --Crit check
-        local diceRoll = self.rnd
-        if (netuserAGI>0) then
-            if (weaponType == "melee") then
-                if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.002) .. " | " .. tostring(diceRoll)) end
-                if ((netuserAGI+netuserLVL)*.002 >= diceRoll) then
-                    damage = damage * 2
-                    rust.InventoryNotice( netuser, "Critical Hit!" )
+                local netuser = dmg.attacker.client.netUser
+                local netuserID = rust.GetUserID( netuser )
+                if not self.Data.users[ netuserID ].skills[ weapon ] then
+                    self.Data.users[ netuserID ].skills[ weapon ] = {}
+                    self.Data.users[ netuserID ].skills[ weapon ].xp = 0
+                    self.Data.users[ netuserID ].skills[ weapon ].lvl = 0
                 end
-            elseif (weaponType == "ranged") then
-                if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.001) .. " | " .. tostring(diceRoll)) end
-                if ((netuserAGI+netuserLVL)*.001 >= diceRoll) then
-                    damage = damage * 2
-                    rust.InventoryNotice( netuser, "Critical Hit!" )
+                local originalName = tostring(dmg.victim.networkView.name)
+                local targetName = string.gsub(originalName, "%(Clone%)", "")
+                local targetDmg = self.Config.npc[targetName].dmg
+                local weaponDmg = self.Data.users[netuserID].skills[weapon].lvl*.3
+                local weaponType = self.Config.weapon[ weapon ].type
+                local netuserAGI = tonumber(self.Data.users[ netuserID ].attributes.agi)
+                local netuserSTR = tonumber(self.Data.users[ netuserID ].attributes.str)
+                local netuserLVL = tonumber(self.Data.users[ netuserID ].lvl)
+                --Randomize damage
+                local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
+                --Apply global victim damage modifier
+                local damage = tonumber(damage * targetDmg)
+                --Apply weapon skill bonus
+                local damage = tonumber(damage + weaponDmg)
+                if (self.debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
+                --Apply attribute modifiers
+                if (weaponType == "melee") and (netuserSTR>0) then
+                    damage = damage + ((netuserSTR+netuserLVL)*.3)
+                    if (self.debugr == true) then rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
+                elseif (weaponType == "ranged" ) and (netuserAGI>0) then
+                    damage = damage + ((netuserAGI+netuserLVL)*.3)
+                    if (self.debugr == true) then rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
                 end
-            end
-        end
-
-		dmg.amount = damage
-        if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
-        return end
+                --Crit check
+                local diceRoll = self.rnd
+                if (netuserAGI>0) then
+                    if (weaponType == "melee") then
+                        if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.002) .. " | " .. tostring(diceRoll)) end
+                        if ((netuserAGI+netuserLVL)*.002 >= diceRoll) then
+                            damage = damage * 2
+                            rust.InventoryNotice( netuser, "Critical Hit!" )
+                        end
+                    elseif (weaponType == "ranged") then
+                        if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.001) .. " | " .. tostring(diceRoll)) end
+                        if ((netuserAGI+netuserLVL)*.001 >= diceRoll) then
+                            damage = damage * 2
+                            rust.InventoryNotice( netuser, "Critical Hit!" )
+                        end
+                    end
+                end
+                dmg.amount = damage
+                if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
+            return end
         end
     end )()
 	if (string.find(myString, "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
@@ -412,10 +388,10 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
 			--SLEEPER ACTION HERE
         end
     end
-    --rust.BroadcastChat("THIS IS WHAT IM RETURNING: " .. tostring(math.ceil(tonumber(dmg.amount))))
-    --return math.ceil(tonumber(dmg.amount))
-
 end
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:PerkStoneskin
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PerkStoneskin(dmg)
     if ((dmg.victim.client) and (dmg.victim.client ~= dmg.attacker.client)) then
         local vicuser = dmg.victim.client.netUser
@@ -447,6 +423,9 @@ function PLUGIN:PerkStoneskin(dmg)
         end
     end
 end
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:PerkParry
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PerkParry(takedamage, dmg)
     if ((dmg.victim.client) and (dmg.victim.client ~= dmg.attacker.client)) then
         local vicuser = dmg.victim.client.netUser
@@ -479,9 +458,9 @@ function PLUGIN:PerkParry(takedamage, dmg)
         end
     end
 end
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SysMsg | http://wiki.rustoxide.com/index.php?title=Rust/SendChatToUser
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:UserMsg( netuser, msg )
     rust.RunClientCommand(netuser, "chat.add \"" .. self.Config.settings.sysname .. "\" \"" .. util.QuoteSafe(string.format(msg)) .. "\"" )
 end
@@ -495,9 +474,9 @@ end
 function PLUGIN:SysMsg( netuser, msg )
 	rust.BroadcastChat( self.Config.settings.sysname, msg )
 end
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveXp
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GiveXp(netuser, xp, weapon)
 
     local netuserID = rust.GetUserID( netuser )
@@ -529,9 +508,9 @@ function PLUGIN:GiveXp(netuser, xp, weapon)
     end
     self:DataSave()
 end
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveDp
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GiveDp(vicuser, dp)
 
     local vicuserID = rust.GetUserID( vicuser )
@@ -549,9 +528,9 @@ function PLUGIN:GiveDp(vicuser, dp)
     self:DataSave()
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:PlayerLvl
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PlayerLvl(netuser, netuserID, netuserLVL, netuserXP, xp)
 	local netuserLVLx = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserXP+xp))+25))+50)/100)
 	if (netuserLVLx ~= netuserLVL) then
@@ -559,9 +538,9 @@ function PLUGIN:PlayerLvl(netuser, netuserID, netuserLVL, netuserXP, xp)
 		self:UserPopup( netuser, "You are now level " .. netuserLVLx .. "!", 5 )
 	end
 end
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:WeaponLvl
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:WeaponLvl(netuser, netuserID, weaponLVL, weaponXP, weapon, xp)
 	local weaponLVLx = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(weaponXP+xp))+25))+50)/100)
 	if (weaponLVLx ~= weaponLVL) then
@@ -569,9 +548,9 @@ function PLUGIN:WeaponLvl(netuser, netuserID, weaponLVL, weaponXP, weapon, xp)
         timer.Once( 5, function()  self:UserPopup( netuser, "Your skill level has increased!", 5 ) end )
 	end
 end
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SetDpPercent
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SetDpPercent(netuser, percent)
     self:SetDpPercentById(rust.GetUserID( netuser ) ,percent )
     if (percent >= 0 and percent <= 100) then
@@ -579,9 +558,9 @@ function PLUGIN:SetDpPercent(netuser, percent)
 	end
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SetDpPercentById
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SetDpPercentById(netuserID, percent)
     if (percent >= 0 and percent <= 100) then
         if (percent == 0) then
@@ -593,9 +572,9 @@ function PLUGIN:SetDpPercentById(netuserID, percent)
     end
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SleeperPos
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SleeperPos(point)
     for key,value in pairs(self.Config.sleepers.pos) do
         if (self:SleeperRadius(value,point,tonumber(self.Config.settings.sleeperradius))) then
@@ -604,32 +583,32 @@ function PLUGIN:SleeperPos(point)
 	end
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SleeperRadius
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SleeperRadius(pos, point, rad)
 	return (pos.x < point.x + rad and pos.x > point.x - rad)
 	and (pos.y < point.y + rad and pos.y > point.y - rad)
 	and (pos.z < point.z + rad and pos.z > point.z - rad)
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:Guilds commands
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:Guilds( netuser, cmd, args )
     if( not (args[1] ) ) then
-        self:UserMsg( netuser, tostring("Carbon RPG [ Version " .. tostring(self.Version) .. " ]" ))
-        self:UserMsg( netuser, tostring("Copyright (c) 2014 The Carbon Project. All rights reserved." ))
-        self:UserMsg( netuser, tostring( "-" ))
-        self:UserMsg( netuser, tostring( "/g help" ))
-        self:UserMsg( netuser, tostring( "For more information on a specific command, type help command-name" ))
-        self:UserMsg( netuser, tostring( "create              Creates guild" ))
-        self:UserMsg( netuser, tostring( "delete              Deletes guild" ))
-        self:UserMsg( netuser, tostring( "info                Displays guild's information that you're currently in." ))
-        self:UserMsg( netuser, tostring( "invite              Invite a player to your guild." ))
-        self:UserMsg( netuser, tostring( "kick                Kicks a player from your guild." ))
-        self:UserMsg( netuser, tostring( "war                 Engage in a war with another guild." ))
-        self:UserMsg( netuser, tostring( "rank                View/assign ranks to your guild members" ))
+        rust.SendChatToUser( netuser, tostring("Carbon RPG [ Version " .. tostring(self.Version) .. " ]" ))
+        rust.SendChatToUser( netuser, tostring("Copyright (c) 2014 The Carbon Project. All rights reserved." ))
+        rust.SendChatToUser( netuser, tostring( "-" ))
+        rust.SendChatToUser( netuser, tostring( "/g help" ))
+        rust.SendChatToUser( netuser, tostring( "For more information on a specific command, type help command-name" ))
+        rust.SendChatToUser( netuser, tostring( "create              Creates guild" ))
+        rust.SendChatToUser( netuser, tostring( "delete              Deletes guild" ))
+        rust.SendChatToUser( netuser, tostring( "info                Displays guild's information that you're currently in." ))
+        rust.SendChatToUser( netuser, tostring( "invite              Invite a player to your guild." ))
+        rust.SendChatToUser( netuser, tostring( "kick                Kicks a player from your guild." ))
+        rust.SendChatToUser( netuser, tostring( "war                 Engage in a war with another guild." ))
+        rust.SendChatToUser( netuser, tostring( "rank                View/assign ranks to your guild members" ))
         return
     elseif ( tostring( args[1] ) == "create") then
         -- /g create "Guild Name" "Guild Tag"
@@ -682,13 +661,13 @@ function PLUGIN:Guilds( netuser, cmd, args )
         -- /g vault upgrade                         -- Upgrade your vault to the next lvl
 
     else
-        self:UserMsg( netuser, self.Config.settings.sysname,"Invalid command! Please type /g to view all available guild commands." )
+        rust.SendChatToUser( netuser, self.Config.settings.sysname,"Invalid command! Please type /g to view all available guild commands." )
     end
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:CreateGuild
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:CreateGuild( netuser, name, tag )
     if( self.Guilds[ name ] ) then
         rust.Notice( netuser, "This guild name is already used." )
@@ -737,9 +716,9 @@ end
     entry.vault[ "materials" ] = {}                                                                                 -- Metarials in vault
 ]]--
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getGuild
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuild( netuser )
     local userID = rust.GetUserID( netuser )
     for k, v in pairs( self.Guilds) do
@@ -749,35 +728,35 @@ function PLUGIN:getGuild( netuser )
     return false, nil
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:isRival
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:isRival( guild1, guild2 )
     local war = table.containsval( self.Guilds[ guild1 ].war, guild2)
     return war
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:HasRallyPerk
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:HasRallyPerk( guild )
     local Rally = table.containsval( self.Guilds[ guild ].activeperks, "rally" )
     if ( Rally ) then Rally = ( self.Gconfig.calls.rally.requirements.mod * ( self.Guilds[ guild ].glvl - self.Gconfig.calls.rally.requirements.glvl )) end
     return ( Rally + 1 )
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:HasSYGPerk
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:HasSYGPerk( guild )
     local syg = table.containsval( self.Guilds[ guild ].activeperks, "syg" )
     if ( syg ) then syg = ( self.Gconfig.calls.rally.requirements.mod * ( self.Guilds[ guild ].glvl - self.Gconfig.calls.syg.requirements.glvl )) end
     return ( 1 - syg )
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SetDefaultGuildConfig
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SetDefaultGuildConfig()
 
     self.Gconfig = {}
@@ -822,9 +801,9 @@ function PLUGIN:SetDefaultGuildConfig()
     config.Save( "carbon_gld_cfg" )
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SetDefaultConfig
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SetDefaultConfig()
 
 		self.Config.npc.ZombieNPC_SLOW = {}
@@ -904,16 +883,82 @@ function PLUGIN:SetDefaultConfig()
 			self.Config.npc.Rabbit.xp = 5
 			self.Config.npc.Rabbit.dmg = 1
 
-        self.Config.weapon[ "9mmPistol" ] =  {}
-            self.Config.weapon[ "9mmPistol" ].type = "ranged"
+        self.Config.weapon[ "9mm Pistol" ] =  {}
+        self.Config.weapon[ "9mm Pistol" ].type = "c"
+        self.Config.weapon[ "9mm Pistol" ].dmg = 1
+        self.Config.weapon[ "9mm Pistol" ].lvl = 1
 
         self.Config.weapon[ "M4" ] =  {}
-            self.Config.weapon[ "M4" ].type = "ranged"
+        self.Config.weapon[ "M4" ].type = "l"
+        self.Config.weapon[ "M4" ].dmg = 1
+        self.Config.weapon[ "M4" ].lvl = 1
 
-        self.Config.weapon[ "ExplosiveCharge" ] =  {}
-            self.Config.weapon[ "ExplosiveCharge" ].type = "explosive"
+        self.Config.weapon[ "Explosive Charge" ] =  {}
+        self.Config.weapon[ "Explosive Charge" ].type = "e"
+        self.Config.weapon[ "Explosive Charge" ].dmg = 1
+        self.Config.weapon[ "Explosive Charge" ].lvl = 1
 
-		self.Config.settings.dppercent = 5
+        self.Config.weapon[ "F1 Grenade" ] =  {}
+        self.Config.weapon[ "F1 Grenade" ].type = "e"
+        self.Config.weapon[ "F1 Grenade" ].dmg = 1
+        self.Config.weapon[ "F1 Grenade" ].lvl = 1
+
+        self.Config.weapon[ "Hand Cannon" ] =  {}
+        self.Config.weapon[ "Hand Cannon" ].type = "c"
+        self.Config.weapon[ "Hand Cannon" ].dmg = 1
+        self.Config.weapon[ "Hand Cannon" ].lvl = 1
+
+        self.Config.weapon[ "Hatchet" ] =  {}
+        self.Config.weapon[ "Hatchet" ].type = "m"
+        self.Config.weapon[ "Hatchet" ].dmg = 1
+        self.Config.weapon[ "Hatchet" ].lvl = 1
+
+        self.Config.weapon[ "Hunting Bow" ] =  {}
+        self.Config.weapon[ "Hunting Bow" ].type = "l"
+        self.Config.weapon[ "Hunting Bow" ].dmg = 1
+        self.Config.weapon[ "Hunting Bow" ].lvl = 1
+
+        self.Config.weapon[ "MP5A4" ] =  {}
+        self.Config.weapon[ "MP5A4" ].type = "l"
+        self.Config.weapon[ "MP5A4" ].dmg = 1
+        self.Config.weapon[ "MP5A4" ].lvl = 1
+
+        self.Config.weapon[ "P250" ] =  {}
+        self.Config.weapon[ "P250" ].type = "c"
+        self.Config.weapon[ "P250" ].dmg = 1
+        self.Config.weapon[ "P250" ].lvl = 1
+
+        self.Config.weapon[ "Pick Axe" ] =  {}
+        self.Config.weapon[ "Pick Axe" ].type = "m"
+        self.Config.weapon[ "Pick Axe" ].dmg = 1
+        self.Config.weapon[ "Pick Axe" ].lvl = 1
+
+        self.Config.weapon[ "Pipe Shotgun" ] =  {}
+        self.Config.weapon[ "Pipe Shotgun" ].type = "c"
+        self.Config.weapon[ "Pipe Shotgun" ].dmg = 1
+        self.Config.weapon[ "Pipe Shotgun" ].lvl = 1
+
+        self.Config.weapon[ "Revolver" ] =  {}
+        self.Config.weapon[ "Revolver" ].type = "c"
+        self.Config.weapon[ "Revolver" ].dmg = 1
+        self.Config.weapon[ "Revolver" ].lvl = 1
+
+        self.Config.weapon[ "Rock" ] =  {}
+        self.Config.weapon[ "Rock" ].type = "m"
+        self.Config.weapon[ "Rock" ].dmg = 1
+        self.Config.weapon[ "Rock" ].lvl = 1
+
+        self.Config.weapon[ "Shotgun" ] =  {}
+        self.Config.weapon[ "Shotgun" ].type = "c"
+        self.Config.weapon[ "Shotgun" ].dmg = 1
+        self.Config.weapon[ "Shotgun" ].lvl = 1
+
+        self.Config.weapon[ "Stone Hatchet" ] =  {}
+        self.Config.weapon[ "Stone Hatchet" ].type = "m"
+        self.Config.weapon[ "Stone Hatchet" ].dmg = 1
+        self.Config.weapon[ "Stone Hatchet" ].lvl = 1
+
+        self.Config.settings.dppercent = 5
 		self.Config.settings.pkxppercent = 5
 		self.Config.settings.sleeperxppercent = 5 --try to keep this >= the dp percent to prevent exploiting to power level
 		self.Config.settings.sleerperdppecent = 5
@@ -926,16 +971,16 @@ function PLUGIN:SetDefaultConfig()
     self:ConfigSave()
 end
 
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnUserConnect( netuser )
     local data = self:GetUserData( netuser ) -- asks for dat.
 end
 
------------------------------
---PLUGIN:GetUserData
------------------------------
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- PLUGIN:GetUserData
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GetUserData( netuser )
     local netuserID = rust.GetUserID( netuser )
     local data = self.Data.users[ netuserID ] -- checks if data exist
@@ -944,9 +989,10 @@ function PLUGIN:GetUserData( netuser )
         data.id = netuserID
         data.name = name
         data.lvl = 1
-        data.xp = 0
-        data.pp = 0
-        data.dp = 0
+        data.xp = 0 --experience points
+        data.pp = 0 --perk points
+        data.dp = 0 --death penalty
+        data.ap = 0 --attribute points
         data.dmg = 1 --global damage modifier per player 1 = 100% of dmg.amount
         data.attributes = {}
         data.attributes.str = 0 --Damage Bonus Melee = (strength+level)*.3
@@ -954,7 +1000,7 @@ function PLUGIN:GetUserData( netuser )
         data.attributes.sta = 0 --Negates Any Damage Taken = (sta+level)*.1
         data.attributes.int = 0 --Chance to craft/research = (int*5)+(level*.3)
         data.skills = {}
-        local skill = {"9mmPistol", "ExplosiveCharge", "F1Grenade", "HandCannon", "Hatchet", "HuntingBow", "M4", "MP5A4", "P250", "PickAxe", "PipeShotgun", "Revolver", "Rock", "Shotgun", "StoneHatchet"}
+        local skill = {"9mm Pistol", "Explosive Charge", "F1 Grenade", "Hand Cannon", "Hatchet", "Hunting Bow", "M4", "MP5A4", "P250", "Pick Axe", "Pipe Shotgun", "Revolver", "Rock", "Shotgun", "Stone Hatchet"}
         for i, skill in ipairs(skill) do
             data.skills[ skill ] = {}
             data.skills[ skill ].xp = 0
@@ -965,6 +1011,7 @@ function PLUGIN:GetUserData( netuser )
         local perk = {"Parry", "Stoneskin"}
         for i, perk in ipairs(perk) do
             data.perks[ perk ] = {}
+            data.perks[ perk ].mod = 0
             data.perks[ perk ].lvl = 0
         end
         self.Data.users[ netuserID ] = data
@@ -972,41 +1019,43 @@ function PLUGIN:GetUserData( netuser )
     end
     return data
 end
-
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- CONFIG UPDATE AND SAVE
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
     self.ConfigFile:Save()
     self:ConfigUpdate()
 end
-
-function PLUGIN:DataSave()
-    self.DataFile:SetText( json.encode( self.Data, { indent = true } ) )
-    self.DataFile:Save()
-    self:DataUpdate()
-end
-
-function PLUGIN:GuildsSave()
-    self.GuildsFile:SetText( json.encode( self.Guilds, { indent = true } ) )
-    self.GuildsFile:Save()
-    self.GuildsUpdate()
-end
-
 function PLUGIN:ConfigUpdate()
     self.ConfigFile = util.GetDatafile( "carbon_cfg" )
     local txt = self.ConfigFile:GetText()
     self.Config = json.decode ( txt )
 end
-
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- DATA UPDATE AND SAVE
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:DataSave()
+    self.DataFile:SetText( json.encode( self.Data, { indent = true } ) )
+    self.DataFile:Save()
+    self:DataUpdate()
+end
 function PLUGIN:DataUpdate()
     self.DataFile = util.GetDatafile( "carbon_dat" )
     local txt = self.DataFile:GetText()
     self.Data = json.decode ( txt )
 end
-
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- GUILD UPDATE AND SAVE
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:GuildsSave()
+    self.GuildsFile:SetText( json.encode( self.Guilds, { indent = true } ) )
+    self.GuildsFile:Save()
+    self.GuildsUpdate()
+end
 function PLUGIN:GuildsUpdate()
     self.GuildsFile = util.GetDatafile( "carbon_gld_dat" )
     local txt = self.GuildsFile:GetText()
     self.Guilds = json.decode ( txt )
 end
-
 --api.Call( "economy", "takeMoneyFrom", netuser, value )
