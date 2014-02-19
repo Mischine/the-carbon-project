@@ -445,7 +445,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     end
                 end
                 local guild = self:getGuild( netuser )
-                if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. guild  ) end
+                if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. tostring( guild )  ) end
                 if ( guild ) then
                     local cotw = self:hasCOTWPerk( guild )
                     if( cotw ) then
@@ -566,7 +566,7 @@ function PLUGIN:GiveXp(netuser, xp, weapon)
     -- I did it BEFORE the DP check, because you didn't want the guild to suffer from someone's DP.
     local guild = self:getGuild( netuser )
     if( guild ) then
-        local gxp = math.ceil( xp * .1 )
+        local gxp = math.floor( xp * .1 )
         xp = xp - gxp
         self.Guilds[ guild ].xp = self.Guilds[ guild ].xp + gxp
         self:GuildsSave()
@@ -849,8 +849,8 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         timer.Once( 3, function()rust.SendChatToUser( netuser, self.Config.settings.sysname, "Creating guild nameplates..." ) end )
         timer.Once( 6, function()rust.SendChatToUser( netuser, tostring( name ), "Integrating tags..." ) end )
         timer.Once( 9, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Creating " .. tostring( name ) .. " user interface..." ) end )
-        timer.Once( 16, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Feeding chickens..." ) end )
-        timer.Once( 18, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "your guild has been created!" ) end )
+        timer.Once( 16, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Feeding the chickens..." ) end )
+        timer.Once( 18, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Your guild has been created!" ) end )
         timer.Once( 19, function()
         self.Guilds[ name ] = entry                                                                                 -- Add complete table to Guilds file
         self.Data.users[ netuserID ][ "guild" ] = name                                                              -- Add guild to userdata.
@@ -1180,6 +1180,9 @@ function PLUGIN:SetDefaultConfig()
     self:ConfigSave()
 end
 
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnUserChat(netuser, name, msg)
     if ( msg:sub( 1, 1 ) ~= "/" ) then
         local tempstring = string.lower( msg )
@@ -1194,8 +1197,9 @@ function PLUGIN:OnUserChat(netuser, name, msg)
         local guild = self:getGuild( netuser )
         if( guild ) then
             local data = self:getGuildData( guild )
-            local tag = data.tag
-            rust.Notice( netuser, "Gotcha!" )
+            name = data.tag .. " " .. name
+            rust.BroadcastChat( name, msg )
+            return false
         end
     end
 end
