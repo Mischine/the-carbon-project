@@ -371,13 +371,13 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                         if( isRival ) then
                             if (self.debugr == true) then rust.BroadcastChat( tostring( guild ) .. " and " .. tostring( vicguild ) .. " are rivals!" ) end
                            --Att Rally! bonus damage
-                           local dmgmod = self:hasRallyPerk( guild )
+                           local dmgmod = self:hasRallyCall( guild )
                            if( dmgmod ) then
                                if (self.debugr == true) then rust.BroadcastChat("Before Rally Bonus Damage : " .. tostring(damage) .. " || After: " .. tostring( damage * dmgmod )) end
                                 damage = damage * dmgmod
                             end
                             --Vic Stand Your Ground defense bonus
-                            local ddmgmod = self:hasSYGPerk( vicguild )
+                            local ddmgmod = self:hasSYGCall( vicguild )
                             if( ddmgmod ) then
                                 if (self.debugr == true) then rust.BroadcastChat("Before SYG Damage : " .. tostring(damage) .. " || After: " .. tostring( damage * ddmgmod )) end
                                 damage = damage * ddmgmod
@@ -444,7 +444,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             local guild = self:getGuild( netuser )
             if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. tostring( guild )  ) end
             if ( guild ) then
-                local cotw = self:hasCOTWPerk( guild )
+                local cotw = self:hasCOTWCall( guild )
                 if( cotw ) then
                     if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. damage .. " to: " .. damage * cotw .. " || cotwmod: " .. cotw ) end
                     damage = damage * cotw
@@ -740,7 +740,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     if( not (args[1] ) ) then
         rust.SendChatToUser( netuser, self.sysname, tostring("The Carbon Project [ Version " .. tostring(self.Version) .. " ]" ))
         rust.SendChatToUser( netuser, self.sysname, tostring("Copyright (c) 2014 Tempus Forge. All rights reserved." ))
-        rust.SendChatToUser( netuser, self.sysname, " ")
+        rust.SendChatToUser( netuser, " ", " ")
         rust.SendChatToUser( netuser, self.sysname, tostring( "/g help" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "create              Creates guild" ))
@@ -806,7 +806,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, chat, "Guild Tag        : " .. data.tag )
         rust.SendChatToUser( netuser, chat, "Guild Level     : " .. data.glvl )
         rust.SendChatToUser( netuser, chat, "Guild XP          : (" .. data.xp .. "/" .. data.xpforLVL .. ") (+" .. data.xpforLVL - data.xp .. ")" )
-        rust.SendChatToUser( netuser, chat, " " )
+        rust.SendChatToUser( netuser, " ", " " )
         rust.SendChatToUser( netuser, chat, "Guild Leader   : " .. self:getGuildLeader( guild ))
         rust.SendChatToUser( netuser, chat, "Members        : " .. self:count( data.members ))
         if( data.interval >= 10 ) then
@@ -1036,22 +1036,25 @@ function PLUGIN:isRival( guild1, guild2 )
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---PLUGIN:HasRallyPerk
+--PLUGIN:hasRallyCall
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:hasRallyPerk( guild )
+function PLUGIN:hasRallyCall( guild )
     local Rally = table.containsval( self.Guild[ guild ].activeperks, "rally" )
     if ( Rally ) then Rally = ( self.Config.guild.calls.rally.mod * ( self.Guild[ guild ].glvl - self.Config.guild.calls.rally.requirements.glvl )) return ( Rally + 1 ) else return false end
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---PLUGIN:HasSYGPerk
+--PLUGIN:hasSYGCall
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:hasSYGPerk( guild )
+function PLUGIN:hasSYGCall( guild )
     local syg = table.containsval( self.Guild[ guild ].activeperks, "syg" )
     if ( syg ) then syg = ( self.Config.guild.calls.rally.mod * ( self.Guild[ guild ].glvl - self.Config.guild.calls.syg.requirements.glvl )) return ( 1 - syg ) else return false end
 end
 
-function PLUGIN:hasCOTWPerk ( guild )
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:hasCOTWCall
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:hasCOTWCall ( guild )
     local cotw = table.containsval( self.Guild[ guild ].activeperks, "cotw" )
     if ( cotw ) then cotw = ( self.Config.guild.calls.cotw.mod * ( self.Guild[ guild ].glvl - self.Config.guild.calls.cotw.requirements.glvl + 1 )) return ( cotw + 1 ) else return false end
 end
@@ -1125,7 +1128,6 @@ function PLUGIN:SetDefaultConfig()
                     ["kos"]={["requirements"]={["cost"]=25000,["glvl"]=2},["mod"]=50}
                 }
             }
-
         }
     self:ConfigSave()
 end
