@@ -311,6 +311,11 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         weapon = tostring(dmg.extraData.dataBlock.name)
     end
     if (takedamage:GetComponent( "HumanController" )) then
+        if not dmg.attacker.client then
+            rust.BroadcastChat("NPC Attacked you!")
+        end
+    end
+    if (takedamage:GetComponent( "HumanController" )) then
         if(dmg.victim.client and dmg.attacker.client) then
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
             if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
@@ -334,7 +339,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     end
                     local weaponDMG = self.User[netuserID].skills[weapon].lvl*0.3
                     --PERK PARRY
-                    self:perkParry(takedamage, dmg)
+                    self:perkParry(takedamage, dmg, vicuser, vicuserID)
                     --DEATH PENALTY MODIFIER
                     self:modifyDP(netuserDP, netuserID)
                     --RANDOMIZE DMG
@@ -380,17 +385,16 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     --VICTIM: STONESKIN MODIFIER
                     self:perkStoneskin(dmg)
                     if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage after Stoneskin: " .. tostring(dmg.amount)) end
-                    --END ADJUST ATTACKER DAMAGE
+                    return dmg
                 end
             end
             if(isSamePlayer and self.Config.suicide) then
                 --SUICIDE ACTION HERE
-                return
+                return dmg
             end
         end
-        return dmg
     end
-	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
+	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI' }
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
             local netuser = dmg.attacker.client.netUser
@@ -437,11 +441,13 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             end
             dmg.amount = damage
             if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
-        return end
+        return dmg
+        end
     end
 	if (string.find(tostring(takedamage.gameObject.Name), "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
 		if(sleepreId ~= nil) then
 			--SLEEPER ACTION HERE
+            return dmg
         end
     end
 end
@@ -540,10 +546,8 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:PerkParry
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:perkParry(takedamage, dmg)
-    if ((dmg.victim.client) and (dmg.victim.client ~= dmg.attacker.client)) then
-        local vicuser = dmg.victim.client.netUser
-        local vicuserID = rust.GetUserID( vicuser )
+function PLUGIN:perkParry(takedamage, dmg, vicuser, vicuserID)
+    if ((dmg.victim.client) and (dmg.victim.client ~= dmg.attacker.client) and (self.User[ vicuserID ].perk.Parry)) then
         local vicuserParry = self.User[ vicuserID ].perk.Parry.lvl
         --PARRY
         if (vicuserParry > 0) then
