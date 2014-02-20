@@ -77,7 +77,6 @@ function PLUGIN:Init()
     else
         print( "Creating carbon dat file..." )
         self.User = {}
-        self.User[ "hai" ] = "hai"
         self:UserSave()
     end
     --LOAD/CREATE GUILD DATA FILE
@@ -1178,35 +1177,25 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GetUserData( netuser )
     local netuserID = rust.GetUserID( netuser )
-    --local data = self.User[ netuserID ] -- checks if data exist
-    if (not self.User[ netuserID ]) then -- if not, creates one
-        self["User"]={
-            [netuserID]={
-                ["id"]=netuserID,
-                ["name"]=name,
-                ["lvl"]=1,
-                ["xp"]=0,
-                ["pp"]=0,
-                ["dp"]=0,
-                ["ap"]=0,
-                ["dmg"]=1,
-                ["attributes"] = {
-                    ["str"]=0,--Damage Bonus Melee = (strength+level)*.3
-                    ["agi"]=0,--Damage Bonus Ranged = (agility+level)*.3 | Chance to crit ranged = ((agi+lvl)*.001) | Chance to crit melee = ((agi+lvl)*.002)
-                    ["sta"]=0,--Negates Any Damage Taken = (sta+level)*.1
-                    ["int"]=0,--Chance to craft/research = (int*5)+(level*.3)
-                },
-                ["skills"]={},
-                ["perk"]={},
-                ["stats"]={
-                    ["deaths"]={["pvp"]=0,["pve"]=0},
-                    ["kills"]={["pvp"]=0,["pve"]={["total"]=0}},
-
-                },
-            }
-        }
+    local data = self.User[ netuserID ] -- checks if data exist
+    if (not data ) then -- if not, creates one
+        data = {}
+        data.id = netuserID
+        data.name = name
+        data.lvl = 1
+        data.xp = 0
+        data.pp = 0
+        data.dp = 0
+        data.ap = 0
+        data.dmg = 1
+        data.attributes = {["str"]=0,["agi"]=0,["sta"]=0,["int"]=0}
+        data.skills = {}
+        data.perks = {}
+        data.stats = {["deaths"]={["pvp"]=0,["pve"]=0},["kills"]={["pvp"]=0,["pve"]=0}}
+        self.User[ netuserID ] = data
         self:UserSave()
     end
+    return data
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CONFIG UPDATE AND SAVE
