@@ -27,6 +27,14 @@ PLUGIN.Author = "Mischa & CareX"
                 - checks if you're even in a guild
             - Tested some RPG features, eliminated a bug with the update(). self.Data would get corrupted after a dataupdate.
             - Added Guild Info
+            - Alot of things... xD dunno what anymore
+            - Made the /g help structure.
+            - started on /g invite
+            -
+
+            What you think. /gld instead of /g and make /g guildchat?
+            Also do we want; /p party chat, /d direct chat. etc? or is that post-alpha?
+
 
 --]]
 
@@ -773,7 +781,13 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
 
     elseif ( tostring( args[1] ) == "invite") then
         -- /g invite name                           -- Invite a player to the guild
-
+        local guild = self:getGuild( netuser )
+        local rank1, rank2 = self:hasRank( netuser, guild, "Leader" ), self:hasRank( netuser, guild, "Co-Leader" )          -- When ranks are customizeable, we need to chance this.
+        if( rank1 ) or (rank2) then
+            --
+        else
+            rust.Notice( netuser, "You're not allowed to invite players to the guild!" )
+        end
     elseif ( tostring( args[1] ) == "kick") then
         -- /g kick name                             -- Kick a player from the guild
 
@@ -798,6 +812,19 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
 
         -- /g vault upgrade                         -- Upgrade your vault to the next lvl
 
+    elseif ( tostring( args[1] ) == "help" ) then
+        if( tostring( args[2]) == "create" )then
+        elseif( tostring( args[2] ) == "delete" ) then
+        elseif( tostring( args[2] ) == "info" ) then
+        elseif( tostring( args[2] ) == "stats" ) then
+        elseif( tostring( args[2] ) == "invite" ) then
+        elseif( tostring( args[2] ) == "kick" ) then
+        elseif( tostring( args[2] ) == "war" ) then
+        elseif( tostring( args[2] ) == "rank" ) then
+        elseif( tostring( args[2] ) == "vault" ) then
+        else
+            rust.SendChatToUser( netuser, self.Config.settings.sysname,"Invalid command! Please type /g [ create/delete/info/stats/invite/kick/war/rank/vault ]" )
+        end
     else
         rust.SendChatToUser( netuser, self.Config.settings.sysname,"Invalid command! Please type /g to view all available guild commands." )
     end
