@@ -1,6 +1,6 @@
 PLUGIN.Title = "Carbon"
 PLUGIN.Description = "experience. levels. skills. rewards."
-PLUGIN.Version = "1.0.6a"
+PLUGIN.Version = "0.0.6a"
 PLUGIN.Author = "Mischa & CareX"
 --[[ SPECIAL NOTES
   02.20.2014
@@ -185,7 +185,7 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
     if( not (args[1] ) ) then
         rust.SendChatToUser( netuser, self.sysname,  "The Carbon Project [Version " .. tostring(self.Version) .. "]" )
         rust.SendChatToUser( netuser, self.sysname,  "Copyright (c) 2014 Tempus Forge. All rights reserved." )
-        rust.SendChatToUser( netuser, self.sysname, tostring( "-" ))
+        rust.SendChatToUser( netuser, self.sysname, " ")
         rust.SendChatToUser( netuser, self.sysname, tostring( "/c help" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "xp                  Displays characters experience, level, and death penalty." ))
@@ -273,24 +273,22 @@ function PLUGIN:OnKilled (takedamage, dmg)
     end
     -- IF NPC
 	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
-	( function ()
-        for i, npcController in ipairs(npcController) do
-            if (takedamage:GetComponent( npcController )) then
-                local originalName = tostring(dmg.victim.networkView.name)
-                local targetNAME = string.gsub(originalName, "%(Clone%)", "")
-                local netuser = dmg.attacker.client.netUser
-                local netuserID = rust.GetUserID( netuser )
-                local targetXP = tonumber(math.floor(self.Config.npc[targetNAME].xp*self.Config.settings.xpmodifier))
-                if (not self.User[netuserID].stats.kills.pve[targetNAME]) then
-                    self.User[netuserID].stats.kills.pve[targetNAME] = 1
-                else
-                    self.User[netuserID].stats.kills.pve[targetNAME] = self.User[netuserID].stats.kills.pve[targetNAME]+1
-                end
-                self.User[netuserID].stats.kills.pve.total = tonumber(self.User[netuserID].stats.kills.pve.total+1)
-                self:GiveXp( netuser, targetXP, weapon)
-            return end --break out of all loops after finding controller type
-		end
-	end )()
+    for i, npcController in ipairs(npcController) do
+        if (takedamage:GetComponent( npcController )) then
+            local originalName = tostring(dmg.victim.networkView.name)
+            local targetNAME = string.gsub(originalName, "%(Clone%)", "")
+            local netuser = dmg.attacker.client.netUser
+            local netuserID = rust.GetUserID( netuser )
+            local targetXP = tonumber(math.floor(self.Config.npc[targetNAME].xp*self.Config.settings.xpmodifier))
+            if (not self.User[netuserID].stats.kills.pve[targetNAME]) then
+                self.User[netuserID].stats.kills.pve[targetNAME] = 1
+            else
+                self.User[netuserID].stats.kills.pve[targetNAME] = self.User[netuserID].stats.kills.pve[targetNAME]+1
+            end
+            self.User[netuserID].stats.kills.pve.total = tonumber(self.User[netuserID].stats.kills.pve.total+1)
+            self:GiveXp( netuser, targetXP, weapon)
+        return end --break out of all loops after finding controller type
+    end
     --IF SLEEPER
 	if (string.find(takedamage.gameObject.Name, "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
 		local actorUser = dmg.attacker.client.netUser
@@ -334,25 +332,26 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                         self.User[netuserID].skills[weapon] = {["xp"]=0,["lvl"]=0}
                         self:UserSave()
                     end
-                    local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
+                    local weaponDMG = self.User[netuserID].skills[weapon].lvl*0.3
                     --PERK PARRY
                     self:perkParry(takedamage, dmg)
-                    --MODIFY DMG W/DEATH PENALTY
+                    --DEATH PENALTY MODIFIER
                     self:modifyDP(netuserDP, netuserID)
-                    --RANDOMIZE
-                    local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
+                    --RANDOMIZE DMG
+                    local damage = math.random(dmg.amount*0.5,tonumber(dmg.amount))
                     if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(damage)) end
                     --PLAYER DMG MODIFIER
-                    local damage = tonumber(damage * self.User[ netuserID ].dmg)
+                    local damage = damage*self.User[ netuserID ].dmg
                     if (self.debugr == true) then  rust.BroadcastChat("PLAYER DMG MODIFIER: " .. tostring(damage)) end
-                    --WEAPON SKILL BONUS
-                    local damage = tonumber(damage + weaponDMG)
+                    --WEAPON DMG BONUS
+                    local damage = damage+weaponDMG
                     if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(weaponDMG)) end
-                    --ATTRIBUTE MODIFIERS
+                    --ATTRIBUTE DMG MODIFIER
                     self:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
-                    --CRIT CHECK
+                    --CRIT CHANCE
                     self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
-                    --Guild perk modifiers
+
+                    --GUILD: MODIFIERS
                     local guild = self:getGuild( netuser )
                     local vicguild = self:getGuild( vicuser )
                     if (self.debugr == true) then rust.BroadcastChat( "GUILDS: " .. netuser.displayName .. " : " .. tostring( guild ) .. " || " .. vicuser.displayName .. " : " .. tostring( vicguild )  ) end
@@ -374,10 +373,11 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                             end
                         end
                     end
-                    --Vic stamina modifier
-                    dmg.amount = damage - ((self.User[ vicuserID ].attributes.sta+self.User[ vicuserID ].lvl)*.1)
+
+                    --VICTIM: STAMINA MODIFIER
+                    dmg.amount = damage-((self.User[ vicuserID ].attributes.sta+self.User[vicuserID].lvl)*0.1)
                     if (self.debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
-                    --PERK - STONESKIN
+                    --VICTIM: STONESKIN MODIFIER
                     self:perkStoneskin(dmg)
                     if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage after Stoneskin: " .. tostring(dmg.amount)) end
                     --END ADJUST ATTACKER DAMAGE
@@ -385,63 +385,76 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             end
             if(isSamePlayer and self.Config.suicide) then
                 --SUICIDE ACTION HERE
---------------------------------------------- Extra DP? -- CareX
                 return
             end
         end
         return dmg
     end
-	local myString = takedamage.gameObject.Name
 	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
-	( function ()
-        for i, npcController in ipairs(npcController) do
-            if (takedamage:GetComponent( npcController )) then
-                local netuser = dmg.attacker.client.netUser
-                local netuserID = rust.GetUserID( netuser )
-                if not self.User[ netuserID ].skills[ weapon ] then
-                    self.User[ netuserID ].skills[ weapon ] = {}
-                    self.User[ netuserID ].skills[ weapon ].xp = 0
-                    self.User[ netuserID ].skills[ weapon ].lvl = 0
-                end
-                --local originalName = tostring(dmg.victim.networkView.name)
-                --local targetNAME = string.gsub(originalName, "%(Clone%)", "")
-                local targetNAME = string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")
-                local targetDMG = self.Config.npc[targetNAME].dmg
-                local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
-                local weaponTYPE = self.Config.weapon[ weapon ].type
-                local netuserAGI = self.User[ netuserID ].attributes.agi
-                local netuserSTR = self.User[ netuserID ].attributes.str
-                local netuserLVL = self.User[ netuserID ].lvl
-                local netuserDP = self.User[ netuserID ].dp
-                --MODIFY DMG W/DEATH PENALTY
-                self:modifyDP(netuserDP, netuserID)
-                --Randomize damage
-                local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
-                --Apply global victim damage modifier
-                local damage = tonumber(damage * targetDMG)
-                --Apply weapon skill bonus
-                local damage = tonumber(damage + weaponDMG)
-                if (self.debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
-                --ATTRIBUTE MODIFIERS
-                self:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
-                --CRIT CHECK
-                self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
+    for i, npcController in ipairs(npcController) do
+        if (takedamage:GetComponent( npcController )) then
+            local netuser = dmg.attacker.client.netUser
+            local netuserID = rust.GetUserID( netuser )
+            if not self.User[ netuserID ].skills[ weapon ] then
+                self.User[ netuserID ].skills[ weapon ] = {}
+                self.User[ netuserID ].skills[ weapon ].xp = 0
+                self.User[ netuserID ].skills[ weapon ].lvl = 0
+            end
+            local targetNAME = string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")
+            local targetDMG = self.Config.npc[targetNAME].dmg
+            local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
+            local weaponTYPE = self.Config.weapon[ weapon ].type
+            local netuserAGI = self.User[ netuserID ].attributes.agi
+            local netuserSTR = self.User[ netuserID ].attributes.str
+            local netuserLVL = self.User[ netuserID ].lvl
+            local netuserDP = self.User[ netuserID ].dp
+            --PERK PARRY
+            self:perkParry(takedamage, dmg)
+            --DEATH PENALTY MODIFIER
+            self:modifyDP(netuserDP, netuserID)
+            --RANDOMIZE DMG
+            local damage = math.random(dmg.amount*0.5,tonumber(dmg.amount))
+            if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(damage)) end
+            --PLAYER DMG MODIFIER
+            local damage = damage*self.User[ netuserID ].dmg
+            if (self.debugr == true) then  rust.BroadcastChat("PLAYER DMG MODIFIER: " .. tostring(damage)) end
+            --WEAPON DMG BONUS
+            local damage = damage+weaponDMG
+            if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(weaponDMG)) end
+            --ATTRIBUTE DMG MODIFIER
+            self:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
+            --CRIT CHANCE
+            self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
 
-                local guild = self:getGuild( netuser )
-                if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. tostring( guild )  ) end
-                if ( guild ) then
-                    local cotw = self:hasCOTWPerk( guild )
-                    if( cotw ) then
-                        if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. damage .. " to: " .. damage * cotw .. " || cotwmod: " .. cotw ) end
-                        damage = damage * cotw
-                    end
+
+            --MODIFY DMG W/DEATH PENALTY
+            self:modifyDP(netuserDP, netuserID)
+            --Randomize damage
+            local damage = math.random(dmg.amount*0.5,dmg.amount)
+            --Apply global victim damage modifier
+            local damage = damage*targetDMG
+            --Apply weapon skill bonus
+            local damage = damage+weaponDMG
+            if (self.debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
+            --ATTRIBUTE MODIFIERS
+            self:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
+            --CRIT CHECK
+            self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
+
+            local guild = self:getGuild( netuser )
+            if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. tostring( guild )  ) end
+            if ( guild ) then
+                local cotw = self:hasCOTWPerk( guild )
+                if( cotw ) then
+                    if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. damage .. " to: " .. damage * cotw .. " || cotwmod: " .. cotw ) end
+                    damage = damage * cotw
                 end
-                dmg.amount = damage
-                if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
-            return end
-        end
-    end )()
-	if (string.find(myString, "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
+            end
+            dmg.amount = damage
+            if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
+        return end
+    end
+	if (string.find(tostring(takedamage.gameObject.Name), "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
 		if(sleepreId ~= nil) then
 			--SLEEPER ACTION HERE
         end
@@ -466,9 +479,9 @@ end
 --Adjust damage per death penalty
 function PLUGIN:modifyDP(netuserDP, netuserID)
     if (netuserDP > 0) then
-        local dppercentage = netuserDP / self.User[ netuserID ].xp
-        local dmgdp = tonumber(dmg.amount * dppercentage)
-        dmg.amount = math.ceil(tonumber(dmg.amount - dmgdp))
+        local dppercentage = netuserDP/self.User[netuserID].xp
+        local dmgdp = dmg.amount*dppercentage
+        dmg.amount = math.ceil(tonumber(dmg.amount-dmgdp))
         if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
     end
 end
@@ -710,7 +723,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     if( not (args[1] ) ) then
         rust.SendChatToUser( netuser, self.sysname, tostring("The Carbon Project [ Version " .. tostring(self.Version) .. " ]" ))
         rust.SendChatToUser( netuser, self.sysname, tostring("Copyright (c) 2014 Tempus Forge. All rights reserved." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "-" ))
+        rust.SendChatToUser( netuser, self.sysname, " ")
         rust.SendChatToUser( netuser, self.sysname, tostring( "/g help" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "create              Creates guild" ))
