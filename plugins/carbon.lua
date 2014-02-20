@@ -77,7 +77,7 @@ function PLUGIN:Init()
     else
         print( "Creating carbon dat file..." )
         self.User = {}
-        self.User = {}
+        self.User[ "hai" ] = "hai"
         self:UserSave()
     end
     --LOAD/CREATE GUILD DATA FILE
@@ -92,8 +92,9 @@ function PLUGIN:Init()
         self.Guild[ "temp" ] = {}
         self:GuildSave()
     end
-    sysname = self.Config.settings.sysname
+    self.sysname = self.Config.settings.sysname
     --TEMPORARY INVISIBLE GEAR COMMAND: REMOVE BEFORE RELEASE
+    self:AddChatCommand("cotw", self.addcotw ) -- TESTING ONLY!
 	self:AddChatCommand("x", self.x)
     --
 	self:AddChatCommand("reset", self.SetDefaultConfig)
@@ -101,7 +102,7 @@ function PLUGIN:Init()
     self:AddChatCommand("c", self.cmdCarbon)
     self:AddChatCommand("g", self.cmdGuilds)
     self:AddChatCommand("debug", self.cmdDebug)
-    self:AddChatCommand("cotw", self.addcotw ) -- TESTING ONLY!
+
     self.debugr = false
     self.rnd = 0
     timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
@@ -183,17 +184,17 @@ function PLUGIN:sayTable( table, sep ) local msg = "" local count = #table if( c
 function PLUGIN:cmdCarbon(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
     if( not (args[1] ) ) then
-        rust.SendChatToUser( netuser, sysname,  "The Carbon Project [Version " .. tostring(self.Version) .. "]" )
-        rust.SendChatToUser( netuser, sysname,  "Copyright (c) 2014 Tempus Forge. All rights reserved." )
-        rust.SendChatToUser( netuser, sysname, tostring( "-" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "/c help" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "For more information on a specific command, type help command-name" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "xp                  Displays characters experience, level, and death penalty." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "attr                Displays characters attributes." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "skills              Displays or modifies character skills." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "perks               Displays or changes character perks." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "penalty             View your current penalties and effects." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "profession          ... coming soon ... " ))
+        rust.SendChatToUser( netuser, self.sysname,  "The Carbon Project [Version " .. tostring(self.Version) .. "]" )
+        rust.SendChatToUser( netuser, self.sysname,  "Copyright (c) 2014 Tempus Forge. All rights reserved." )
+        rust.SendChatToUser( netuser, self.sysname, tostring( "-" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "/c help" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "xp                  Displays characters experience, level, and death penalty." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "attr                Displays characters attributes." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "skills              Displays or modifies character skills." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "perks               Displays or changes character perks." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "penalty             View your current penalties and effects." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "profession          ... coming soon ... " ))
         return
 
     elseif ((args[1]) and (not(args[2]))) then
@@ -202,11 +203,11 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
                 local nextLVL = (self.User[netuserID].lvl+1)
                 local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
                 local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.User[netuserID].xp)
-                rust.SendChatToUser( netuser, sysname, "Name: " .. tostring( self.User[netuserID].name ))
-                rust.SendChatToUser( netuser, sysname, "Level: " .. tostring( self.User[netuserID].lvl ))
-                rust.SendChatToUser( netuser, sysname, "Experience: " .. tostring( self.User[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
-                rust.SendChatToUser( netuser, sysname, "-")
-                rust.SendChatToUser( netuser, sysname, "Death Penalty: " .. tostring( self.User[netuserID].dp ))
+                rust.SendChatToUser( netuser, self.sysname, "Name: " .. tostring( self.User[netuserID].name ))
+                rust.SendChatToUser( netuser, self.sysname, "Level: " .. tostring( self.User[netuserID].lvl ))
+                rust.SendChatToUser( netuser, self.sysname, "Experience: " .. tostring( self.User[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
+                rust.SendChatToUser( netuser, self.sysname, "-")
+                rust.SendChatToUser( netuser, self.sysname, "Death Penalty: " .. tostring( self.User[netuserID].dp ))
             end
     elseif(( args[1] ) and ( args[2] )) then
         local subject = tostring(args[1])
@@ -700,18 +701,18 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdGuilds( netuser, cmd, args )
     if( not (args[1] ) ) then
-        rust.SendChatToUser( netuser, sysname, tostring("The Carbon Project [ Version " .. tostring(self.Version) .. " ]" ))
-        rust.SendChatToUser( netuser, sysname, tostring("Copyright (c) 2014 Tempus Forge. All rights reserved." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "-" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "/g help" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "For more information on a specific command, type help command-name" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "create              Creates guild" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "delete               Deletes guild" ))
-        rust.SendChatToUser( netuser, sysname, tostring( "info                   Displays guild's information that you're currently in." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "invite                Invite a player to your guild." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "kick                  Kicks a player from your guild." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "war                    Engage in a war with another guild." ))
-        rust.SendChatToUser( netuser, sysname, tostring( "rank                  View/assign ranks to your guild members" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring("The Carbon Project [ Version " .. tostring(self.Version) .. " ]" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring("Copyright (c) 2014 Tempus Forge. All rights reserved." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "-" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "/g help" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "create              Creates guild" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "delete               Deletes guild" ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "info                   Displays guild's information that you're currently in." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "invite                Invite a player to your guild." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "kick                  Kicks a player from your guild." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "war                    Engage in a war with another guild." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "rank                  View/assign ranks to your guild members" ))
         return
     elseif ( tostring( args[1] ) == "create") then
         -- /g create "Guild Name" "Guild Tag"
@@ -727,7 +728,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             if( string.len( name ) > 15 ) then rust.Notice( netuser, "Guild name is too long! Maximum of 15 characters allowed" ) return end
             self:CreateGuild( netuser, name, tag )
         else
-            rust.SendChatToUser( netuser, sysname, "/g create \"Guild Name\" \"Guild Tag\" ")
+            rust.SendChatToUser( netuser, self.sysname, "/g create \"Guild Name\" \"Guild Tag\" ")
         end
 
     elseif ( tostring( args[1] ) == "delete") then
@@ -742,7 +743,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                 if( rank ) then
                     -- DELETE GUILD
                     self:delGuild( guild )
-                    rust.SendChatToUser( netuser, self.Config.settings.sysname, "Guild disbanned!" )
+                    rust.SendChatToUser( netuser, self.sysname, "Guild disbanned!" )
                 else
                     rust.Notice( netuser, "You're not the guild leader!" )
                     return
@@ -752,7 +753,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                 return
             end
         else
-            rust.SendChatToUser( netuser, sysname, "/g delete \"Guild Name\" \"Guild Tag\" " )
+            rust.SendChatToUser( netuser, self.sysname, "/g delete \"Guild Name\" \"Guild Tag\" " )
         end
     elseif ( tostring( args[1] ) == "info") then
         -- /g info                                  -- Displays general Guild information
@@ -831,10 +832,10 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         elseif( tostring( args[2] ) == "rank" ) then
         elseif( tostring( args[2] ) == "vault" ) then
         else
-            rust.SendChatToUser( netuser, self.Config.settings.sysname,"Invalid command! Please type /g [ create/delete/info/stats/invite/kick/war/rank/vault ]" )
+            rust.SendChatToUser( netuser, self.sysname,"Invalid command! Please type /g [ create/delete/info/stats/invite/kick/war/rank/vault ]" )
         end
     else
-        rust.SendChatToUser( netuser, self.Config.settings.sysname,"Invalid command! Please type /g to view all available guild commands." )
+        rust.SendChatToUser( netuser, self.sysname,"Invalid command! Please type /g to view all available guild commands." )
     end
 end
 
@@ -880,8 +881,8 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.unlockedperks = {}                                                                                        -- Perks are unlocked at certain Guild lvls ( Max: 10 )
     entry.activeperks = {}                                                                                          -- Perks are unlocked at certain Guild lvls ( Max: 10 )
     timer.Once( 1, function()
-        rust.SendChatToUser( netuser, self.Config.settings.sysname, "Creating Guild..." )
-        timer.Once( 3, function()rust.SendChatToUser( netuser, self.Config.settings.sysname, "Creating guild nameplates..." ) end )
+        rust.SendChatToUser( netuser, self.sysname, "Creating Guild..." )
+        timer.Once( 3, function()rust.SendChatToUser( netuser, self.sysname, "Creating guild nameplates..." ) end )
         timer.Once( 6, function()rust.SendChatToUser( netuser, tostring( name ), "Integrating tag..." ) end )
         timer.Once( 9, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Creating " .. tostring( name ) .. " user interface..." ) end )
         timer.Once( 16, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Feeding the chickens..." ) end )
@@ -1079,6 +1080,7 @@ function PLUGIN:SetDefaultConfig()
             ["weapon"]={
                 ["9mm Pistol"]={["type"]="c",["dmg"]=1,["lvl"]=1},
                 ["M4"]={["type"]="l",["dmg"]=1,["lvl"]=1},
+                ["Bolt Action Rifle"]={["type"]="l",["dmg"]=1,["lvl"]=1},
                 ["Explosive Charge"]={["type"]="e",["dmg"]=1,["lvl"]=1},
                 ["F1 Grenade"]={["type"]="e",["dmg"]=1,["lvl"]=1},
                 ["Hand Cannon"]={["type"]="c",["dmg"]=1,["lvl"]=1},
@@ -1095,7 +1097,7 @@ function PLUGIN:SetDefaultConfig()
             },
             ["settings"]={
                 ["filename"]="carbon",
-                ["sysname"]=" ",
+                ["sysname"]="-",
                 ["dppercent"]=5,
                 ["dppercent"]=5,
                 ["sleeperxppercent"]=5,
