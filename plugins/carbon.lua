@@ -3,7 +3,6 @@ PLUGIN.Description = "experience. levels. skills. rewards."
 PLUGIN.Version = "0.0.6a"
 PLUGIN.Author = "Mischa & CareX"
 --[[ SPECIAL NOTES
--- This is my (Mischa's) edit test.
   02.20.2014
   Mischa:
 
@@ -596,7 +595,7 @@ function PLUGIN:GiveXp(netuser, xp, weapon)
     local guild = self:getGuild( netuser )
     if( guild ) then
         local gxp = math.floor( xp * .1 )
-        xp = xp - gxp
+        --xp = xp - gxp --if we want to take from the players xp.
         self.Guild[ guild ].xp = self.Guild[ guild ].xp + gxp
         self:GuildSave()
         rust.InventoryNotice( netuser, "+" .. gxp .. "gxp" )
@@ -1099,7 +1098,6 @@ function PLUGIN:SetDefaultConfig()
                 ["settings"]={
                     ["vault"]={["req"]=2,["cost"]=50000 ,["slots"]=30},
                     ["glvlmodifier"]=.1,
-                    --["blockedtags"]={"TIT","SEX","FU","FUK","FUC","DIK"}
                 },
                 ["calls"]={
                     ["rally"]={["requirements"]={["cost"]=30000,["glvl"]=3},["mod"]=.05},
