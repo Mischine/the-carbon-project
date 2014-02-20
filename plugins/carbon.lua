@@ -16,7 +16,7 @@ PLUGIN.Author = "Mischa & CareX"
             -added: perk system: givePerk, takePerk, perkPerk. ModifyDamage now called self:perkPerk
 
 
-    CHANGELOG: 02.19.2014
+ CHANGELOG: 02.19.2014
  CareX:
             - Added sysname to most of the chats
             - Added delGuild
@@ -1041,7 +1041,7 @@ function PLUGIN:SetDefaultConfig()
             },
             ["settings"]={
                 ["filename"]="carbon",
-                ["sysname"]="-",
+                ["sysname"]=" ",
                 ["dppercent"]=5,
                 ["dppercent"]=5,
                 ["sleeperxppercent"]=5,
