@@ -41,7 +41,8 @@ PLUGIN.Author = "Mischa & CareX"
             - Alot of things... xD dunno what anymore
             - Made the /g help structure.
             - started on /g invite
-            -
+
+            - this is my, CareX, edit test!
 
             What you think. /gld instead of /g and make /g guildchat?
             Also do we want; /p party chat, /d direct chat. etc? or is that post-alpha?
