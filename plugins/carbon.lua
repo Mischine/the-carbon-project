@@ -250,8 +250,8 @@ function PLUGIN:OnKilled (takedamage, dmg)
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
             if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
                 if (netuserdata) then
-                    self:GiveXp( netuser, tonumber(math.floor(self.User[vicuserID].xp*self.Config.settings.pkxppercent/100)))
                     self.User[netuserID].stats.kills.pvp = tonumber(self.User[netuserID].stats.kills.pvp+1)
+                    self:GiveXp( netuser, tonumber(math.floor(self.User[vicuserID].xp*self.Config.settings.pkxppercent/100)))
                 end
                 if (vicuserdata) then
                     self:GiveDp( vicuser, tonumber(math.floor(self.User[vicuserID].xp*self.Config.settings.dppercent/100)))
@@ -282,13 +282,13 @@ function PLUGIN:OnKilled (takedamage, dmg)
                 local netuser = dmg.attacker.client.netUser
                 local netuserID = rust.GetUserID( netuser )
                 local targetXP = tonumber(math.floor(self.Config.npc[targetNAME].xp*self.Config.settings.xpmodifier))
-                self:GiveXp( netuser, targetXP, weapon)
                 if (not self.User[netuserID].stats.kills.pve[targetNAME]) then
-                    self.User[netuserID].stats.kills.pve[targetNAME] = 0
-                elseif (self.User[netuserID].stats.kills.pve[targetNAME]) then
-                    self.User[netuserID].stats.kills.pve[targetNAME] = tonumber(self.User[netuserID].stats.kills.pve[targetNAME]+1)
+                    self.User[netuserID].stats.kills.pve[targetNAME] = 1
+                else
+                    self.User[netuserID].stats.kills.pve[targetNAME] = self.User[netuserID].stats.kills.pve[targetNAME]+1
                 end
                 self.User[netuserID].stats.kills.pve.total = tonumber(self.User[netuserID].stats.kills.pve.total+1)
+                self:GiveXp( netuser, targetXP, weapon)
             return end --break out of all loops after finding controller type
 		end
 	end )()
