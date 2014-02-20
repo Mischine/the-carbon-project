@@ -97,7 +97,7 @@ function PLUGIN:Init()
 	self:AddChatCommand("x", self.x)
     --
 	self:AddChatCommand("reset", self.SetDefaultConfig)
-	self:AddChatCommand("carbon", self.CarbonReload)
+    self:AddChatCommand("reload", self.cmdReload)
     self:AddChatCommand("c", self.cmdCarbon)
     self:AddChatCommand("g", self.cmdGuilds)
     self:AddChatCommand("debug", self.cmdDebug)
@@ -114,6 +114,29 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PostInit()
     self.CS = econ_mod.CurrencySymbol
+end
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- Testing plugin reload!
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function reloadCarbon(carbon)
+    reloadtoken = timer.Once(3,function() reloadtoken = nil  end)
+    print("Carbon reloader initiated.. .")
+    cs.reloadplugin(carbon)
+    local cplugin = plugins.Find(carbon)
+    if cplugin then
+        cplugin:Init()
+        if cplugin.PostInit then cplugin:PostInit() end
+    else
+        return false, "Failed to reload carbon"
+    end
+    print("Carbon reloader complete.")
+    return true, "Carbon reloaded"
+end
+
+function PLUGIN:cmdReload( netuser, cmd, args )
+    if not reloadtoken then
+        local b, str = reloadCarbon("carbon")
+        rust.Notice(netuser,str)     end
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -279,12 +302,16 @@ end
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
-    if(dmg.extraData) then
-        weapon = tostring(dmg.extraData.dataBlock.name)
+    if dmg.victim.client.netUser then local vicuser = dmg.victim.client.netUser local vicuserID = rust.GetUserID( vicuser ) end
+    if dmg.attacker.client.netUser then local netuser = dmg.attacker.client.netUser local netuserID = rust.GetUserID( netuser ) end
+    if(dmg.extraData.dataBlock.name) then local weapon = tostring(dmg.extraData.dataBlock.name)
+        if not self.User[ netuserID ].skills[ weapon ] then
+            self.User[ netuserID ].skills[ weapon ] = {["xp"]=0,["lvl"]=0}
+        end
     end
-    --if i have death penalty then lower my damage based on what my death penalty's percentage is.
+    --MODIFY DMG W/DEATH PENALTY
     self:modifyDP(dmg)
-    --PERK - PARRY
+    --PERK:PARRY
     self:perkParry(takedamage, dmg)
     if (takedamage:GetComponent( "HumanController" )) then
         if(dmg.victim.client and dmg.attacker.client) then
@@ -294,26 +321,18 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 local vicuserID = rust.GetUserID( vicuser )
                 local netuser = dmg.attacker.client.netUser
                 local netuserID = rust.GetUserID( netuser )
-                if not self.User[ netuserID ].skills[ weapon ] then
-                    self.User[ netuserID ].skills[ weapon ] = {}
-                    self.User[ netuserID ].skills[ weapon ].xp = 0
-                    self.User[ netuserID ].skills[ weapon ].lvl = 0
-                end
                 local attackdata = self:GetUserData( netuser )
                 if (attackdata) then
                     --START: ADJUST ATTACKER DAMAGE
-                    local weaponDmg = self.User[netuserID].skills[weapon].lvl*.3
-                    local weaponType = self.Config.weapon[ weapon ].type
-                    local netuserAGI = tonumber(self.User[ netuserID ].attributes.agi)
-                    local netuserSTR = tonumber(self.User[ netuserID ].attributes.str)
-                    local netuserLVL = tonumber(self.User[ netuserID ].lvl)
-                    --Adjust damage per death penalty
-                    if (netuserDP > 0) then
-                        local dppercentage = netuserDP / self.User[ netuserID ].xp
-                        local dmgdp = tonumber(dmg.amount * dppercentage)
-                        dmg.amount = math.ceil(tonumber(dmg.amount - dmgdp))
-                        if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
-                    end
+                    local user = {
+                        ["weaponDmg"]=self.User[netuserID].skills[weapon].lvl*.3,
+                        ["weaponType"]=self.Config.weapon[ weapon ].type,
+                        ["netuserAGI"]=tonumber(self.User[ netuserID ].attributes.agi),
+                        ["netuserSTR"]=tonumber(self.User[ netuserID ].attributes.str),
+                        ["netuserLVL"]=tonumber(self.User[ netuserID ].lvl)
+
+                    }
+
                     --Randomize damage.
                     local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
                     --Multiply damage by players damage modifier
@@ -428,6 +447,17 @@ function PLUGIN:staModify(dmg)
             if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
         end
     end
+end
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:attrModify
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--Adjust damage per death penalty
+function PLUGIN:modifyDP(netuserDP, netuserID)
+if (netuserDP > 0) then
+    local dppercentage = netuserDP / self.User[ netuserID ].xp
+    local dmgdp = tonumber(dmg.amount * dppercentage)
+    dmg.amount = math.ceil(tonumber(dmg.amount - dmgdp))
+    if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:attrModify
@@ -1059,7 +1089,8 @@ function PLUGIN:SetDefaultConfig()
                 ["Stone Hatchet"]={["type"]="m",["dmg"]=1,["lvl"]=1},
             },
             ["settings"]={
-                ["sysname"]="",
+                ["filename"]="carbon",
+                ["sysname"]=" ",
                 ["dppercent"]=5,
                 ["dppercent"]=5,
                 ["sleeperxppercent"]=5,
