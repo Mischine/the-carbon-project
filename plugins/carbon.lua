@@ -1,6 +1,6 @@
 PLUGIN.Title = "Carbon"
 PLUGIN.Description = "experience. levels. skills. rewards."
-PLUGIN.Version = "1.0.5a"
+PLUGIN.Version = "1.0.6a"
 PLUGIN.Author = "Mischa & CareX"
 --[[ SPECIAL NOTES
   02.20.2014
