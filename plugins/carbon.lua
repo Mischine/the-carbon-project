@@ -621,6 +621,15 @@ function PLUGIN:GiveXp(netuser, xp, weapon)
     end
     self:UserSave()
 end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:getLvl
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:getLvl( netuser )
+    local netuserID = rust.GetUserID( netuser )
+    return self.User[ netuserID ].lvl
+end
+
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveDp
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -718,6 +727,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, self.sysname, tostring( "create              Creates guild" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "delete               Deletes guild" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "info                   Displays guild's information that you're currently in." ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( "stats                  Display global statistics of the guild." ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "invite                Invite a player to your guild." ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "kick                  Kicks a player from your guild." ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "war                    Engage in a war with another guild." ))
@@ -726,13 +736,14 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     elseif ( tostring( args[1] ) == "create") then
         -- /g create "Guild Name" "Guild Tag"
         if(( args[2] ) and ( args[3] )) then
+            local lvl = tonumber( self:getLvl( netuser ) )
+            if( not lvl >= 10 ) then rust.Notice( netuser, "level 10 required to create your own guild!" ) return end
             local userID = rust.GetUserID( netuser )
             if( self.User[ userID ].guild ) then rust.Notice( netuser, "You're already in a guild!" ) return end
             local name = tostring( args[2] )
             local tag = tostring( args[3] )
             tag = string.upper( tag )
-            local blocked = table.containsval( self.Config.settings.censor.tag, tag )
-            if( blocked ) then rust.Notice( netuser, "Can not compute. Error code number B" ) return end
+            if( table.containsval( self.Config.settings.censor.tag, tag ) ) then rust.Notice( netuser, "Can not compute. Error code number B" ) return end
             if( string.len( tag ) > 3 ) then rust.Notice( netuser, "Guild tag is too long! Maximum of 3 characters allowed" ) return end
             if( string.len( name ) > 15 ) then rust.Notice( netuser, "Guild name is too long! Maximum of 15 characters allowed" ) return end
             self:CreateGuild( netuser, name, tag )
@@ -740,7 +751,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             rust.SendChatToUser( netuser, self.sysname, "/g create \"Guild Name\" \"Guild Tag\" ")
         end
 
-    elseif ( tostring( args[1] ) == "delete") then
+    elseif ( tostring( args[1] ) == "delete") then  --                                                  [ candelete ]
         -- /g delete GuildTag                       -- Deletes the guild
         if( args[2] and args[3] ) then
             -- Delete guild
@@ -776,7 +787,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, chat, "Guild Tag        : " .. data.tag )
         rust.SendChatToUser( netuser, chat, "Guild Level     : " .. data.glvl )
         rust.SendChatToUser( netuser, chat, "Guild XP          : (" .. data.xp .. "/" .. data.xpforLVL .. ") (+" .. data.xpforLVL - data.xp .. ")" )
-        rust.SendChatToUser( netuser, chat, "-" )
+        rust.SendChatToUser( netuser, chat, " " )
         rust.SendChatToUser( netuser, chat, "Guild Leader   : " .. self:getGuildLeader( guild ))
         rust.SendChatToUser( netuser, chat, "Members        : " .. self:count( data.members ))
         if( data.interval >= 10 ) then
@@ -797,12 +808,12 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, chat, "" )
         rust.SendChatToUser( netuser, chat, "" )
 
-    elseif ( tostring( args[1] ) == "invite") then
+    elseif ( tostring( args[1] ) == "invite") then  --                                                  [ caninvite ]
         -- /g invite name                           -- Invite a player to the guild
         local guild = self:getGuild( netuser )
-        local rank1, rank2 = self:hasRank( netuser, guild, "Leader" ), self:hasRank( netuser, guild, "Co-Leader" )          -- When ranks are customizeable, we need to chance this.
-        if( rank1 ) or (rank2) then
-            --
+        local cando = self:hasAbility( netuser, guild, "caninvite" )
+        if( cando ) then
+            rust.Notice(netuser, "DING!" )
         else
             rust.Notice( netuser, "You're not allowed to invite players to the guild!" )
         end
@@ -815,22 +826,24 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     elseif ( tostring( args[1] ) == "rank") then
         -- /g rank list                             -- Shows available ranks
 
-        -- /g rank add 'rank' name                  -- Add a rank to a member
+        -- /g rank list info                        -- Shows the rank capabilities
 
-        -- /g rank delete 'rank' name               -- Deletes a rank from a member
+        -- /g rank give 'rank' name                 -- Add a rank to a member                           [ canrank ]
 
-        -- /g rank create 'rank'                    -- Create a new custom rank
+        -- /g rank delete 'rank' name               -- Deletes a rank from a member                     [ canrank ]
 
-        -- /g rank edit 'rank'                    -- Create a new custom rank
+        -- /g rank add 'rank'                       -- Create a new custom rank                         [ canrank ]
 
-    elseif ( tostring( args[1] ) == "vault" ) then
-        -- /g vault buy                             -- Buy a vault                                      [ canvault ]
+        -- /g rank edit 'rank'                      -- Create a new custom rank                         [ canrank ]
 
-        -- /g vault add                             -- Add items/money to the guild vault               [ canvault ]
+    elseif ( tostring( args[1] ) == "vault" ) then  --                                                  [ canvault ]
+        -- /g vault buy                             -- Buy a vault
 
-        -- /g vault withdraw                        -- withdraw items/money from the guild vault        [ canvault ]
+        -- /g vault add                             -- Add items/money to the guild vault
 
-        -- /g vault upgrade                         -- Upgrade your vault to the next lvl               [ canvault ]
+        -- /g vault withdraw                        -- withdraw items/money from the guild vault
+
+        -- /g vault upgrade                         -- Upgrade your vault to the next lvl
 
     elseif ( tostring( args[1] ) == "help" ) then
         if( tostring( args[2]) == "create" )then
@@ -843,10 +856,10 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         elseif( tostring( args[2] ) == "rank" ) then
         elseif( tostring( args[2] ) == "vault" ) then
         else
-            rust.SendChatToUser( netuser, self.sysname,"Invalid command! Please type /g [ create/delete/info/stats/invite/kick/war/rank/vault ]" )
+            rust.SendChatToUser( netuser, self.sysname, "Invalid command! Please type /g [ create/delete/info/stats/invite/kick/war/rank/vault ]" )
         end
     else
-        rust.SendChatToUser( netuser, self.sysname,"Invalid command! Please type /g to view all available guild commands." )
+        rust.SendChatToUser( netuser, self.sysname, "Invalid command! Please type /g to view all available guild commands." )
     end
 end
 
@@ -877,8 +890,14 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.tag = "[" .. tag .. "]"                                                                                   -- Guild Tag
     entry.glvl = 1                                                                                                  -- Guild Level
     entry.xp = 0                                                                                                    -- Experience
-    entry.xpforLVL = math.ceil((((2*2)+2)/self.Config.settings.glvlmodifier*100-(2*100)))                          -- xpforLVL
-    entry.ranks = { "Leader", "Co-Leader", "War-Leader", "Quartermaster", "Assasin", "Member" }                     -- Create default Ranks
+    entry.xpforLVL = math.ceil((((2*2)+2)/self.Config.settings.glvlmodifier*100-(2*100)))                           -- xpforLVL
+    entry.ranks = { ["Leader"]={"candelete","caninvite","cankick","canvault","canwar","canrank"},                   -- Create default Ranks
+                    ["Co-Leader"]={"caninvite","cankick","canvault","canwar"},
+                    ["War-Leader"]={"canwar"},
+                    ["Quartermaster"]={"canvault"},
+                    ["Assasin"]={},
+                    ["Member"]={}
+                  }
     entry.members = {}                                                                                              -- Members
     entry.members[ netuserID ] = {}
     entry.members[ netuserID ][ "name" ] = netuser.displayName
@@ -899,8 +918,8 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         timer.Once( 16, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Feeding the chickens..." ) end )
         timer.Once( 18, function()rust.SendChatToUser( netuser, tostring( "[" .. tag .. "] " .. name ), "Your guild has been created!" ) end )
         timer.Once( 19, function()
-        self.Guild[ name ] = entry                                                                                 -- Add complete table to Guilds file
-        self.User[ netuserID ][ "guild" ] = name                                                              -- Add guild to userdata.
+        self.Guild[ name ] = entry                                                                                  -- Add complete table to Guilds file
+        self.User[ netuserID ][ "guild" ] = name                                                                    -- Add guild to userdata.
         self:UserSave()
         self:GuildSave() end)
         end )
@@ -949,6 +968,9 @@ function PLUGIN:getGuildData( guild )
     return data
 end
 
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:getGuildLeader
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuildLeader( guild )
     local data = self:getGuildData( guild )
     for k ,v in pairs( data.members ) do
@@ -956,6 +978,16 @@ function PLUGIN:getGuildLeader( guild )
             return v.name
         end
     end
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:hasAbility
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:hasAbility( netuser, guild, ability )
+    local rank = self:getRank( netuser, guild )
+    local userID = rust.GetUserID( netuser )
+    local val = table.containsval( self.Guild[ guild ].ranks[rank], ability )
+    return val
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -972,7 +1004,7 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getRank( netuser, guild )
     local userID = rust.GetUserID( netuser )
-    local rank = self.Guild[ guild ][ userID ].rank
+    local rank = self.Guild[ guild ].members[ userID ].rank
     return rank
 end
 
