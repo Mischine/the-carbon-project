@@ -408,16 +408,15 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             local netuserSTR = self.User[ netuserID ].attributes.str
             local netuserLVL = self.User[ netuserID ].lvl
             local netuserDP = self.User[ netuserID ].dp
-            --PERK PARRY
-            self:perkParry(takedamage, dmg)
+
             --DEATH PENALTY MODIFIER
             self:modifyDP(netuserDP, netuserID)
             --RANDOMIZE DMG
             local damage = math.random(dmg.amount*0.5,tonumber(dmg.amount))
             if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(damage)) end
-            --PLAYER DMG MODIFIER
-            local damage = damage*self.User[ netuserID ].dmg
-            if (self.debugr == true) then  rust.BroadcastChat("PLAYER DMG MODIFIER: " .. tostring(damage)) end
+            --NPC DMG MODIFIER
+            local damage = damage*targetDMG
+            if (self.debugr == true) then  rust.BroadcastChat("NPC DMG MODIFIER: " .. tostring(damage)) end
             --WEAPON DMG BONUS
             local damage = damage+weaponDMG
             if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(weaponDMG)) end
@@ -426,21 +425,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             --CRIT CHANCE
             self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
 
-
-            --MODIFY DMG W/DEATH PENALTY
-            self:modifyDP(netuserDP, netuserID)
-            --Randomize damage
-            local damage = math.random(dmg.amount*0.5,dmg.amount)
-            --Apply global victim damage modifier
-            local damage = damage*targetDMG
-            --Apply weapon skill bonus
-            local damage = damage+weaponDMG
-            if (self.debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
-            --ATTRIBUTE MODIFIERS
-            self:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
-            --CRIT CHECK
-            self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
-
+            --GUILD STUFF
             local guild = self:getGuild( netuser )
             if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. tostring( guild )  ) end
             if ( guild ) then
