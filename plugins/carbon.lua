@@ -3,6 +3,7 @@ PLUGIN.Description = "experience. levels. skills. rewards."
 PLUGIN.Version = "0.0.6a"
 PLUGIN.Author = "Mischa & CareX"
 --[[ SPECIAL NOTES
+-- This is my (Mischa's) edit test.
   02.20.2014
   Mischa:
 
