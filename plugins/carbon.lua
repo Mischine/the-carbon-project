@@ -646,7 +646,8 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getLvl( netuser )
     local netuserID = rust.GetUserID( netuser )
-    return self.User[ netuserID ].lvl
+    local lvl = self.User[ netuserID ].lvl
+    return lvl
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -756,7 +757,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         -- /g create "Guild Name" "Guild Tag"
         if(( args[2] ) and ( args[3] )) then
             local lvl = tonumber( self:getLvl( netuser ) )
-            if( not lvl >= 10 ) then rust.Notice( netuser, "level 10 required to create your own guild!" ) return end
+            -- if( not ( lvl >= 10 )) then rust.Notice( netuser, "level 10 required to create your own guild!" ) return end
             local userID = rust.GetUserID( netuser )
             if( self.User[ userID ].guild ) then rust.Notice( netuser, "You're already in a guild!" ) return end
             local name = tostring( args[2] )
@@ -797,7 +798,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     elseif ( tostring( args[1] ) == "info") then
         -- /g info                                  -- Displays general Guild information
         local guild = self:getGuild( netuser )
-        if( not guild ) then self.Notice( netuser, "You're not in a guild!" ) return end
+        if( not guild ) then rust.Notice( netuser, "You're not in a guild!" ) return end
         local data = self:getGuildData( guild )
         local chat = ( data.tag .. " " .. guild )
         rust.SendChatToUser( netuser, chat, chat .. "'s Guild Info:" )
@@ -828,19 +829,66 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, chat, "" )
 
     elseif ( tostring( args[1] ) == "invite") then  --                                                  [ caninvite ]
-        -- /g invite name                           -- Invite a player to the guild
+        -- /g invite "name"                         -- Invite a player to the guild
         local guild = self:getGuild( netuser )
         local cando = self:hasAbility( netuser, guild, "caninvite" )
         if( cando ) then
-            rust.Notice(netuser, "DING!" )
+            local targname = tostring( args[ 2 ] )
+            local b, targuser = rust.FindNetUsersByName( targname )
+            if ( not b ) then
+                if( targuser == 0 ) then
+                    rust.Notice( netuser, "No user found with the name: " .. util.QuoteSafe( targname ) )
+                else
+                    rust.Notice( netuser, "Multiple users found with the name: " .. util.QuoteSafe( targname ) )
+                end
+            return end
+            local targuserID = rust.GetUserID( targuser )
+            local members = self:getGuildMembers( guild )
+            table.containsval( members, targuserID )
+            self.Guild.temp[ targuserID ] = guild
+            timer.Once( 60, function()
+                if( self.Guild.temp[ targuserID ]) then
+                    rust.SendChatToUser(targuser, self.sysname, "Invitation to " .. guild .. " expires in 60 seconds" )
+                    timer.Once( 60, function()
+                        if( self.Guild.temp[ targuserID ]) then
+                            rust.SendChatToUser( targuser, self.sysname, "Invatation to " .. guild .. " expired." )
+                            self.Guild.temp[ targuserID ] = nil
+                        end
+                    end)
+                end
+            end)
+            rust.Notice( targuser, "You've been invited to " .. guild .. ". /g accept to join the guild.", 15)
         else
             rust.Notice( netuser, "You're not allowed to invite players to the guild!" )
         end
-    elseif ( tostring( args[1] ) == "kick") then
+    elseif ( tostring( args[1] ) == "accept") then
+        -- /g accept
+        local netuserID = rust.GetUserID( netuser )
+        if( self.Guild.temp[ netuserID ] ) then
+            local guild = self.Guild.temp[ netuserID ]
+            local entry = {}
+            entry.name = netuser.displayName
+            entry.rank = "Member"
+            entry.moncon = 0
+            entry.xpcon = 0
+            self.Guild[ guild ].members[ netuserID ] = entry
+            self.User[ netuserID ][ "guild" ] = guild
+            self:sendGuildMsg( guild, netuser.displayName, "has joined the guild!" )
+            self.Guild.temp[ netuserID ] = nil
+            self:UserSave()
+            self:GuildUser()
+        end
+    elseif ( tostring( args[1] ) == "leave") then
+        -- /g leave guildtag
+
+
+    elseif ( tostring( args[1] ) == "kick") then    --                                                  [ cankick ]
         -- /g kick name                             -- Kick a player from the guild
 
-    elseif ( tostring( args[1] ) == "war") then
+
+    elseif ( tostring( args[1] ) == "war") then     --                                                  [ canwar ]
         -- /g war guildtag                          -- Engage a war with another guild / other guild will be notified.
+
 
     elseif ( tostring( args[1] ) == "rank") then
         -- /g rank list                             -- Shows available ranks
@@ -953,6 +1001,27 @@ end
     entry.vault[ "weapons" ] = {}                                                                                   -- Armor in vault
     entry.vault[ "materials" ] = {}                                                                                 -- Metarials in vault
 ]]--
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:getGuildMembers
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:getGuildMembers( guild )
+    local guilddata = self:getGuildData( guild )
+    local members = guilddata.members
+    return members
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:sendGuildMsg
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:sendGuildMsg( guild, name, msg )
+    local guilddata = self:getGuildData( guild )
+    local members = guilddata.members
+    for k,v in pairs( members ) do
+        local targuser = rust.NetUserFromNetPlayer( k )
+        rust.SendChatToUser( targuser, guilddata.tag .. " " ..v.name, msg )
+    end
+end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:delGuild
@@ -1160,7 +1229,8 @@ end
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnUserConnect( netuser )
-    self:GetUserData( netuser ) -- asks for dat.
+    local data = self:GetUserData( netuser ) -- asks for dat.
+    data.name = netuser.displayName
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1172,14 +1242,15 @@ function PLUGIN:GetUserData( netuser )
     if (not data ) then -- if not, creates one
         data = {}
         data.id = netuserID
-        data.name = name
+        data.name = netuser.displayName
         data.lvl = 1
         data.xp = 0
         data.pp = 0
         data.dp = 0
         data.ap = 0
         data.dmg = 1
-        data.attributes = {["str"]=0,["agi"]=0,["sta"]=0,["int"]=0}
+        data.attributes = {["str"]=0,["agi"]=0,["sta"]=0,["int"]=0 }
+        data.buffs = {}
         data.skills = {}
         data.perks = {}
         data.stats = {["deaths"]={["pvp"]=0,["pve"]=0},["kills"]={["pvp"]=0,["pve"]=0}}
