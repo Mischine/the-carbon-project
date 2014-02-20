@@ -425,7 +425,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             --]]
 
             --DEATH PENALTY MODIFIER
-            self:modifyDP(netuserData.dp, netuserData.id)
+            self:modifyDP(netuserData)
             --RANDOMIZE DMG
             dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))
             if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(dmg.amount)) end
@@ -522,7 +522,7 @@ end
 --PLUGIN:perkStoneskin
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:perkStoneskin(netuser, vicuser, vicuserData)
-    if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perk.Stoneskin)) then
+    if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perks.Stoneskin)) then
         if (vicuserData.perk.Stoneskin.lvl > 0) then
             if (vicuserStoneskin == 1) then
                 dmg.amount = tonumber(dmg.amount - (dmg.amount*.05))
@@ -553,32 +553,32 @@ end
 --PLUGIN:perkParry
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:perkParry(dmg, netuser, vicuser, vicuserData)
-    if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perk.Parry)) then
+    if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perks.Parry)) then
         --PARRY
-        if (vicuserData.perk.Parry.lvl > 0) then
+        if (vicuserData.perks.Parry.lvl > 0) then
             local roll = self.rnd
 
-            if ((vicuserData.perk.Parry.lvl == 1) and (roll <= 3)) then
+            if ((vicuserData.perks.Parry.lvl == 1) and (roll <= 3)) then
                 dmg.amount = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
                 if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 3 > " .. tostring(roll)) end
                 do return end
-            elseif ((vicuserData.perk.Parry.lvl == 2) and (roll <= 6)) then
+            elseif ((vicuserData.perks.Parry.lvl == 2) and (roll <= 6)) then
                 dmg.amount = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
                 if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 6 > " .. tostring(roll)) end
                 do return end
-            elseif ((vicuserData.perk.Parry.lvl == 3) and (roll <= 9)) then
+            elseif ((vicuserData.perks.Parry.lvl == 3) and (roll <= 9)) then
                 dmg.amount = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
                 if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 9 > " .. tostring(roll)) end
                 do return end
-            elseif ((vicuserData.perk.Parry.lvl == 4) and (roll <= 12)) then
+            elseif ((vicuserData.perks.Parry.lvl == 4) and (roll <= 12)) then
                 dmg.amount = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
                 if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 12 > " .. tostring(roll)) end
                 do return end
-            elseif ((vicuserData.perk.Parry.lvl == 5) and (roll <= 15)) then
+            elseif ((vicuserData.perks.Parry.lvl == 5) and (roll <= 15)) then
                 dmg.amount = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
                 if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 15 > " .. tostring(roll)) end
