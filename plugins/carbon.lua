@@ -819,14 +819,16 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
 
         -- /g rank create 'rank'                    -- Create a new custom rank
 
+        -- /g rank edit 'rank'                    -- Create a new custom rank
+
     elseif ( tostring( args[1] ) == "vault" ) then
-        -- /g vault buy                             -- Buy a vault
+        -- /g vault buy                             -- Buy a vault                                      [ canvault ]
 
-        -- /g vault add                             -- Add items/money to the guild vault
+        -- /g vault add                             -- Add items/money to the guild vault               [ canvault ]
 
-        -- /g vault withdraw                        -- withdraw items/money from the guild vault
+        -- /g vault withdraw                        -- withdraw items/money from the guild vault        [ canvault ]
 
-        -- /g vault upgrade                         -- Upgrade your vault to the next lvl
+        -- /g vault upgrade                         -- Upgrade your vault to the next lvl               [ canvault ]
 
     elseif ( tostring( args[1] ) == "help" ) then
         if( tostring( args[2]) == "create" )then
