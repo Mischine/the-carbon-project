@@ -334,6 +334,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     self:modifyDP(netuserDP, netuserID)
                     --RANDOMIZE
                     local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
+                    if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(damage)) end
                     --PLAYER DMG MODIFIER
                     local damage = tonumber(damage * self.User[ netuserID ].dmg)
                     if (self.debugr == true) then  rust.BroadcastChat("PLAYER DMG MODIFIER: " .. tostring(damage)) end
@@ -640,9 +641,9 @@ function PLUGIN:PlayerLvl(netuser, netuserID, netuserLVL, netuserXP, xp)
 	end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:WeaponLvl
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:WeaponLvl(netuser, netuserID, weaponLVL, weaponXP, weapon, xp)
 	local weaponLVLx = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(weaponXP+xp))+25))+50)/100)
 	if (weaponLVLx ~= weaponLVL) then
