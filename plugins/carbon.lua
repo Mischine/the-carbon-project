@@ -276,11 +276,11 @@ function PLUGIN:OnKilled (takedamage, dmg)
         for i, npcController in ipairs(npcController) do
             if (takedamage:GetComponent( npcController )) then
                 local originalName = tostring(dmg.victim.networkView.name)
-                local targetName = string.gsub(originalName, "%(Clone%)", "")
+                local targetNAME = string.gsub(originalName, "%(Clone%)", "")
                 local netuser = dmg.attacker.client.netUser
                 local netuserID = rust.GetUserID( netuser )
-                local targetXp = tonumber(math.floor(self.Config.npc[targetName].xp*self.Config.settings.xpmodifier))
-                self:GiveXp( netuser, targetXp, weapon)
+                local targetXP = tonumber(math.floor(self.Config.npc[targetNAME].xp*self.Config.settings.xpmodifier))
+                self:GiveXp( netuser, targetXP, weapon)
             return end --break out of all loops after finding controller type
 		end
 	end )()
@@ -313,35 +313,37 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 local vicuserID = rust.GetUserID( vicuser )
                 local netuser = dmg.attacker.client.netUser
                 local netuserID = rust.GetUserID( netuser )
-                local attackdata = self:GetUserData( netuser )
-                if (attackdata) then
+                if (self:GetUserData(netuser)) then
                     --START: ADJUST ATTACKER DAMAGE
-                    local weaponDmg = self.User[netuserID].skills[weapon].lvl*.3
-                    local weaponType = self.Config.weapon[ weapon ].type
+                    local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
+                    local weaponTYPE = self.Config.weapon[ weapon ].type
                     local netuserAGI = self.User[ netuserID ].attributes.agi
                     local netuserSTR = self.User[ netuserID ].attributes.str
                     local netuserLVL = self.User[ netuserID ].lvl
                     local netuserDP = self.User[ netuserID ].dp
+                    local netuserDMG = self.User[ netuserID ].dmg
                     --DOES USER HAVE THIS WEAPON SKILL? NO!? OK I'LL ADD IT
                     if (not self.User[netuserID].skills[weapon]) then
                         self.User[netuserID].skills[weapon] = {["xp"]=0,["lvl"]=0}
+                        self:UserSave()
                     end
-                    local weaponDmg = self.User[netuserID].skills[weapon].lvl*.3
+                    local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
                     --PERK PARRY
                     self:perkParry(takedamage, dmg)
                     --MODIFY DMG W/DEATH PENALTY
                     self:modifyDP(netuserDP, netuserID)
-                    --Randomize damage.
+                    --RANDOMIZE
                     local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
-                    --Multiply damage by players damage modifier
+                    --PLAYER DMG MODIFIER
                     local damage = tonumber(damage * self.User[ netuserID ].dmg)
-                    --Weapon skill bonus applied
-                    local damage = tonumber(damage + weaponDmg)
-                    if (self.debugr == true) then  rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
+                    if (self.debugr == true) then  rust.BroadcastChat("PLAYER DMG MODIFIER: " .. tostring(damage)) end
+                    --WEAPON SKILL BONUS
+                    local damage = tonumber(damage + weaponDMG)
+                    if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(weaponDMG)) end
                     --ATTRIBUTE MODIFIERS
-                    self:attrModify(weaponType, netuserSTR, damage, netuserLVL, netuserAGI)
+                    self:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
                     --CRIT CHECK
-                    self:critCheck(netuserAGI, weaponType, netuserLVL, damage, netuser)
+                    self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
                     --Guild perk modifiers
                     local guild = self:getGuild( netuser )
                     local vicguild = self:getGuild( vicuser )
@@ -394,11 +396,11 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     self.User[ netuserID ].skills[ weapon ].lvl = 0
                 end
                 --local originalName = tostring(dmg.victim.networkView.name)
-                --local targetName = string.gsub(originalName, "%(Clone%)", "")
-                local targetName = string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")
-                local targetDmg = self.Config.npc[targetName].dmg
-                local weaponDmg = self.User[netuserID].skills[weapon].lvl*.3
-                local weaponType = self.Config.weapon[ weapon ].type
+                --local targetNAME = string.gsub(originalName, "%(Clone%)", "")
+                local targetNAME = string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")
+                local targetDMG = self.Config.npc[targetNAME].dmg
+                local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
+                local weaponTYPE = self.Config.weapon[ weapon ].type
                 local netuserAGI = self.User[ netuserID ].attributes.agi
                 local netuserSTR = self.User[ netuserID ].attributes.str
                 local netuserLVL = self.User[ netuserID ].lvl
@@ -408,14 +410,14 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 --Randomize damage
                 local damage = math.random(tonumber(dmg.amount*.5),tonumber(dmg.amount))
                 --Apply global victim damage modifier
-                local damage = tonumber(damage * targetDmg)
+                local damage = tonumber(damage * targetDMG)
                 --Apply weapon skill bonus
-                local damage = tonumber(damage + weaponDmg)
+                local damage = tonumber(damage + weaponDMG)
                 if (self.debugr == true) then rust.BroadcastChat("Weapon skill bonus added: " .. tostring(damage)) end
                 --ATTRIBUTE MODIFIERS
-                self:attrModify(weaponType, netuserSTR, damage, netuserLVL, netuserAGI)
+                self:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
                 --CRIT CHECK
-                self:critCheck(netuserAGI, weaponType, netuserLVL, damage, netuser)
+                self:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
 
                 local guild = self:getGuild( netuser )
                 if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. tostring( guild )  ) end
@@ -465,11 +467,11 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:attrModify
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:attrModify(weaponType, netuserSTR, damage, netuserLVL, netuserAGI)
-    if (weaponType == "melee") and (netuserSTR>0) then
+function PLUGIN:attrModify(weaponTYPE, netuserSTR, damage, netuserLVL, netuserAGI)
+    if (weaponTYPE == "melee") and (netuserSTR>0) then
         damage = damage + ((netuserSTR+netuserLVL)*.3)
         if (self.debugr == true) then rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
-    elseif (weaponType == "ranged" ) and (netuserAGI>0) then
+    elseif (weaponTYPE == "ranged" ) and (netuserAGI>0) then
         damage = damage + ((netuserAGI+netuserLVL)*.3)
         if (self.debugr == true) then rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
     end
@@ -477,16 +479,16 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:critCheck
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:critCheck(netuserAGI, weaponType, netuserLVL, damage, netuser)
+function PLUGIN:critCheck(netuserAGI, weaponTYPE, netuserLVL, damage, netuser)
     if (netuserAGI>0) then
         local roll = self.rnd
-        if (weaponType == "melee") then
+        if (weaponTYPE == "melee") then
             if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.002) .. " | " .. tostring(roll)) end
             if ((netuserAGI+netuserLVL)*.002 >= roll) then
                 damage = damage * 2
                 rust.InventoryNotice( netuser, "Critical Hit!" )
             end
-        elseif (weaponType == "ranged") then
+        elseif (weaponTYPE == "ranged") then
             if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserAGI+netuserLVL)*.001) .. " | " .. tostring(roll)) end
             if ((netuserAGI+netuserLVL)*.001 >= roll) then
                 damage = damage * 2
