@@ -132,8 +132,13 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
     if (weapon == "Uber Hatchet") then
         if (status == LifeStatus.WasKilled) then
             damage.status = LifeStatus.IsAlive
-            print( "entity has died but has been resurected!" )
-            damage.amount = 0-1
+            if( damage.victim.client.NetUser ) then
+                if( takedamage.health < 100 ) then
+                    damage.amount = 0-1
+                else
+                    damage.amount = 0
+                end
+            end
         end
     end
 end
@@ -370,10 +375,6 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     --CRIT CHANCE
                     self:critCheck(weaponData, netuser, netuserData, dmg.amount)
 
-                    if (self.debugr == true) then rust.BroadcastChat( "TEMP: " .. tostring( dmg.amount )) end
-
-
-
                     --GUILD: MODIFIERS
                     local guild = self:getGuild( netuser )
                     local vicguild = self:getGuild( vicuser )
@@ -398,16 +399,13 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     end
 
                     --VICTIM: STAMINA MODIFIER
-                    dmg.amount = self:staModify(dmg.amount, vicuserData)
-                    if (self.debugr == true) then rust.BroadcastChat( "TEMP 2: " .. tostring( dmg.amount )) end
-                    --damage = damage-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
+                    -- dmg.amount = self:staModify(dmg.amount, vicuserData) -- BROKEN
+                    damage = damage-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
                     if (self.debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
                     --VICTIM: STONESKIN MODIFIER
                     self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage)
                     if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage after Stoneskin: " .. tostring(dmg.amount)) end
-                    if (self.debugr == true) then rust.BroadcastChat( "TEMP 3: " .. tostring( dmg.amount )) end
                     dmg.amount = damage
-                    if (self.debugr == true) then rust.BroadcastChat( "TEMP 4: " .. tostring( dmg.amount )) end
                     dmg.amount = 20
                     return dmg
                 end
@@ -483,8 +481,8 @@ end
 function PLUGIN:staModify(dmg, vicuserData)
     if (vicuserData.attributes.sta>0) then
         dmg = dmg-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
-        return dmg
     end
+    return dmg
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:modifyDP
