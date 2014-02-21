@@ -757,6 +757,25 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
     elseif(#args==1)then
         rust.Broadcast(tostring(args[1]))
     end
+
+    --[[
+    if ( #args < 2 ) then
+
+    end
+    elseif (args=='help') and (args[2])) then
+        local subject = tostring(args[1]:lower())
+        if (subject == "help") then
+            local nextLVL = (self.User[netuserID].lvl+1)
+            local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
+            local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.User[netuserID].xp)
+            rust.SendChatToUser( netuser, self.sysname, "Name: " .. tostring( self.User[netuserID].name ))
+            rust.SendChatToUser( netuser, self.sysname, "Level: " .. tostring( self.User[netuserID].lvl ))
+            rust.SendChatToUser( netuser, self.sysname, "Experience: " .. tostring( self.User[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
+            rust.SendChatToUser( netuser, self.sysname, "-")
+            rust.SendChatToUser( netuser, self.sysname, "Death Penalty: " .. tostring( self.User[netuserID].dp ))
+        elseif (subject == "help") then
+    end
+    --]]
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdWhisper
