@@ -329,18 +329,17 @@ end
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-     if (self.debugr == true) then  rust.BroadcastChat("damageTypes: " .. tostring(dmg.damageTypes)) end
-     if (self.debugr == true) then  rust.BroadcastChat("sender: " .. tostring(dmg.sender)) end
-     if (self.debugr == true) then  rust.BroadcastChat("extraData " .. tostring(dmg.extraData)) end
+     if (self.debugr == true) then  rust.BroadcastChat('damageTypes: ' .. tostring(dmg.damageTypes)) end
+     if (self.debugr == true) then  rust.BroadcastChat('sender: ' .. tostring(dmg.sender)) end
+     if (self.debugr == true) then  rust.BroadcastChat('extraData ' .. tostring(dmg.extraData)) end
 end
 function PLUGIN:OnHurt (takedamage, dmg)
-    if (self.debugr == true) then  rust.BroadcastChat("OnHurt : " .. tostring(takedamage.extraData)) end
+    if (self.debugr == true) then  rust.BroadcastChat('i am "testing" the apostrophe' .. tostring(takedamage.extraData)) end
 end
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
-    if not dmg.damageTypes
     if(dmg.extraData) then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -349,6 +348,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
             if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
                 if (self:GetUserData(dmg.attacker.client.netUser)) then
+                    if not dmg.damageTypes then return dmg end
                     local netuser = dmg.attacker.client.netUser
                     local netuserData = self.User[rust.GetUserID(netuser)]
                     local vicuser = dmg.victim.client.netUser
