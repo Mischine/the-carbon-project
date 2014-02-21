@@ -359,7 +359,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
                     if (self.debugr == true) then  rust.BroadcastChat("PERK PARRY: " .. tostring(dmg.amount)) end
                     --DEATH PENALTY MODIFIER
-                    dmg.amount = self:modifyDP(netuserData)
+                    dmg.amount = self:modifyDP(netuserData, dmg.amount)
                     if (self.debugr == true) then rust.BroadcastChat("DP MODIFIER: " .. tostring(dmg.amount)) end
                     --RANDOMIZE DMG
                     dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))
