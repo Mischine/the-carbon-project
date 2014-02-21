@@ -6,9 +6,6 @@ PLUGIN.Author = "Mischa & CareX"
   02.20.2014
   Mischa:
 
-            TODO: NOTE!:: WE REALLY NEED TO HAVE ALL THIS ON TRELLO/FORUMS.
-
-
             TODO: ONE SHOT KILL PREVENTION
             TODO: ADD CHARACTER ATTR POINTS AND PERK POINTS GAINS PER LEVEL
             TODO: PERK PARRY: ADD TIMED BUFF TO CRIT 100%
@@ -30,38 +27,51 @@ PLUGIN.Author = "Mischa & CareX"
             -added: perk system: givePerk, takePerk, perkPerk. ModifyDamage now called self:perkPerk
 
 
- CHANGELOG: 02.19.2014
+ CHANGELOG: 02.21.2014
  CareX:
-            - Added sysname to most of the chats
-            - Added delGuild
-            - Redone some of the guild creations. ( check it out, you might know some funny lines to say too )
-            - Added guilds to the userdata. So it's easier to search for guild, dont have to go trough everyguilds members list
-            - Added self.debugr to the guild perks in ModifyDamage()
-            - Redone getGuild()
-            - Added me to the authors! You selfisch mofo! ( I want credits, I like fame. Give money, swag. )
-            - Integrated Market.
-            - self.CS = CurrencySymbol. This CurrencySymbol comes from Market. ( PostInit() )
-            - Tested Guild Creations
-                - Checks to see if you're already in a guild.
-                - Created
-                - "Cannot compute, error number b" works. ( Immature Guild Tags )
-                - Nice creating sequence added. Cus why not?
-            - Tested Guild Deletion
-                - Leader rank required works
-                - Need to type the EXACT guild name AND EXACT guild tag to delete it
-                - checks if you're even in a guild
-            - Tested some RPG features, eliminated a bug with the update(). self.User would get corrupted after a dataupdate.
-            - Added Guild Info
-            - Alot of things... xD dunno what anymore
-            - Made the /g help structure.
-            - started on /g invite
-
-            - this is my, CareX, edit test!
-
-            What you think. /gld instead of /g and make /g guildchat?
-            Also do we want; /p party chat, /d direct chat. etc? or is that post-alpha?
-
-
+            - added: AlphaTXT -- Shows some text what Carbon generally is.
+            - added: OnUserConnect / When a player joins with "[" or a "]" in his name, he will be kicked after 7 seconds. This is so that we can use FindNetusersByName and combat the OnStartCrafting Bug.
+                - not tested tho. Dont know how to changge my ingame name. xD
+            - when requesting guild commands, alot of commands will be left out if you're NOT in a guild. Also extra lines to help create a guild when you're not in a guild
+            - TRELLO UPDATE!
+                - You work faster when you have guidelines, so here; I improved 'le Trello!' ( https://trello.com/b/Y4qZNiwC/carbon )
+                - Added all the TODO lists. ( most of them are updated. You need to rerun those tho )
+                - Added description for MOST of the cards. == You only need to do the Character and the Player Attributes. ( cus yeh, I forgot again what they do. )
+                - Added colorcoding for priority:
+                    - Red: " PRIORITY! "
+                    - Orange: " DO IT NOAW! "
+                    - Yellow: " Meh... Why do it now when you can do it tomorrow? "
+                    - Green: " DUDE! I need to make me a sandwich first, ride my bike. Make a baby, practice alot for maing the 2nd baby. Maybe get some cake, yeh cake would be cool. Watching some House MD. Oh Maybe King Of Thrones rerun!. Yeh lets do that, awesome. Oh maybe code this, meh.. why should I? "
+                - Blue Label: " Testing succesful! "
+                - Purple label : " Informational "
+            note:
+                ALSO MAKE THE TRELLO PRIVATE! We could make a public one later, for bugs and stuff, where they can follow us what we're doing.
+                Or we could eventually make this one public. We don't want them to know what's coming tho! >:)
+            - added: chatcommand /w; /w "name" msg to send a ( online ) player a private message.
+                - failsafe when sending a nil message
+                - complete player check before sending
+                - Guild Tag added (if in guild)
+                - Language control
+                - format: [CIA]CareX [whispers]: Mischa is awesome! { You like the format? }
+                - MAYBE: Maybe add a 'ticket' whisper thingy. So every mod/admin gets to see this message.
+            - added: chatcommand Mail ; features:
+                - you can send mail to any player ( online or offline )
+                - If they're online they get a Notice.
+                - Language control
+                - Cannot send mail to yourself
+                - Nice template for your mail
+                - Shows date/time ( server time ) when it's been send
+                - Alot of failsafes. Tried to break it, I cant :( . You can even do /mail SenD Mischa Haaai!  | I'm awesome
+                - with /mail you can check all your mail, and if you've already read it, then it wont say [ NEW ]. ( just like a real e-mail inbox )
+                - Just need to implement the economy. But I wanna make the new economy first before adding all this stuff. ( this is to prevent people spamming mail )
+                - Maybe later I want to add that you can turn off mail or block people.
+                - Whne you login, it say how many new mails you got.
+                - MAYBE: Maybe add a moderator/admin mail? that any mod/admin can access?
+            - added: function SendMail( toplayerID, fromplayername, datetime, msg, guild[ ifguild ] ) -- This is because other function can send mails.
+            - added: function getGuildTag( netuser )
+            - added: function findIDByName( name ) -- finds a netuserID by name
+            - added: Guild leave. When there are nog more members, it will be disbanned.
+            - added: new forum.
 --]]
 
 
@@ -112,12 +122,17 @@ function PLUGIN:Init()
     self:AddChatCommand("cotw", self.addcotw ) -- TESTING ONLY!
 	self:AddChatCommand("x", self.x)
     --
-	self:AddChatCommand("reset", self.SetDefaultConfig)
-    self:AddChatCommand("reload", self.cmdReload)
-    self:AddChatCommand("c", self.cmdCarbon)
-    self:AddChatCommand("g", self.cmdGuilds)
+
+    self:AddChatCommand( "c", self.cmdCarbon )
+    self:AddChatCommand( "g", self.cmdGuilds )
+    self:AddChatCommand( "w", self.cmdWhisper )
+    self:AddChatCommand( "mail", self.cmdMail )
+    self:AddChatCommand( "alpha", self.AlphaTXT )     -- Alpha welcome text!
+    -----------------------------------------------------------------------------------
     self:AddChatCommand("debug", self.cmdDebug)
     self:AddChatCommand("dump", self.dump)
+    self:AddChatCommand("reset", self.SetDefaultConfig)
+    self:AddChatCommand("reload", self.cmdReload)
 
     self.debugr = false
     self.rnd = 0
@@ -126,6 +141,11 @@ function PLUGIN:Init()
     print( "Carbon Loaded!" )
 end
 
+function PLUGIN:dump( netuser, cmd, args )
+    local tbl = netuser:LoadAvatar()
+    print ( tbl )
+    rust.SendChatToUser( netuser, "x: " .. tostring(tbl.pos.x) .. " y: " .. tostring(tbl.pos.y ))
+end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Loads after all the other plugins are loaded!
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -695,7 +715,7 @@ end
 --PLUGIN:PlayerAp
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PlayerAp(netuser, netuserData, xp)
-    =ROUNDDOWN((SQRT(100*((J14*I16)+25))+50)/100/3)
+    xp = ROUNDDOWN((SQRT(100*((J14*I16)+25))+50)/100/3)         --- I THINK!
     local calcAp = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100/3)
     if (calcLvl ~= netuserData.lvl) then
         netuserData.lvl = calcLvl
@@ -782,6 +802,178 @@ function PLUGIN:SleeperRadius(pos, point, rad)
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:cmdWhisper
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:cmdWhisper( netuser, cmd, args )
+    -- Syntax check
+    if(( not args[1] ) or ( not args[2] )) then rust.SendChatToUser( netuser, self.sysname, "/w \"name\" message " ) return end
+    -- Player check
+    local targname = tostring( args[1] )
+    if( netuser.displayName == targname ) then rust.Notice( netuser, "You cannot whisper to yourself!" ) return end
+    local b, targuser = rust.FindNetUsersByName( targname )
+    if ( not b ) then
+        if( targuser == 0 ) then
+            rust.Notice( netuser, "No user found with the name: " .. util.QuoteSafe( targname ) )
+        else
+            rust.Notice( netuser, "Multiple users found with the name: " .. util.QuoteSafe( targname ) )
+        end
+    return end
+    -- Get guildtag
+    local tag = self:getGuildTag( netuser )
+    local displayname = netuser.displayName .. " [whispers]"
+    if ( tag ) then displayname = tag .. displayname end
+    -- Generating msg
+    local i = 2
+    local msg = ""
+    while ( i <= #args ) do
+        msg = msg .. " " .. args[i]
+        i = i + 1
+    end
+    -- Checking msg for language
+    local tempstring = string.lower( msg )
+    for k, v in ipairs( self.Config.settings.censor.chat ) do
+        local found = string.find( tempstring, v )
+        if ( found ) then
+            rust.Notice( netuser, "Dont swear!" )
+            return
+        end
+    end
+    -- Send message
+    rust.SendChatToUser( targuser, displayname, tostring( msg ))
+    rust.Notice( netuser, "Message send!" )
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:findIDByName
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:findIDByName( name )
+    for k,v in pairs( self.User ) do
+        if ( v.name == name ) then return k end
+    end
+    return false
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:cmdMail
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:cmdMail( netuser, cmd ,args )
+    if( not args[1] ) then                              -- /mail        to check your inbox
+        local netuserID = rust.GetUserID( netuser )
+        if( not self.User[ netuserID ].mail ) then rust.SendChatToUser( netuser, "Mail", "You've no new mail" ) return end
+        rust.SendChatToUser( netuser, " ", " ")
+        rust.SendChatToUser( netuser, "Mail", "Inbox from: " .. util.QuoteSafe(netuser.displayName ))
+        for k, v in pairs( self.User[ netuserID ].mail ) do
+            if( not self.User[ netuserID ].mail[ k ].read ) then
+                rust.SendChatToUser( netuser, "Mail", "[ " .. tostring( k ) .. " ] | [ NEW ] Mail from: " .. v.from)
+            else
+                rust.SendChatToUser( netuser, "Mail", "[ " .. tostring( k ) .. " ] | Mail from: " .. v.from)
+            end
+        end
+    return end
+    local action = string.lower( tostring( args[1] ))
+    if( action == "send" ) then                         -- /mail send "name" msg
+        if(( not args[2] ) or ( not args[3] )) then
+            rust.SendChatToUser( netuser, "Mail", "/mail send \"name\" message " )
+        return end
+        -- Player check
+        -- if( netuser.displayName == tostring( args[2] ) ) then rust.Notice( netuser, "You cannot send mail to yourself!" ) return end
+        local targid = self:findIDByName( tostring( args[2] ))
+        if( not targid ) then rust.Notice( netuser, "No player with the name: " .. tostring( args[2]) .. " found in the database." ) return end
+        -- Get guild
+        local guild = self:getGuild( netuser )
+        -- Generating msg
+        local i = 3
+        local msg = ""
+        while ( i <= #args ) do
+            msg = msg .. " " .. args[i]
+            i = i + 1
+        end
+        -- Checking msg for language
+        local tempstring = string.lower( msg )
+        for k, v in ipairs( self.Config.settings.censor.chat ) do
+            local found = string.find( tempstring, v )
+            if ( found ) then
+                rust.Notice( netuser, "Dont swear!" )
+                return
+            end
+        end
+        -- get date and time / convert to datetime
+        local date = System.DateTime.Now:ToString(self.Config.dateformat)
+        -- send mail
+        if( guild ) then self:sendMail( targid, netuser.displayName, date, msg, guild ) else self:sendMail( targid, netuser.displayName, datetime, msg ) end
+        rust.Notice( netuser, "Mail send to " .. tostring( args[2] ))
+    elseif( action == "read" ) then                             -- /mail read [id]          Read a mail
+        if( not args[2] ) then rust.SendChatToUser( netuser, "Mail", "/mail read [id]" ) return end
+        local netuserID = rust.GetUserID( netuser )
+        local ID = tostring( args[2] )
+        if(( not self.User[ netuserID ].mail ) or ( not self.User[ netuserID ].mail[ ID ] )) then rust.Notice( netuser, "Mail ID not found! ID: " .. ID ) return end
+            local mail = self.User[ netuserID ].mail[ ID ]
+            rust.SendChatToUser( netuser, " ", " ")
+            rust.SendChatToUser( netuser, "Mail", "From        : " .. mail.from  )
+            if( mail.guild ) then rust.SendChatToUser( netuser, "Mail", "Guild         : " .. mail.guild  ) end
+            rust.SendChatToUser( netuser, "Mail", "Date         : " .. mail.date  )
+            rust.SendChatToUser( netuser, "Mail", "Message :" .. mail.msg)
+            self.User[ netuserID ].mail[ ID ].read = true
+    elseif( action == "del" ) then                              -- /mail del [id]           Delete specific message
+        if( not args[2] ) then rust.SendChatToUser( netuser, "Mail", "/mail del [id]" ) return end
+        local ID = tostring( args[2] )
+        local netuserID = rust.GetUserID( netuser )
+        if(( not self.User[ netuserID ].mail ) or ( not self.User[ netuserID ].mail[ ID ] )) then rust.Notice( netuser, "Mail ID not found! ID: " .. ID ) return end
+        self.User[ netuserID ].mail[ID] = nil
+        local count = self:count( self.User[ netuserID ].mail )
+        if ( count <= 0 ) then self.User[ netuserID ].mail = nil end
+        rust.Notice( netuser, "Mail ID " .. ID .. " succesfully deleted!" )
+        self:UserSave()
+    elseif( action == "clear" ) then                            -- /mail clear              Clears whole inbox
+        local netuserID = rust.GetUserID( netuser )
+        if( self.User[ netuserID ].mail ) then
+            self.User[ netuserID ].mail = nil
+            rust.Notice( netuser, "Mail cleared!" )
+        else
+            rust.Notice( netuser, "No mail found!" )
+        end
+    end
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:sendMail
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:sendMail( toplayerID, fromplayername, date, msg, guild )
+    local mail = {}
+    mail.from = util.QuoteSafe( fromplayername )
+    mail.date = date
+    mail.msg = msg
+    mail.read = false
+    if ( guild ) then mail.guild = guild end
+    -- get mail unique mail id
+    if( not self.User[ toplayerID ].mail ) then self.User[ toplayerID ].mail = {} end
+    local i = 0
+    while ( self.User[ toplayerID ].mail[ tostring( i ) ]) do
+        i = i + 1
+    end
+    self.User[ toplayerID ].mail[tostring( i )] = mail
+    -- If online, send inventory notice.
+    local name = self.User[ toplayerID ].name
+    local b, netuser = rust.FindNetUsersByName( name )
+    if ( b ) then rust.InventoryNotice( netuser, "New mail from: " .. util.QuoteSafe( fromplayername )) end
+    -- Save
+    self:UserSave()
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:getGuildTag
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:getGuildTag( netuser )
+    local guild = self:getGuild( netuser )
+    if ( guild ) then
+        local data = self:getGuildData( guild )
+        local tag = data.tag
+        return tag
+    end
+return false
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:Guilds commands
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdGuilds( netuser, cmd, args )
@@ -792,6 +984,12 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, self.sysname, tostring( "/g help" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "create              Creates guild" ))
+        local guild = self:getGuild( netuser )
+        if not guild then
+            rust.SendChatToUser( netuser, " ", " ")
+            rust.SendChatToUser( netuser, self.sysname, tostring( "To create a guild you need a level of 10 or higher." ))
+            rust.SendChatToUser( netuser, self.sysname, tostring( "The cost to create a guild is " .. self.CS .. self.Config.guild.prices.create .. "." ))
+        return end
         rust.SendChatToUser( netuser, self.sysname, tostring( "delete               Deletes guild" ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "info                   Displays guild's information that you're currently in." ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "stats                  Display global statistics of the guild." ))
@@ -866,7 +1064,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, chat, "Active Perks : " .. self:sayTable( data.activeperks, ", " ) )
         rust.SendChatToUser( netuser, chat, "War                   : " .. self:sayTable( data.war, ", " ))
     elseif ( tostring( args[1] ) == "stats") then
-        -- /g stats                                 -- Displays a lists of statistics
+        -- /g stats                                 -- Displays a lists of guild statistics
         local guild = self:getGuild( netuser )
         if( not guild ) then self.Notice( netuser, "You're not in a guild!" ) return end
         local data = self:getGuildData( guild )
@@ -878,6 +1076,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     elseif ( tostring( args[1] ) == "invite") then  --                                                  [ caninvite ]
         -- /g invite "name"                         -- Invite a player to the guild
         local guild = self:getGuild( netuser )
+        if( not guild ) then rust.Notice( netuser, "You're not in a guild! " ) return end
         local cando = self:hasAbility( netuser, guild, "caninvite" )
         if( cando ) then
             local targname = tostring( args[ 2 ] )
@@ -891,20 +1090,23 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             return end
             local targuserID = rust.GetUserID( targuser )
             local members = self:getGuildMembers( guild )
-            table.containsval( members, targuserID )
+            print (tostring( members ))
+            -- if( self.Guild[ guild].members[ targuserID ] ) then rust.Notice( netuser, tostring( targname ) .. " is already in " .. guild ) return end
+            if( self.Guild.temp[ targuserID ] ) then rust.Notice( netuser, targname .. " is alrady invited!" ) return end
             self.Guild.temp[ targuserID ] = guild
             timer.Once( 60, function()
                 if( self.Guild.temp[ targuserID ]) then
                     rust.SendChatToUser(targuser, self.sysname, "Invitation to " .. guild .. " expires in 60 seconds" )
                     timer.Once( 60, function()
                         if( self.Guild.temp[ targuserID ]) then
-                            rust.SendChatToUser( targuser, self.sysname, "Invatation to " .. guild .. " expired." )
+                            rust.SendChatToUser( targuser, self.sysname, "Invitation to " .. guild .. " expired." )
                             self.Guild.temp[ targuserID ] = nil
                         end
                     end)
                 end
             end)
             rust.Notice( targuser, "You've been invited to " .. guild .. ". /g accept to join the guild.", 15)
+            rust.Notice( netuser, "You've invited " .. targname .. " to " .. guild )
         else
             rust.Notice( netuser, "You're not allowed to invite players to the guild!" )
         end
@@ -920,19 +1122,29 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             entry.xpcon = 0
             self.Guild[ guild ].members[ netuserID ] = entry
             self.User[ netuserID ][ "guild" ] = guild
-            self:sendGuildMsg( guild, netuser.displayName, "has joined the guild!" )
+            self:sendGuildMsg( guild, netuser.displayName, "has joined the guild! =)" )
             self.Guild.temp[ netuserID ] = nil
             self:UserSave()
-            self:GuildUser()
+            self:GuildSave()
         end
     elseif ( tostring( args[1] ) == "leave") then
         -- /g leave guildtag
-
-
+        local guild = self:getGuild( netuser )
+        print( guild )
+        if( not guild ) then rust.Notice( netuser, "You're not in a guild!") return end
+        local netuserID = rust.GetUserID( netuser )
+        self.Guild[ guild ].members[ netuserID ] = nil
+        self.User[ netuserID ].guild = nil
+        self:sendGuildMsg( guild, netuser.displayName, "has left the guild! =(" )
+        local count = self:count( self.Guild[ guild ].members )
+        if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. " has been disbanned!" ) end
+        self:GuildSave()
+        self:UserSave()
     elseif ( tostring( args[1] ) == "kick") then    --                                                  [ cankick ]
         -- /g kick name                             -- Kick a player from the guild
-
-
+        local guild = self:getGuild( netuser )
+        if( not guild ) then rust.Notice( netuser, "You're not in a guild! " ) return end
+        local cando = self:hasAbility( netuser, guild, "cankick" )
     elseif ( tostring( args[1] ) == "war") then     --                                                  [ canwar ]
         -- /g war guildtag                          -- Engage a war with another guild / other guild will be notified.
 
@@ -1053,8 +1265,7 @@ end
 --PLUGIN:getGuildMembers
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuildMembers( guild )
-    local guilddata = self:getGuildData( guild )
-    local members = guilddata.members
+    local members = self.Guild[ guild ].members
     return members
 end
 
@@ -1063,10 +1274,9 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:sendGuildMsg( guild, name, msg )
     local guilddata = self:getGuildData( guild )
-    local members = guilddata.members
-    for k,v in pairs( members ) do
-        local targuser = rust.NetUserFromNetPlayer( k )
-        rust.SendChatToUser( targuser, guilddata.tag .. " " ..v.name, msg )
+    for k,v in pairs( self.Guild[ guild ].members ) do
+        local b, targuser = rust.FindNetUsersByName( v.name )
+        if( b ) then rust.SendChatToUser( targuser, guilddata.tag .. " " ..v.name, msg ) end
     end
 end
 
@@ -1272,12 +1482,49 @@ function PLUGIN:OnUserChat(netuser, name, msg)
     end
 end
 
+function PLUGIN:AlphaTXT( netuser )
+    rust.SendChatToUser( netuser, self.sysname, tostring("The Carbon Project [ Version " .. tostring(self.Version) .. " ]" ))
+    rust.SendChatToUser( netuser, self.sysname, tostring("  Copyright (c) 2014 Tempus Forge. All rights reserved." ))
+    rust.SendChatToUser( netuser, self.sysname, tostring("    -- to view this message again, type /alpha -- " ))
+    rust.SendChatToUser( netuser, " ", " " )
+    rust.SendChatToUser( netuser, self.sysname, "Welcome to 'The Carbon Project' Alpha test!" )
+    rust.SendChatToUser( netuser, self.sysname, "Carbon RPG is a game with a dynamic leveling system, Professions, Skills, Perks, Calls," )
+    rust.SendChatToUser( netuser, self.sysname, "Guilds, Party( coming soon ), Random events( coming soon )and boss mobs( coming soon )!" )
+    rust.SendChatToUser( netuser, self.sysname, "Use /c for global information. Use /g for guild commands." )
+    rust.SendChatToUser( netuser, self.sysname, "Take a look around, for more information visit: www.tempusforge.com" )
+    rust.SendChatToUser( netuser, " ", " " )
+    rust.SendChatToUser( netuser, self.sysname, "Disclaimer: This is an ALPHA test, there will be bugs, there will be crashes, there will be restarts and there will be wipes." )
+end
+
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnUserConnect( netuser )
+    self:AlphaTXT( netuser )
+
+    -- Check if they've banned characters in their name
+    local tmpstr = string.find( netuser.displayName,"%[", 1, true)
+    local tmpstr2 = string.find( netuser.displayName,"%]", 1, true )
+    print ( tmpstr )
+    print ( tmpstr2 )
+    if tmpstr1 or tmpstr then
+        rust.SendChatToUser( netuser, " ", " " )
+        rust.SendChatToUser( netuser, "**ALERT**", "We have a slight problem. It is not allowed to have a \"[\" or a \"]\" in your name! Please change your name. You'll be kicked" )
+        timer.Once(7, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
+        return
+    end
     local data = self:GetUserData( netuser ) -- asks for dat.
     data.name = netuser.displayName
+
+    -- Check mail
+    local netuserID = rust.GetUserID( netuser )
+    if ( self.User[ netuserID ].mail ) then
+        local i = 0
+        for k, v in pairs( self.User[ netuserID ].mail ) do
+            if( not v.read ) then i = i + 1 end
+        end
+        if( i > 0 ) then rust.SendChatToUser( netuser, "Mail", "You've got " .. tostring( i ) .. " unread mails!" ) end
+    end
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
