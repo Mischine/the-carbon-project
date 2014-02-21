@@ -333,7 +333,9 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
      if (self.debugr == true) then  rust.BroadcastChat("sender: " .. tostring(dmg.sender)) end
      if (self.debugr == true) then  rust.BroadcastChat("extraData " .. tostring(dmg.extraData)) end
 end
-
+function PLUGIN:OnHurt (takedamage, dmg)
+    if (self.debugr == true) then  rust.BroadcastChat("OnHurt : " .. tostring(takedamage.Hurt.extraData)) end
+end
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1474,8 +1476,8 @@ function PLUGIN:OnUserConnect( netuser )
     self:AlphaTXT( netuser )
 
     -- Check if they've banned characters in their name
-    local tmpstr = string.find( netuser.displayName,"%[", 1, true)
-    local tmpstr2 = string.find( netuser.displayName,"%]", 1, true )
+    local tmpstr = string.find( netuser.displayName,"\[", 1, true)
+    local tmpstr2 = string.find( netuser.displayName,"\]", 1, true )
     print ( tmpstr )
     print ( tmpstr2 )
     if tmpstr1 or tmpstr then
