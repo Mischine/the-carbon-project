@@ -740,23 +740,31 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdCarbon(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
-    if( not (args[1] ) ) then
-        rust.SendChatToUser( netuser, self.sysname,  "The Carbon Project [Version " .. tostring(self.Version) .. "]" )
-        rust.SendChatToUser( netuser, self.sysname,  "Copyright (c) 2014 Tempus Forge. All rights reserved." )
-        rust.SendChatToUser( netuser, self.sysname, " ")
-        rust.SendChatToUser( netuser, self.sysname, tostring( "/c help" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "xp                  Displays characters experience, level, and death penalty." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "attr                Displays characters attributes." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "skills              Displays or modifies character skills." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "perks               Displays or changes character perks." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "penalty             View your current penalties and effects." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "profession          ... coming soon ... " ))
-        return
 
-    elseif ((args[1]) and (not(args[2]))) then
-        local subject = tostring(args[1])
-        if (subject == "xp") then
+    for n,args in ipairs(args) do args[n]=tostring(args[n]):lower()  end
+
+    if(not args)then
+        rust.SendChatToUser( netuser, self.sysname,  'The Carbon Project [Version ' .. tostring(self.Version) .. ']' )
+        rust.SendChatToUser( netuser, self.sysname,  'Copyright (c) 2014 Tempus Forge. All rights reserved.' )
+        rust.SendChatToUser( netuser, self.sysname, ' ')
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'For more information on a specific command, type /c help command-name' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'xp                  Displays characters experience, level, and death penalty.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'attr                Displays characters attributes.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'skills              Displays character weapon skill levels and experience.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'perks               Displays character perks.' ))
+        --rust.SendChatToUser( netuser, self.sysname, tostring( 'profession          ... coming soon ... ' ))
+        return
+    elseif(#args==1)then
+        rust.Broadcast(tostring(args[1]))
+    end
+
+    --[[
+    if ( #args < 2 ) then
+
+    end
+    elseif (args=='help') and (args[2])) then
+        local subject = tostring(args[1]:lower())
+        if (subject == "help") then
             local nextLVL = (self.User[netuserID].lvl+1)
             local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
             local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.User[netuserID].xp)
@@ -765,37 +773,9 @@ function PLUGIN:cmdCarbon(netuser, cmd, args)
             rust.SendChatToUser( netuser, self.sysname, "Experience: " .. tostring( self.User[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
             rust.SendChatToUser( netuser, self.sysname, "-")
             rust.SendChatToUser( netuser, self.sysname, "Death Penalty: " .. tostring( self.User[netuserID].dp ))
-        end
-    elseif(( args[1] ) and ( args[2] )) then
-        local subject = tostring(args[1])
-        local value = (args[2])
+        elseif (subject == "help") then
     end
-end
-
-
-function PLUGIN:cmdGuilds( netuser, cmd, args )
-    if( not (args[1] ) ) then
-        rust.SendChatToUser( netuser, self.sysname, tostring("The Carbon Project [ Version " .. tostring(self.Version) .. " ]" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring("Copyright (c) 2014 Tempus Forge. All rights reserved." ))
-        rust.SendChatToUser( netuser, " ", " ")
-        rust.SendChatToUser( netuser, self.sysname, tostring( "/g help" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "create              Creates guild" ))
-        local guild = self:getGuild( netuser )
-        if not guild then
-            rust.SendChatToUser( netuser, " ", " ")
-            rust.SendChatToUser( netuser, self.sysname, tostring( "To create a guild you need a level of 10 or higher." ))
-            rust.SendChatToUser( netuser, self.sysname, tostring( "The cost to create a guild is " .. self.CS .. self.Config.guild.prices.create .. "." ))
-            return end
-        rust.SendChatToUser( netuser, self.sysname, tostring( "delete               Deletes guild" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "info                   Displays guild's information that you're currently in." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "stats                  Display global statistics of the guild." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "invite                Invite a player to your guild." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "kick                  Kicks a player from your guild." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "war                    Engage in a war with another guild." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "rank                  View/assign ranks to your guild members" ))
-        return
-    elseif ( tostring( args[1] ) == "create") then
+    --]]
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdWhisper
