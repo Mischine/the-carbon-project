@@ -356,7 +356,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     end
                     --START: ADJUST ATTACKER DAMAGE
                     --PERK PARRY
-                    dmg.amount = self:perkParry(dmg, vicuser, vicuserData)
+                    dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
                     if (self.debugr == true) then  rust.BroadcastChat("PERK PARRY: " .. tostring(dmg.amount)) end
                     --DEATH PENALTY MODIFIER
                     dmg.amount = self:modifyDP(netuserData)
