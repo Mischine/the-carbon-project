@@ -328,33 +328,16 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---[[
-local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
-typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
-function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-    local status = damage.status
-    if(damage.extraData) then
-        weapon = tostring(damage.extraData.dataBlock.name)
-    end
-    if (weapon == "Uber Hatchet") then
-        if (status == LifeStatus.WasKilled) then
-            damage.status = LifeStatus.IsAlive
-            if( damage.victim.client.NetUser ) then
-                if( takedamage.health < 100 ) then
-                    damage.amount = 0-1
-                else
-                    damage.amount = 0
-                end
-            end
-        end
-    end
+function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+     if (self.debugr == true) then  rust.BroadcastChat("damageTypes: " .. tostring(dmg.damageTypes)) end
+     if (self.debugr == true) then  rust.BroadcastChat("sender: " .. tostring(dmg.sender)) end
+     if (self.debugr == true) then  rust.BroadcastChat("extraData " .. tostring(dmg.extraData)) end
 end
---]]
+
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
-     if (self.debugr == true) then  rust.BroadcastChat("DAMAGE TYPE: " .. tostring(dmg.damageTypes)) end
     if(dmg.extraData) then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -385,8 +368,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     dmg.amount = dmg.amount*netuserData.dmg
                     if (self.debugr == true) then  rust.BroadcastChat("PLAYER DMG MODIFIER: " .. tostring(dmg.amount)) end
                     --WEAPON DMG BONUS
-                    dmg.amount = dmg.amount+netuserData.skills[weapon].lvl*.3
-                    if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(netuserData.skills[weapon].lvl*.3)) end
+                    dmg.amount = dmg.amount+netuserData.skills[weaponData.id].lvl*.3
+                    if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(netuserData.skills[weaponData.id].lvl*.3)) end
                     --ATTRIBUTE DMG MODIFIER
                     dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)
                     if (self.debugr == true) then  rust.BroadcastChat("ATTRIBUTE DMG MODIFIER: " .. tostring(dmg.amount)) end
@@ -395,8 +378,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     if (self.debugr == true) then rust.BroadcastChat("CRIT CHANCE: " .. tostring(dmg.amount)) end
 
                     --GUILD: MODIFIERS
-                    local guild = self:getGuild( netuserData )
-                    local vicguild = self:getGuild( vicuserData )
+                    local guild = self:getGuild( netuser )
+                    local vicguild = self:getGuild( vicuser )
                     if (self.debugr == true) then rust.BroadcastChat( "GUILDS: " .. netuser.displayName .. " : " .. tostring( guild ) .. " || " .. vicuser.displayName .. " : " .. tostring( vicguild )  ) end
                     if ( guild ) and (vicguild ) then
                         local isRival = self:isRival( guild, vicguild )
@@ -405,14 +388,14 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                             --Att Rally! bonus damage
                             local dmgmod = self:hasRallyCall( guild )
                             if( dmgmod ) then
-                                if (self.debugr == true) then rust.BroadcastChat("Before Rally Bonus Damage : " .. tostring(damage) .. " || After: " .. tostring( damage * dmgmod )) end
-                                damage = damage * dmgmod
+                                if (self.debugr == true) then rust.BroadcastChat("Before Rally Bonus Damage : " .. tostring(dmg.amount) .. " || After: " .. tostring( dmg.amount * dmgmod )) end
+                                dmg.amount = dmg.amount * dmgmod
                             end
                             --Vic Stand Your Ground defense bonus
                             local ddmgmod = self:hasSYGCall( vicguild )
                             if( ddmgmod ) then
-                                if (self.debugr == true) then rust.BroadcastChat("Before SYG Damage : " .. tostring(damage) .. " || After: " .. tostring( damage * ddmgmod )) end
-                                damage = damage * ddmgmod
+                                if (self.debugr == true) then rust.BroadcastChat("Before SYG Damage : " .. tostring(dmg.amount) .. " || After: " .. tostring( dmg.amount * ddmgmod )) end
+                                dmg.amount = dmg.amount * ddmgmod
                             end
                         end
                     end
@@ -421,10 +404,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     dmg.amount = self:staModify(netuserData, vicuserData, nil, dmg.amount)
                     if (self.debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
                     --VICTIM: STONESKIN MODIFIER
-                    self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage)
+                    dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount)
                     if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage after Stoneskin: " .. tostring(dmg.amount)) end
-                    dmg.amount = damage
-                    dmg.amount = 20
                     return dmg
                 end
             end
@@ -460,8 +441,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 if ( guild ) then
                     local cotw = self:hasCOTWCall( guild )
                     if( cotw ) then
-                        if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. damage .. " to: " .. damage * cotw .. " || cotwmod: " .. cotw ) end
-                        damage = damage * cotw
+                        if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. dmg.amount .. " to: " .. dmg.amount * cotw .. " || cotwmod: " .. cotw ) end
+                        dmg.amount = dmg.amount * cotw
                     end
                 end
 
@@ -496,8 +477,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             dmg.amount = dmg.amount*npcData.dmg
             if (self.debugr == true) then  rust.BroadcastChat("NPC DMG MODIFIER: " .. tostring(dmg.amount)) end
             --WEAPON DMG BONUS
-            dmg.amount = dmg.amount+netuserData.skills[weapon].lvl*0.3
-            if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(netuserData.skills[weapon].lvl*0.3)) end
+            dmg.amount = dmg.amount+netuserData.skills[weaponData.id].lvl*0.3
+            if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(netuserData.skills[weaponData.id].lvl*0.3)) end
             --ATTRIBUTE DMG MODIFIER
             dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)
             if (self.debugr == true) then rust.BroadcastChat("ATTRIBUTE MODIFIER: " .. tostring(dmg.amount)) end
@@ -511,8 +492,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             if ( guild ) then
                 local cotw = self:hasCOTWCall( guild )
                 if( cotw ) then
-                    if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. damage .. " to: " .. damage * cotw .. " || cotwmod: " .. cotw ) end
-                    damage = damage * cotw
+                    if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. dmg.amount .. " to: " .. dmg.amount * cotw .. " || cotwmod: " .. cotw ) end
+                    dmg.amount = dmg.amount * cotw
                 end
             end
             dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)
@@ -599,18 +580,18 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:perkStoneskin
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:perkStoneskin(netuser, vicuser, vicuserData, damage)
+function PLUGIN:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage)
     if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perks.Stoneskin)) then
         if (vicuserData.perk.Stoneskin.lvl > 0) then
-            if (vicuserStoneskin == 1) then
+            if (vicuserData.perk.Stoneskin.lvl == 1) then
                 damage = tonumber(damage - (damage*.05))
-            elseif (vicuserStoneskin == 2) then
+            elseif (vicuserData.perk.Stoneskin.lvl == 2) then
                 damage = tonumber(damage - (damage*.10))
-            elseif (vicuserStoneskin == 3) then
+            elseif (vicuserData.perk.Stoneskin.lvl == 3) then
                 damage = tonumber(damage - (damage*.15))
-            elseif (vicuserStoneskin == 4) then
+            elseif (vicuserData.perk.Stoneskin.lvl == 4) then
                 damage = tonumber(damage - (damage*.20))
-            elseif (vicuserStoneskin == 5) then
+            elseif (vicuserData.perk.Stoneskin.lvl == 5) then
                 damage = tonumber(damage - (damage*.25))
             end
         end
