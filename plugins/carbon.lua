@@ -354,6 +354,7 @@ end
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
+     if (self.debugr == true) then  rust.BroadcastChat("DAMAGE TYPE: " .. tostring(dmg.damageTypes)) end
     if(dmg.extraData) then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -710,17 +711,6 @@ function PLUGIN:GiveDp(vicuser, vicuserData, dp)
         rust.InventoryNotice( vicuser, "+" .. (dp) .. "dp" )
     end
     self:UserSave()
-end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---PLUGIN:PlayerAp
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:PlayerAp(netuser, netuserData, xp)
-    xp = ROUNDDOWN((SQRT(100*((J14*I16)+25))+50)/100/3)         --- I THINK!
-    local calcAp = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100/3)
-    if (calcLvl ~= netuserData.lvl) then
-        netuserData.lvl = calcLvl
-        rust.Notice( netuser, "You are now level " .. calcLvl .. "!", 5 )
-    end
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:PlayerLvl
