@@ -118,31 +118,25 @@ end
 function PLUGIN:PostInit()
     self.CS = econ_mod.CurrencySymbol
 end
-
-function PLUGIN:dump(netuser, cmd, args)
-    local tbl = netuser:LoadAvatar()
-    print( tostring( tbl.vitals.health))
-    netuser:SaveAvatar( tbl )
-    rust.Notice( netuser, "dump" )
-end
-
-
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
 typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
     local status = damage.status
-    if (status == LifeStatus.WasKilled) then
-        damage.amount = 0
-        takedamage.health = 100
-        damage.status = LifeStatus.IsAlive
-        print( "entity has died but has been resurected!" )
+    if(damage.extraData) then
+        weapon = tostring(damage.extraData.dataBlock.name)
     end
-    return damage
+    if (weapon == "Uber Hatchet") then
+        if (status == LifeStatus.WasKilled) then
+            damage.status = LifeStatus.IsAlive
+            print( "entity has died but has been resurected!" )
+            damage.amount = 0-1
+        end
+    end
 end
-
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Testing plugin reload!
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -257,7 +251,6 @@ function PLUGIN:x( netuser, cmd, args )
 	local invitem3 = inv:AddItemAmount( pants, 1, pref )
 	local invitem4 = inv:AddItemAmount( boots, 1, pref )
 end
-
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -377,6 +370,10 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     --CRIT CHANCE
                     self:critCheck(weaponData, netuser, netuserData, dmg.amount)
 
+                    if (self.debugr == true) then rust.BroadcastChat( "TEMP: " .. tostring( dmg.amount )) end
+
+
+
                     --GUILD: MODIFIERS
                     local guild = self:getGuild( netuser )
                     local vicguild = self:getGuild( vicuser )
@@ -402,12 +399,16 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
 
                     --VICTIM: STAMINA MODIFIER
                     dmg.amount = self:staModify(dmg.amount, vicuserData)
+                    if (self.debugr == true) then rust.BroadcastChat( "TEMP 2: " .. tostring( dmg.amount )) end
                     --damage = damage-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
                     if (self.debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
                     --VICTIM: STONESKIN MODIFIER
                     self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage)
                     if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage after Stoneskin: " .. tostring(dmg.amount)) end
+                    if (self.debugr == true) then rust.BroadcastChat( "TEMP 3: " .. tostring( dmg.amount )) end
                     dmg.amount = damage
+                    if (self.debugr == true) then rust.BroadcastChat( "TEMP 4: " .. tostring( dmg.amount )) end
+                    dmg.amount = 20
                     return dmg
                 end
             end
