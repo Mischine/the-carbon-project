@@ -6,6 +6,20 @@ PLUGIN.Author = "Mischa & CareX"
   02.20.2014
   Mischa:
 
+            TODO: NOTE!:: WE REALLY NEED TO HAVE ALL THIS ON TRELLO/FORUMS.
+
+
+            TODO: ONE SHOT KILL PREVENTION
+            TODO: ADD CHARACTER ATTR POINTS AND PERK POINTS GAINS PER LEVEL
+            TODO: PERK PARRY: ADD TIMED BUFF TO CRIT 100%
+            TODO: CHAT COMMANDS
+
+            
+            -Fixed: Bug in player creation. pve should have been a table{} containing total= and individual pve controllers.
+            -Fixed: OnKilled, Modify Damage (modifiers should work for pvp and pve appropriately.) Needs testing.
+            -Created calculations for attribute and perk points.
+            -Fixed: corresponding functions for onkilled/modifydamage
+
             -redone: GuildsFile is now GuildFile : self.Guilds is now self.Guild etc..
             -redone: settings, cleaner, faster.
             -merged: guild config file with carbon_cfg
@@ -117,30 +131,6 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PostInit()
     self.CS = econ_mod.CurrencySymbol
-end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- OnProcessDamageEvent()
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
-local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
-typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
-function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-    local status = damage.status
-    if(damage.extraData) then
-        weapon = tostring(damage.extraData.dataBlock.name)
-    end
-    if (weapon == "Uber Hatchet") then
-        if (status == LifeStatus.WasKilled) then
-            damage.status = LifeStatus.IsAlive
-            if( damage.victim.client.NetUser ) then
-                if( takedamage.health < 100 ) then
-                    damage.amount = 0-1
-                else
-                    damage.amount = 0
-                end
-            end
-        end
-    end
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Testing plugin reload!
@@ -261,7 +251,7 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnKilled (takedamage, dmg)
     if(dmg.extraData) then
-        weapon = tostring(dmg.extraData.dataBlock.name)
+        weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
     --PLAYER vs PLAYER
     if (takedamage:GetComponent( "HumanController" )) then
@@ -287,18 +277,17 @@ function PLUGIN:OnKilled (takedamage, dmg)
 	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
-            local originalName = tostring(dmg.victim.networkView.name)
-            local targetNAME = string.gsub(originalName, "%(Clone%)", "")
+            local npcData = self.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")]
             local netuser = dmg.attacker.client.netUser
-            local netuserID = rust.GetUserID( netuser )
-            local targetXP = tonumber(math.floor(self.Config.npc[targetNAME].xp*self.Config.settings.xpmodifier))
-            if (not self.User[netuserID].stats.kills.pve[targetNAME]) then
-                self.User[netuserID].stats.kills.pve[targetNAME] = 1
+            local netuserData = self.User[rust.GetUserID(netuser)]
+            local xp = math.floor(npcData.xp*self.Config.settings.xpmodifier)
+            if (not netuserData.stats.kills.pve[npcData.name]) then
+                netuserData.stats.kills.pve[npcData.name] = 1
             else
-                self.User[netuserID].stats.kills.pve[targetNAME] = self.User[netuserID].stats.kills.pve[targetNAME]+1
+                netuserData.stats.kills.pve[npcData.name] = netuserData.stats.kills.pve[npcData.name]+1
             end
-            self.User[netuserID].stats.kills.pve.total = tonumber(self.User[netuserID].stats.kills.pve.total+1)
-            self:GiveXp( netuser, targetXP, weapon)
+            netuserData.stats.kills.pve.total = netuserData.stats.kills.pve.total+1
+            self:GiveXp( weaponData, netuser, netuserData, xp)
         return end --break out of all loops after finding controller type
     end
     --PLAYER vs SLEEPER
@@ -316,18 +305,37 @@ function PLUGIN:OnKilled (takedamage, dmg)
     return
     --]]
 end
-
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- OnProcessDamageEvent()
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--[[
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
+typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
+function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+    local status = damage.status
+    if(damage.extraData) then
+        weapon = tostring(damage.extraData.dataBlock.name)
+    end
+    if (weapon == "Uber Hatchet") then
+        if (status == LifeStatus.WasKilled) then
+            damage.status = LifeStatus.IsAlive
+            if( damage.victim.client.NetUser ) then
+                if( takedamage.health < 100 ) then
+                    damage.amount = 0-1
+                else
+                    damage.amount = 0
+                end
+            end
+        end
+    end
+end
+--]]
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
     if(dmg.extraData) then
-        weapon = tostring(dmg.extraData.dataBlock.name)
-    end
-    if (takedamage:GetComponent( "HumanController" )) then
-        if not dmg.attacker.client then
-            rust.BroadcastChat("NPC Attacked you!")
-        end
+        weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
     if (takedamage:GetComponent( "HumanController" )) then
         if(dmg.victim.client and dmg.attacker.client) then
@@ -338,29 +346,17 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     local netuserData = self.User[rust.GetUserID(netuser)]
                     local vicuser = dmg.victim.client.netUser
                     local vicuserData = self.User[rust.GetUserID(vicuser)]
-                    if (not netuserData.skills[weapon]) then
-                        netuserData.skills[weapon] = {["xp"]=0,["lvl"]=0}
+                    if (not netuserData.skills[weaponData.id]) then
+                        netuserData.skills[weaponData.id] = {["xp"]=0,["lvl"]=0}
                         self:UserSave()
                     end
-                    local weaponData = self.Config.weapon[ weapon ]
-
                     --START: ADJUST ATTACKER DAMAGE
-                    --[[
-                    local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
-                    local weaponTYPE = self.Config.weapon[ weapon ].type
-                    local netuserAGI = self.User[ netuserID ].attributes.agi
-                    local netuserSTR = self.User[ netuserID ].attributes.str
-                    local netuserLVL = self.User[ netuserID ].lvl
-                    local netuserDP = self.User[ netuserID ].dp
-                    local netuserDMG = self.User[ netuserID ].dmg
-                    --]]
-                    --DOES USER HAVE THIS WEAPON SKILL? NO!? OK I'LL ADD IT
-
-                    --local weaponDMG = self.User[netuserID].skills[weapon].lvl*0.3
                     --PERK PARRY
-                    self:perkParry(dmg, netuser, vicuser, vicuserData)
+                    dmg.amount = self:perkParry(dmg, vicuser, vicuserData)
+                    if (self.debugr == true) then  rust.BroadcastChat("PERK PARRY: " .. tostring(dmg.amount)) end
                     --DEATH PENALTY MODIFIER
-                    self:modifyDP(netuserData)
+                    dmg.amount = self:modifyDP(netuserData)
+                    if (self.debugr == true) then rust.BroadcastChat("DP MODIFIER: " .. tostring(dmg.amount)) end
                     --RANDOMIZE DMG
                     dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))
                     if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(dmg.amount)) end
@@ -371,13 +367,15 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     dmg.amount = dmg.amount+netuserData.skills[weapon].lvl*.3
                     if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(netuserData.skills[weapon].lvl*.3)) end
                     --ATTRIBUTE DMG MODIFIER
-                    self:attrModify(weaponData, netuser, netuserData, dmg.amount)
+                    dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)
+                    if (self.debugr == true) then  rust.BroadcastChat("ATTRIBUTE DMG MODIFIER: " .. tostring(dmg.amount)) end
                     --CRIT CHANCE
-                    self:critCheck(weaponData, netuser, netuserData, dmg.amount)
+                    dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)
+                    if (self.debugr == true) then rust.BroadcastChat("CRIT CHANCE: " .. tostring(dmg.amount)) end
 
                     --GUILD: MODIFIERS
-                    local guild = self:getGuild( netuser )
-                    local vicguild = self:getGuild( vicuser )
+                    local guild = self:getGuild( netuserData )
+                    local vicguild = self:getGuild( vicuserData )
                     if (self.debugr == true) then rust.BroadcastChat( "GUILDS: " .. netuser.displayName .. " : " .. tostring( guild ) .. " || " .. vicuser.displayName .. " : " .. tostring( vicguild )  ) end
                     if ( guild ) and (vicguild ) then
                         local isRival = self:isRival( guild, vicguild )
@@ -399,8 +397,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     end
 
                     --VICTIM: STAMINA MODIFIER
-                    -- dmg.amount = self:staModify(dmg.amount, vicuserData) -- BROKEN
-                    damage = damage-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
+                    dmg.amount = self:staModify(netuserData, vicuserData, nil, dmg.amount)
                     if (self.debugr == true) then rust.BroadcastChat("Damage :" .. tostring(dmg.amount)) end
                     --VICTIM: STONESKIN MODIFIER
                     self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage)
@@ -414,6 +411,47 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 --SUICIDE ACTION HERE
                 return dmg
             end
+        elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
+            if (self:GetUserData(dmg.victim.client.netUser)) then
+                local vicuser = dmg.victim.client.netUser
+                local vicuserData = self.User[rust.GetUserID(vicuser)]
+                local npcData = self.Config.npc[string.gsub(tostring(dmg.attacker.networkView.name), "%(Clone%)", "")]
+                --START: ADJUST ATTACKER DAMAGE
+                --PERK PARRY
+                dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
+                if (self.debugr == true) then  rust.BroadcastChat("PERK PARRY: " .. tostring(dmg.amount)) end
+                --RANDOMIZE DMG
+                dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))
+                if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(dmg.amount)) end
+                --PLAYER DMG MODIFIER
+                dmg.amount = dmg.amount*vicuserData.dmg
+                if (self.debugr == true) then  rust.BroadcastChat("PLAYER DMG MODIFIER: " .. tostring(dmg.amount)) end
+                --ATTRIBUTE DMG MODIFIER
+                dmg.amount = self:attrModify(weaponData, npcData, vicuserData, dmg.amount)
+                if (self.debugr == true) then  rust.BroadcastChat("ATTRIBUTE DMG MODIFIER: " .. tostring(dmg.amount)) end
+                --CRIT CHANCE
+                dmg.amount = self:critCheck(weaponData, npcData, vicuserData, dmg.amount)
+                if (self.debugr == true) then  rust.BroadcastChat("CRIT CHANCE: " .. tostring(dmg.amount)) end
+
+                --GUILD: MODIFIERS
+                local guild = self:getGuild( vicuser )
+                if (self.debugr == true) then rust.BroadcastChat("Guild found: " .. tostring( guild )  ) end
+                if ( guild ) then
+                    local cotw = self:hasCOTWCall( guild )
+                    if( cotw ) then
+                        if (self.debugr == true) then rust.BroadcastChat("COTW Perk dmg from: " .. damage .. " to: " .. damage * cotw .. " || cotwmod: " .. cotw ) end
+                        damage = damage * cotw
+                    end
+                end
+
+                --VICTIM: STAMINA MODIFIER
+                dmg.amount = self:staModify(nil, vicuserData, nil, dmg.amount)
+                if (self.debugr == true) then rust.BroadcastChat("STAMINA MODIFIER:" .. tostring(dmg.amount)) end
+                --VICTIM: STONESKIN MODIFIER
+                dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount)
+                if (self.debugr == true) then rust.BroadcastChat("STONESKIN PERK: " .. tostring(dmg.amount)) end
+                return dmg
+            end
         end
     end
 	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI' }
@@ -421,38 +459,30 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         if (takedamage:GetComponent( npcController )) then
             local netuser = dmg.attacker.client.netUser
             local netuserData = self.User[rust.GetUserID(netuser)]
-            local targetData = self.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")]
-            if (not netuserData.skills[weapon]) then
-                netuserData.skills[weapon] = {["xp"]=0,["lvl"]=0}
+            local npcData = self.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")]
+            if (not netuserData.skills[weaponData.id]) then
+                netuserData.skills[weaponData.id] = {["xp"]=0,["lvl"]=0}
                 self:UserSave()
             end
-            local weaponData = self.Config.weapon[ weapon ]
-            --[[
-            local targetNAME = string.gsub(tostring(dmg.victim.networkView.name), "%(Clone%)", "")
-            local targetDMG = self.Config.npc[targetNAME].dmg
-            local weaponDMG = self.User[netuserID].skills[weapon].lvl*.3
-            local weaponTYPE = self.Config.weapon[ weapon ].type
-            local netuserAGI = self.User[ netuserID ].attributes.agi
-            local netuserSTR = self.User[ netuserID ].attributes.str
-            local netuserLVL = self.User[ netuserID ].lvl
-            local netuserDP = self.User[ netuserID ].dp
-            --]]
 
             --DEATH PENALTY MODIFIER
-            self:modifyDP(netuserData)
+            dmg.amount = self:modifyDP(netuserData, dmg.amount)
+            if (self.debugr == true) then rust.BroadcastChat("DP MODIFIER: " .. tostring(dmg.amount)) end
             --RANDOMIZE DMG
             dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))
-            if (self.debugr == true) then  rust.BroadcastChat("RANDOM DAMAGE: " .. tostring(dmg.amount)) end
+            if (self.debugr == true) then  rust.BroadcastChat("RANDOMIZE DAMAGE: " .. tostring(dmg.amount)) end
             --NPC DMG MODIFIER
-            dmg.amount = dmg.amount*targetData.dmg
+            dmg.amount = dmg.amount*npcData.dmg
             if (self.debugr == true) then  rust.BroadcastChat("NPC DMG MODIFIER: " .. tostring(dmg.amount)) end
             --WEAPON DMG BONUS
             dmg.amount = dmg.amount+netuserData.skills[weapon].lvl*0.3
             if (self.debugr == true) then  rust.BroadcastChat("WEAPON SKILL BONUS: " .. tostring(netuserData.skills[weapon].lvl*0.3)) end
             --ATTRIBUTE DMG MODIFIER
-            self:attrModify(weaponData, netuser, netuserData, dmg.amount)
+            dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)
+            if (self.debugr == true) then rust.BroadcastChat("ATTRIBUTE MODIFIER: " .. tostring(dmg.amount)) end
             --CRIT CHANCE
-            self:critCheck(weaponData, netuser, netuserData, dmg.amount)
+            dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)
+            if (self.debugr == true) then rust.BroadcastChat("CRIT CHANCE: " .. tostring(dmg.amount)) end
 
             --GUILD STUFF
             local guild = self:getGuild( netuser )
@@ -464,7 +494,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     damage = damage * cotw
                 end
             end
-            if (self.debugr == true) then rust.BroadcastChat("Adjusted to target damage: " .. tostring(dmg.amount)) end
+            dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)
+            if (self.debugr == true) then rust.BroadcastChat("STAMINA MODIFIER:" .. tostring(dmg.amount)) end
             return dmg
         end
     end
@@ -478,36 +509,49 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:staModify
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:staModify(dmg, vicuserData)
-    if (vicuserData.attributes.sta>0) then
-        dmg = dmg-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
+function PLUGIN:staModify(netuserData, vicuserData, npcData, damage)
+    if (vicuserData) then
+        if (vicuserData.attributes.sta>0) then
+            damage = damage-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
+        end
     end
-    return dmg
+    if (npcData) then
+        if (npcData.sta>0) then
+            damage = damage-((npcData.sta+math.random(netuserData.lvl-1,netuserData.lvl+1))*0.1)
+        end
+    end
+    return damage
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:modifyDP
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --Adjust damage per death penalty
-function PLUGIN:modifyDP(netuserData)
+function PLUGIN:modifyDP(netuserData, damage)
     if (netuserData.dp > 0) then
         local dppercentage = netuserData.dp/netuserData.xp
-        local dmgdp = dmg.amount*dppercentage
-        dmg.amount = math.ceil(tonumber(dmg.amount-dmgdp))
-        if (self.debugr == true) then  rust.BroadcastChat("Damage reduced by: " .. tostring(math.ceil(dmgdp)) .. " due to " .. netuserDP .. "dp.") end
+        local dmgdp = damage*dppercentage
+        damage = math.ceil(tonumber(damage-dmgdp))
     end
+    return damage
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:attrModify
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:attrModify(weaponData, netuser, netuserData, damage)
-    if (weaponData.type == "melee") and (netuserData.attributes.str>0) then
-        damage = damage + ((netuserData.attributes.str+netuserData.lvl)*.3)
-        if (self.debugr == true) then rust.BroadcastChat("Strength bonus added: " .. tostring(damage)) end
-    elseif (weaponData.type == "ranged" ) and (netuserData.attributes.agi>0) then
-        damage = damage + ((netuserData.attributes.agi+netuserData.lvl)*.3)
-        if (self.debugr == true) then rust.BroadcastChat("Agility bonus added: " .. tostring(damage)) end
+function PLUGIN:attrModify(weaponData, netuserData, vicuserData, damage)
+    if weaponData then
+        if (weaponData.type == "melee") and (netuserData.attributes.str>0) then
+            damage = damage + ((netuserData.attributes.str+netuserData.lvl)*.3)
+        elseif (weaponData.type == "ranged" ) and (netuserData.attributes.agi>0) then
+            damage = damage + ((netuserData.attributes.agi+netuserData.lvl)*.3)
+        end
     end
+    if not weaponData then
+        if (netuserData.str>0) then
+            damage = damage + ((netuserData.str+(math.random(vicuserData.lvl-1,vicuserData.lvl+1)))*.3)
+        end
+    end
+    return damage
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -517,89 +561,68 @@ function PLUGIN:critCheck(weaponData, netuser, netuserData, damage)
     if (netuserData.attributes.agi>0) then
         local roll = self.rnd
         if (weaponData.type == "melee") then
-            if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserData.attributes.agi+netuserData.lvl)*.002) .. " | " .. tostring(roll)) end
             if ((netuserData.attributes.agi+netuserData.lvl)*.002 >= roll) then
                 damage = damage * 2
                 rust.InventoryNotice( netuser, "Critical Hit!" )
             end
         elseif (weaponData.type == "ranged") then
-            if (self.debugr == true) then rust.BroadcastChat("Dice Rolled!: " .. (tostring(netuserData.attributes.agi+netuserData.lvl)*.001) .. " | " .. tostring(roll)) end
             if ((netuserData.attributes.agi+netuserData.lvl)*.001 >= roll) then
                 damage = damage * 2
                 rust.InventoryNotice( netuser, "Critical Hit!" )
             end
         end
     end
+    return damage
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:perkStoneskin
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:perkStoneskin(netuser, vicuser, vicuserData)
+function PLUGIN:perkStoneskin(netuser, vicuser, vicuserData, damage)
     if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perks.Stoneskin)) then
         if (vicuserData.perk.Stoneskin.lvl > 0) then
             if (vicuserStoneskin == 1) then
-                dmg.amount = tonumber(dmg.amount - (dmg.amount*.05))
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.05) .. " dmg!") end
-                do return dmg end
+                damage = tonumber(damage - (damage*.05))
             elseif (vicuserStoneskin == 2) then
-                dmg.amount = tonumber(dmg.amount - (dmg.amount*.10))
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.10) .. " dmg!") end
-                do return dmg end
+                damage = tonumber(damage - (damage*.10))
             elseif (vicuserStoneskin == 3) then
-                dmg.amount = tonumber(dmg.amount - (dmg.amount*.15))
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.15) .. " dmg!") end
-                do return dmg end
+                damage = tonumber(damage - (damage*.15))
             elseif (vicuserStoneskin == 4) then
-                dmg.amount = tonumber(dmg.amount - (dmg.amount*.20))
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.20) .. " dmg!") end
-                do return dmg end
+                damage = tonumber(damage - (damage*.20))
             elseif (vicuserStoneskin == 5) then
-                dmg.amount = tonumber(dmg.amount - (dmg.amount*.25))
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: Stoneskin absorbed " .. tostring(dmg.amount*.25) .. " dmg!") end
-                do return dmg end
+                damage = tonumber(damage - (damage*.25))
             end
         end
     end
+    return damage
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:perkParry
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:perkParry(dmg, netuser, vicuser, vicuserData)
-    if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perks.Parry)) then
-        --PARRY
+function PLUGIN:perkParry(vicuser, vicuserData, damage)
+    if ((vicuser) and (vicuserData.perks.Parry)) then
         if (vicuserData.perks.Parry.lvl > 0) then
             local roll = self.rnd
-
             if ((vicuserData.perks.Parry.lvl == 1) and (roll <= 3)) then
-                dmg.amount = 0
+                damage = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 3 > " .. tostring(roll)) end
-                do return end
             elseif ((vicuserData.perks.Parry.lvl == 2) and (roll <= 6)) then
-                dmg.amount = 0
+                damage = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 6 > " .. tostring(roll)) end
-                do return end
             elseif ((vicuserData.perks.Parry.lvl == 3) and (roll <= 9)) then
-                dmg.amount = 0
+                damage = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 9 > " .. tostring(roll)) end
-                do return end
             elseif ((vicuserData.perks.Parry.lvl == 4) and (roll <= 12)) then
-                dmg.amount = 0
+                damage = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 12 > " .. tostring(roll)) end
-                do return end
             elseif ((vicuserData.perks.Parry.lvl == 5) and (roll <= 15)) then
-                dmg.amount = 0
+                damage = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,"ParryCrit" )
-                if (self.debugr == true) then  rust.BroadcastChat("[PERK]: You dodged the incoming attack! | 15 > " .. tostring(roll)) end
-                do return end
             end
         end
     end
+    return damage
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveTimedBuff
@@ -611,15 +634,7 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveXp
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:GiveXp(netuser, xp, weapon)
-
-    local netuserID = rust.GetUserID( netuser )
-	local netuserDP = self.User[ netuserID ].dp
-	local netuserLVL = self.User[ netuserID ].lvl
-	local netuserXP = self.User[ netuserID ].xp
-
-	local weaponLVL = self.User[ netuserID ].skills[ weapon ].lvl
-	local weaponXP = self.User[ netuserID ].skills[ weapon ].xp
+function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
 
     -- MISCHA: Check if this is right! // Takes 10% from your exp, adds it to the guild exp (gxp)
     -- I did it BEFORE the DP check, because you didn't want the guild to suffer from someone's DP.
@@ -632,24 +647,24 @@ function PLUGIN:GiveXp(netuser, xp, weapon)
         rust.InventoryNotice( netuser, "+" .. gxp .. "gxp" )
     end
 
-	if (netuserDP>xp) then
-		self.User[ netuserID ].dp = netuserDP - xp
-		rust.InventoryNotice( netuser, "-" .. (netuserDP - xp) .. "dp" )
-	elseif (netuserDP<=0) then
-        self.User[ netuserID ].xp = tonumber(netuserXP+xp)
-		self.User[ netuserID ].skills[ weapon ].xp = weaponXP + xp
+	if (netuserData.dp>xp) then
+		netuserData.dp = netuserData.dp - xp
+		rust.InventoryNotice( netuser, "-" .. (netuserData.dp - xp) .. "dp" )
+	elseif (netuserData.dp<=0) then
+        netuserData.xp = netuserData.xp+xp
+		netuserData.skills[ weaponData.id ].xp = netuserData.skills[ weaponData.id ].xp + xp
 		rust.InventoryNotice( netuser, "+" .. xp .. "xp" )
-		self:PlayerLvl(netuser, netuserID, netuserLVL, netuserXP, xp)
-		self:WeaponLvl(netuser, netuserID, weaponLVL, weaponXP, weapon, xp)
-    elseif( ( xp > netuserDP ) and (not (netuserDP <= 0 ))) then
-		local xp = tonumber(xp-netuserDP)
-		self.User[ netuserID ].xp = tonumber(netuserXP+xp)
-		self.User[ netuserID ].skills[ weapon ].xp = weaponXP + xp
-		rust.InventoryNotice( netuser, "-" .. netuserDP .. "dp" )
+		self:PlayerLvl(netuser, netuserData, xp)
+		self:WeaponLvl(weaponData, netuser, netuserData, xp)
+    elseif((xp>netuserData.dp) and (not (netuserData.dp<= 0))) then
+		local xp = xp-netuserData.dp
+		netuserData.xp = netuserData.xp+xp
+        netuserData.skills[ weaponData.id ].xp = netuserData.skills[ weaponData.id ].xp + xp
+		rust.InventoryNotice( netuser, "-" .. netuserData.dp .. "dp" )
 		rust.InventoryNotice( netuser, "+" .. xp .. "xp" )
-		self.User[ netuserID ].dp = 0
-		self:PlayerLvl(netuser, netuserID, netuserLVL, netuserXP, xp)
-		self:WeaponLvl(netuser, netuserID, weaponLVL, weaponXP, weapon, xp)
+		netuserData.dp = 0
+        self:PlayerLvl(netuser, netuserData, xp)
+        self:WeaponLvl(weaponData, netuser, netuserData, xp)
     end
     self:UserSave()
 end
@@ -676,26 +691,49 @@ function PLUGIN:GiveDp(vicuser, vicuserData, dp)
     end
     self:UserSave()
 end
-
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:PlayerAp
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:PlayerAp(netuser, netuserData, xp)
+    =ROUNDDOWN((SQRT(100*((J14*I16)+25))+50)/100/3)
+    local calcAp = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100/3)
+    if (calcLvl ~= netuserData.lvl) then
+        netuserData.lvl = calcLvl
+        rust.Notice( netuser, "You are now level " .. calcLvl .. "!", 5 )
+    end
+end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:PlayerLvl
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:PlayerLvl(netuser, netuserID, netuserLVL, netuserXP, xp)
-	local netuserLVLx = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserXP+xp))+25))+50)/100)
-	if (netuserLVLx ~= netuserLVL) then
-		self.User[ netuserID ].lvl = netuserLVLx
-		rust.Notice( netuser, "You are now level " .. netuserLVLx .. "!", 5 )
-	end
+function PLUGIN:PlayerLvl(netuser, netuserData, xp)
+	local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)
+	if (calcLvl ~= netuserData.lvl) then
+        netuserData.lvl = calcLvl
+		rust.Notice( netuser, "You are now level " .. calcLvl .. "!", 5 )
+    end
+    --[[
+    local calcAp = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100/3)
+    if (calcAp ~= netuserData.ap) then
+        netuserData.ap = calcAp
+        rust.Notice( netuser, "You earned an att" .. calcAp .. " !", 5 )
+    end
+    local calcAp = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100/3)
+    if (calcAp ~= netuserData.ap) then
+        netuserData.ap = calcAp
+        rust.Notice( netuser, "You earned an att" .. calcAp .. " !", 5 )
+    end
+    --]]
 end
 
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:WeaponLvl
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:WeaponLvl(netuser, netuserID, weaponLVL, weaponXP, weapon, xp)
-	local weaponLVLx = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(weaponXP+xp))+25))+50)/100)
-	if (weaponLVLx ~= weaponLVL) then
-		self.User[ netuserID ].skills[ weapon ].lvl = weaponLVLx
-        timer.Once( 5, function()  rust.Notice( netuser, "Your skill level has increased!", 5 ) end )
+
+function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
+	local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.id ].xp+xp))+25))+50)/100)
+	if (calcLvl ~= netuserData.skills[ weaponData.id ].lvl) then
+		netuserData.skills[ weapon ].lvl = calcLvl
+        timer.Once( 5, function()  rust.Notice( netuser, "Your skill with the " .. tostring(weaponData.name) .. " is now level " .. tostring(calcLvl) .. "!", 5 ) end )
 	end
 end
 
@@ -1143,35 +1181,35 @@ end
 function PLUGIN:SetDefaultConfig()
         self.Config = {
             ["npc"]={
-                ["ZombieNPC_SLOW"]={["ai"]="ZombieController",["name"]="Slow Zombie",["xp"]=45,["dmg"]=.25},
-                ["ZombieNPC_FAST"]={["ai"]="ZombieControlller",["name"]="Fast Zombie",["xp"]=40,["dmg"]=.25},
-                ["ZombieNPC"]={["ai"]="ZombieController",["name"]="Zombie",["xp"]=35,["dmg"]=.25},
-                ["MutantBear"]={["ai"]="BearAI",["name"]="Mutant Bear",["xp"]=30,["dmg"]=.25},
-                ["MutantWolf"]={["ai"]="WolfAI",["name"]="Mutant Wolf",["xp"]=25,["dmg"]=.15},
-                ["Bear"]={["ai"]="BearAI",["name"]="Bear",["xp"]=20,["dmg"]=.35},
-                ["Wolf"]={["ai"]="WolfAI",["name"]="Wolf",["xp"]=15,["dmg"]=.25},
-                ["Stag_A"]={["ai"]="StagAI",["name"]="Stag",["xp"]=10,["dmg"]=.50},
-                ["Boar_A"]={["ai"]="BoarAI",["name"]="Boar",["xp"]=10,["dmg"]=.50},
-                ["Chicken"]={["ai"]="ChickenAI",["name"]="Chicken",["xp"]=5,["dmg"]=1},
-                ["Rabbit"]={["ai"]="RabbitAI",["name"]="Rabbit",["xp"]=5,["dmg"]=1},
+                ["ZombieNPC_SLOW"]={["id"]="ZombieNPC_SLOW",["ai"]="ZombieController",["name"]="Slow Zombie",["xp"]=45,["dmg"]=.25,["sta"]=10,["str"]=10},
+                ["ZombieNPC_FAST"]={["id"]="ZombieNPC_FAST",["ai"]="ZombieControlller",["name"]="Fast Zombie",["xp"]=40,["dmg"]=.25,["sta"]=9,["str"]=9},
+                ["ZombieNPC"]={["id"]="ZombieNPC",["ai"]="ZombieController",["name"]="Zombie",["xp"]=35,["dmg"]=.25,["sta"]=8,["str"]=8},
+                ["MutantBear"]={["id"]="MutantBear",["ai"]="BearAI",["name"]="Mutant Bear",["xp"]=30,["dmg"]=.25,["sta"]=7,["str"]=7},
+                ["MutantWolf"]={["id"]="MutantWolf",["ai"]="WolfAI",["name"]="Mutant Wolf",["xp"]=25,["dmg"]=.15,["sta"]=6,["str"]=6},
+                ["Bear"]={["id"]="Bear",["ai"]="BearAI",["name"]="Bear",["xp"]=20,["dmg"]=.35,["sta"]=5,["str"]=5},
+                ["Wolf"]={["id"]="Wolf",["ai"]="WolfAI",["name"]="Wolf",["xp"]=15,["dmg"]=.25,["sta"]=4,["str"]=4},
+                ["Stag_A"]={["id"]="Stag_A",["ai"]="StagAI",["name"]="Stag",["xp"]=10,["dmg"]=.50,["sta"]=3,["str"]=3},
+                ["Boar_A"]={["id"]="Boar_A",["ai"]="BoarAI",["name"]="Boar",["xp"]=10,["dmg"]=.50,["sta"]=2,["str"]=2},
+                ["Chicken"]={["id"]="Chicken",["ai"]="ChickenAI",["name"]="Chicken",["xp"]=5,["dmg"]=1,["sta"]=1,["str"]=1},
+                ["Rabbit"]={["id"]="Rabbit",["ai"]="RabbitAI",["name"]="Rabbit",["xp"]=5,["dmg"]=1,["sta"]=1,["str"]=1},
             },
             ["weapon"]={
-                ["9mm Pistol"]={["type"]="c",["dmg"]=1,["lvl"]=1},
-                ["M4"]={["type"]="l",["dmg"]=1,["lvl"]=1},
-                ["Bolt Action Rifle"]={["type"]="l",["dmg"]=1,["lvl"]=1},
-                ["Explosive Charge"]={["type"]="e",["dmg"]=1,["lvl"]=1},
-                ["F1 Grenade"]={["type"]="e",["dmg"]=1,["lvl"]=1},
-                ["Hand Cannon"]={["type"]="c",["dmg"]=1,["lvl"]=1},
-                ["Hatchet"]={["type"]="m",["dmg"]=1,["lvl"]=1},
-                ["Hunting Bow"]={["type"]="l",["dmg"]=1,["lvl"]=1},
-                ["MP5A4"]={["type"]="l",["dmg"]=1,["lvl"]=1},
-                ["P250"]={["type"]="c",["dmg"]=1,["lvl"]=1},
-                ["Pick Axe"]={["type"]="m",["dmg"]=1,["lvl"]=1},
-                ["Pipe Shotgun"] ={["type"]="c",["dmg"]=1,["lvl"]=1},
-                ["Revolver"]={["type"]="c",["dmg"]=1,["lvl"]=1},
-                ["Rock"]={["type"]="m",["dmg"]=1,["lvl"]=1},
-                ["Shotgun"]={["type"]="c",["dmg"]=1,["lvl"]=1},
-                ["Stone Hatchet"]={["type"]="m",["dmg"]=1,["lvl"]=1},
+                ["9mm Pistol"]={["id"]="9mm Pistol",["type"]="c",["dmg"]=1,["lvl"]=1},
+                ["M4"]={["id"]="M4",["type"]="l",["dmg"]=1,["lvl"]=1},
+                ["Bolt Action Rifle"]={["id"]="Bolt Action Rifle",["type"]="l",["dmg"]=1,["lvl"]=1},
+                ["Explosive Charge"]={["id"]="Explosive Charge",["type"]="e",["dmg"]=1,["lvl"]=1},
+                ["F1 Grenade"]={["id"]="F1 Grenade",["type"]="e",["dmg"]=1,["lvl"]=1},
+                ["Hand Cannon"]={["id"]="Hand Cannon",["type"]="c",["dmg"]=1,["lvl"]=1},
+                ["Hatchet"]={["id"]="Hatchet",["type"]="m",["dmg"]=1,["lvl"]=1},
+                ["Hunting Bow"]={["id"]="Hunting Bow",["type"]="l",["dmg"]=1,["lvl"]=1},
+                ["MP5A4"]={["id"]="MP5A4",["type"]="l",["dmg"]=1,["lvl"]=1},
+                ["P250"]={["id"]="P250",["type"]="c",["dmg"]=1,["lvl"]=1},
+                ["Pick Axe"]={["id"]="Pick Axe",["type"]="m",["dmg"]=1,["lvl"]=1},
+                ["Pipe Shotgun"] ={["id"]="Pipe Shotgun",["type"]="c",["dmg"]=1,["lvl"]=1},
+                ["Revolver"]={["id"]="Revolver",["type"]="c",["dmg"]=1,["lvl"]=1},
+                ["Rock"]={["id"]="Rock",["type"]="m",["dmg"]=1,["lvl"]=1},
+                ["Shotgun"]={["id"]="Shotgun",["type"]="c",["dmg"]=1,["lvl"]=1},
+                ["Stone Hatchet"]={["id"]="Stone Hatchet",["type"]="m",["dmg"]=1,["lvl"]=1},
             },
             ["settings"]={
                 ["filename"]="carbon",
@@ -1262,7 +1300,7 @@ function PLUGIN:GetUserData( netuser )
         data.buffs = {}
         data.skills = {}
         data.perks = {}
-        data.stats = {["deaths"]={["pvp"]=0,["pve"]=0},["kills"]={["pvp"]=0,["pve"]=0}}
+        data.stats = {["deaths"]={["pvp"]=0,["pve"]=0},["kills"]={["pvp"]=0,["pve"]={["total"]=0}}}
         self.User[ netuserID ] = data
         self:UserSave()
     end
