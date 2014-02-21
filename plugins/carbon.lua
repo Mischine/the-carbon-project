@@ -238,41 +238,27 @@ function PLUGIN:OnKilled (takedamage, dmg)
     if(dmg.extraData) then
         weapon = tostring(dmg.extraData.dataBlock.name)
     end
-    --IF PLAYER
+    --PLAYER vs PLAYER
     if (takedamage:GetComponent( "HumanController" )) then
         local vicuser = dmg.victim.client.netUser
-        local vicuserID = rust.GetUserID( vicuser )
-        local vicuserdata = self:GetUserData( vicuser )
+        local vicuserData = self.User[rust.GetUserID(vicuser)]
         if(dmg.victim.client and dmg.attacker.client) then
             local netuser = dmg.attacker.client.netUser
-            local netuserID = rust.GetUserID( netuser )
-            local netuserdata = self:GetUserData( netuser )
-            local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
-            if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
-                if (netuserdata) then
-                    self.User[netuserID].stats.kills.pvp = tonumber(self.User[netuserID].stats.kills.pvp+1)
-                    self:GiveXp( netuser, tonumber(math.floor(self.User[vicuserID].xp*self.Config.settings.pkxppercent/100)))
-                end
-                if (vicuserdata) then
-                    self:GiveDp( vicuser, tonumber(math.floor(self.User[vicuserID].xp*self.Config.settings.dppercent/100)))
-                end
-                return
-            end
-            if(isSamePlayer) then
-                if (netuserdata) then
-                    self:GiveDp( netuser, tonumber(math.floor(self.User[netuserID].xp*self.Config.settings.dppercent/100)))
-                end
-                return
+            local netuserData = self.User[rust.GetUserID(netuser)]
+            if (netuser ~= vicuser) then
+                netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
+                --TAKEMONEY !!!!!! CareX
+                self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
+            elseif(netuser == vicuser) then
+                self:GiveDp( netuser, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
             end
             return
+    -- NPC vs PLAYER
+        elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
+            self:GiveDp( vicuser, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
         end
-        if (vicuserdata) then
-            self:GiveDp( vicuser, tonumber(math.floor(self.User[vicuserID].xp*self.Config.settings.dppercent/100)))
-            return
-        end
-        return
     end
-    -- IF NPC
+    -- PLAYER vs NPC
 	local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
@@ -290,18 +276,20 @@ function PLUGIN:OnKilled (takedamage, dmg)
             self:GiveXp( netuser, targetXP, weapon)
         return end --break out of all loops after finding controller type
     end
-    --IF SLEEPER
+    --PLAYER vs SLEEPER
+    --[[
 	if (string.find(takedamage.gameObject.Name, "MaleSleeper(",1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
 		local actorUser = dmg.attacker.client.netUser
 		local coord = actorUser.playerClient.lastKnownPosition
 		local sleepreId = self:SleeperPos(coord)
-	if(sleepreId ~= nil) then
-		self.Config.sleepers.pos[sleepreId] = nil
-		self:GiveXp( actorUser, tonumber(math.floor(self.User[sleepreId].xp*self.Config.settings.sleeperxppercent/100)))
-		self:setXpPercentById(sleepreId, tonumber(100-self.Config.settings.sleeperxppercent-self.Config.settings.dppercent))
-	end
+        if(sleepreId ~= nil) then
+            self.Config.sleepers.pos[sleepreId] = nil
+            self:GiveXp( actorUser, tonumber(math.floor(self.User[sleepreId].xp*self.Config.settings.sleeperxppercent/100)))
+            self:setXpPercentById(sleepreId, tonumber(100-self.Config.settings.sleeperxppercent-self.Config.settings.dppercent))
+        end
 	end
     return
+    --]]
 end
 
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -594,7 +582,6 @@ function PLUGIN:GiveTimedBuff( vicuserID, time, buff )
     if not self.Users[vicuserID].buffs["ParryCrit"] then self.Users[vicuserID].buffs["ParryCrit"]=true end
     timer.Once( time, function() self.Users[ vicuserID ].buffs[ buff ] = nil end )
 end
-
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveXp
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -653,16 +640,12 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveDp
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:GiveDp(vicuser, dp)
-    local vicuserID = rust.GetUserID( vicuser )
-    local vicuserDP = self.User[ vicuserID ].dp
-    local vicuserXP = self.User[ vicuserID ].xp
-
-    if ((vicuserDP+dp/vicuserXP) >= .5) then
-        self.User[ vicuserID ].dp = vicuserXP*.5
-        rust.InventoryNotice( vicuser, "+" .. (dp - vicuserXP*.5) .. "dp" )
+function PLUGIN:GiveDp(vicuser, vicuserData, dp)
+    if ((vicuserData.dp+dp/vicuserData.xp) >= .5) then
+        vicuserData.dp = vicuserData.xp*.5
+        rust.InventoryNotice( vicuser, "+" .. (dp - vicuserData.xp*.5) .. "dp" )
     else
-        self.User[ vicuserID ].dp = vicuserDP + dp
+        vicuserData.dp = vicuserData.dp + dp
         rust.InventoryNotice( vicuser, "+" .. (dp) .. "dp" )
     end
     self:UserSave()
