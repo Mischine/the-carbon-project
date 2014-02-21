@@ -50,6 +50,7 @@ PLUGIN.Author = "Mischa & CareX"
 
 --]]
 
+
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:Init | http://wiki.rustoxide.com/index.php?title=Hooks/Init
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -102,6 +103,7 @@ function PLUGIN:Init()
     self:AddChatCommand("c", self.cmdCarbon)
     self:AddChatCommand("g", self.cmdGuilds)
     self:AddChatCommand("debug", self.cmdDebug)
+    self:AddChatCommand("dump", self.dump)
 
     self.debugr = false
     self.rnd = 0
@@ -116,6 +118,31 @@ end
 function PLUGIN:PostInit()
     self.CS = econ_mod.CurrencySymbol
 end
+
+function PLUGIN:dump(netuser, cmd, args)
+    local tbl = netuser:LoadAvatar()
+    print( tostring( tbl.vitals.health))
+    netuser:SaveAvatar( tbl )
+    rust.Notice( netuser, "dump" )
+end
+
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- OnProcessDamageEvent()
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
+typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
+function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+    local status = damage.status
+    if (status == LifeStatus.WasKilled) then
+        damage.amount = 0
+        takedamage.health = 100
+        damage.status = LifeStatus.IsAlive
+        print( "entity has died but has been resurected!" )
+    end
+    return damage
+end
+
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Testing plugin reload!
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
