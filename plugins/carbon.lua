@@ -262,6 +262,7 @@ function PLUGIN:x( netuser, cmd, args )
     local invitem3 = inv:AddItemAmount( pants, 1, pref )
     local invitem4 = inv:AddItemAmount( boots, 1, pref )
 end
+
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -321,6 +322,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
     return
     --]]
 end
+
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -947,7 +949,6 @@ end
 --PLUGIN:Guilds commands
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdGuilds( netuser, cmd, args )
-    for i, k in ipairs( args ) do args[i] = args[i]:lower() end
     if( not args ) then
         rust.SendChatToUser( netuser, self.sysname, tostring("The Carbon Project [ Version " .. tostring(self.Version) .. " ]" ))
         rust.SendChatToUser( netuser, self.sysname, tostring("Copyright (c) 2014 Tempus Forge. All rights reserved." ))
@@ -969,7 +970,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, self.sysname, tostring( "war                    Engage in a war with another guild." ))
         rust.SendChatToUser( netuser, self.sysname, tostring( "rank                  View/assign ranks to your guild members" ))
         return end
-    local action = string.lower( tostring( args[1] ))
+    local action = tostring( args[1] ):lower()
     if ( action == "create") then
         -- /g create "Guild Name" "Guild Tag"
         if(( args[2] ) and ( args[3] )) then
@@ -1149,18 +1150,20 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         end
         rust.Notice( netuser, "Tag does not exist." )
     elseif ( action == "rank") then
+        if( args[2] ) then action2 = tostring(args[2]):lower() end
         -- /g rank list                             -- Shows available ranks
-        -- HAI THIS UPDATED?!
-        -- /g rank list info                        -- Shows the rank capabilities
-
+        if( action2 == "list" ) then
         -- /g rank give 'rank' name                 -- Add a rank to a member                           [ canrank ]
-
+        elseif( action2 == "give" ) then
         -- /g rank delete 'rank' name               -- Deletes a rank from a member                     [ canrank ]
+        elseif( action2 == "delete" ) then
 
         -- /g rank add 'rank'                       -- Create a new custom rank                         [ canrank ]
+        elseif( action2 == "give" ) then
 
         -- /g rank edit 'rank'                      -- Create a new custom rank                         [ canrank ]
-
+        elseif( action2 == "give" ) then
+        end
     elseif ( action == "vault" ) then               --                                                  [ canvault ]
         -- /g vault buy                             -- Buy a vault
 
