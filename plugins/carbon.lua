@@ -123,7 +123,7 @@ function PLUGIN:Init()
     self:AddChatCommand("x", self.x)
     --
 
-    self:AddChatCommand( "c", self.sysname, self.cmdCarbon ) self:AddChatCommand( "C", self.sysname, self.cmdCarbon )
+    self:AddChatCommand( "c", self.cmdCarbon )
     self:AddChatCommand( "g", self.cmdGuilds )
     self:AddChatCommand( "w", self.cmdWhisper )
     self:AddChatCommand( "mail", self.cmdMail )
