@@ -614,7 +614,11 @@ function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
     local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.id ].xp+xp))+25))+50)/100)
     if (calcLvl ~= netuserData.skills[ weaponData.id ].lvl) then
         netuserData.skills[ weaponData.id ].lvl = calcLvl
+<<<<<<< Updated upstream
         timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
+=======
+        timer.Once( 5, function()  rust.Notice( netuser, "Your skill with the " .. tostring(weaponData.name) .. " is now level " .. tostring(calcLvl) .. "!", 5 ) end )
+>>>>>>> Stashed changes
     end
 end
 
@@ -685,9 +689,10 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         return
     elseif (#args==1) then
         if (args[1] == 'xp') then
-            local a=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100;
+            local a=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100
             local b=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100-netuserData.xp
             local c=math.floor((netuserData.xp/a)*100)
+<<<<<<< Updated upstream
             rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
             rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(netuserData.lvl) .. '\n█' )
@@ -700,7 +705,49 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             rust.SendChatToUser(netuser,self.sysname,self:medxpbar( c ))
             rust.SendChatToUser(netuser,self.sysname,' ')
             rust.SendChatToUser(netuser,self.sysname,self:minixpbar( c ))
+=======
+            local d=netuserData.dp/(((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100)/2*100
+            rust.SendChatToUser(netuser,self.sysname,"\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
+            rust.SendChatToUser(netuser,self.sysname,'█\n█')
+            rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(netuserData.lvl) .. "\n█" )
+            rust.SendChatToUser(netuser,self.sysname,'█ Experience:              (' .. tostring(netuserData.xp) .. '/' .. tostring(a) .. ')   [' .. tostring(c) .. '%]   ' .. '(' .. tostring(b) .. ')' .. "\n█")
+            rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( c ) .. "\n█")
+            rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(a/2) .. ')   [' .. tostring(d) .. '%]' ..  "\n█")
+            rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( d ) .. "\n█")
+            rust.SendChatToUser(netuser,self.sysname,"█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
+            rust.SendChatToUser(netuser,self.sysname," ")
+>>>>>>> Stashed changes
             rust.InventoryNotice( netuser, self:sidexpbar( c ) )
+
+
+            timer.Once( 1, function()
+                local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, "timeOfDay" )
+                local Time = vTimeOfDay()
+                rust.RunServerCommand( 'env.timescale 225' )
+                timer.Once( 0.3, function()
+                    rust.RunServerCommand( 'env.timescale 0.0066666667' )
+                    rust.RunServerCommand( 'env.time ' .. Time )
+                end)
+
+            end)
+
+            timer.Once( 3, function()
+                local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, "timeOfDay" )
+                local Time = vTimeOfDay()
+                rust.RunServerCommand( 'env.timescale 250' )
+                timer.Once( 0.2, function()
+                    rust.RunServerCommand( 'env.timescale 0.0066666667' )
+                    rust.RunServerCommand( 'env.time ' .. Time )
+                end)
+
+            end)
+            local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, "timeOfDay" )
+            local Time = vTimeOfDay()
+            rust.RunServerCommand( 'env.timescale 200' )
+            timer.Once( 0.25, function()
+                rust.RunServerCommand( 'env.timescale 0.0066666667' )
+                rust.RunServerCommand( 'env.time ' .. Time )
+            end)
 
 
         elseif (args[1] == 'attr') then
