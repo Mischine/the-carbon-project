@@ -262,7 +262,6 @@ function PLUGIN:x( netuser, cmd, args )
     local invitem3 = inv:AddItemAmount( pants, 1, pref )
     local invitem4 = inv:AddItemAmount( boots, 1, pref )
 end
-
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -322,7 +321,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
     return
     --]]
 end
-
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -773,6 +771,60 @@ function PLUGIN:SleeperRadius(pos, point, rad)
             and (pos.z < point.z + rad and pos.z > point.z - rad)
 end
 
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- CARBON CHAT COMMANDS
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:cmdCarbon(netuser,cmd,args)
+    local netuserID = rust.GetUserID( netuser )
+    local netuserData = self.User[netuserID]
+
+    for k,v in ipairs(args)do args[k]=tostring(args[k]):lower()end
+
+    if(#args==0)then
+        rust.SendChatToUser( netuser, self.sysname,  'The Carbon Project [Version ' .. tostring(self.Version) .. ']' )
+        rust.SendChatToUser( netuser, self.sysname,  'Copyright (c) 2014 Tempus Forge. All rights reserved.' )
+        rust.SendChatToUser( netuser, self.sysname, ' ')
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'For more information on a specific command, type /c help command-name' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'xp                  Displays characters experience, level, and death penalty.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'attr                Displays characters attributes.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'skills              Displays character weapon skill levels and experience.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'perks               Displays character perks.' ))
+        --rust.SendChatToUser( netuser, self.sysname, tostring( 'profession          ... coming soon ... ' ))
+        return
+    elseif (#args==1) then
+        if (args[1] == 'xp') then
+            rust.SendChatToUser(netuser,self.sysname,' ')rust.SendChatToUser(netuser,self.sysname,' ')
+            rust.SendChatToUser(netuser,self.sysname,'Level: ' .. tostring(netuserData.lvl) .. 'Experience: '.. tostring(netuserData.xp) .. '\r' .. 'another test')
+        elseif (args[1] == 'attr') then
+            rust.SendChatToUser( netuser, self.sysname, ' ')
+        elseif (args[1] == 'skills') then
+            rust.SendChatToUser( netuser, self.sysname, ' ')
+        elseif (args[1] == 'perks') then
+            rust.SendChatToUser( netuser, self.sysname, ' ')
+        end
+
+    end
+
+    --[[
+    if ( #args < 2 ) then
+
+    end
+    elseif (args=='help') and (args[2])) then
+        local subject = tostring(args[1]:lower())
+        if (subject == "help") then
+            local nextLVL = (self.User[netuserID].lvl+1)
+            local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
+            local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.User[netuserID].xp)
+            rust.SendChatToUser( netuser, self.sysname, "Name: " .. tostring( self.User[netuserID].name ))
+            rust.SendChatToUser( netuser, self.sysname, "Level: " .. tostring( self.User[netuserID].lvl ))
+            rust.SendChatToUser( netuser, self.sysname, "Experience: " .. tostring( self.User[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
+            rust.SendChatToUser( netuser, self.sysname, "-")
+            rust.SendChatToUser( netuser, self.sysname, "Death Penalty: " .. tostring( self.User[netuserID].dp ))
+        elseif (subject == "help") then
+    end
+    --]]
+end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdWhisper
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1065,8 +1117,8 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             local targuserID = rust.GetUserID( targuser )
             local members = self:getGuildMembers( guild )
             print (tostring( members ))
-            if( self.Guild[ guild].members[ targuserID ] ) then rust.Notice( netuser, tostring( targname ) .. " is already in " .. guild ) return end
-            if( self.Guild.temp[ targuserID ] ) then rust.Notice( netuser, targname .. " is already invited!" ) return end
+            -- if( self.Guild[ guild].members[ targuserID ] ) then rust.Notice( netuser, tostring( targname ) .. " is already in " .. guild ) return end
+            if( self.Guild.temp[ targuserID ] ) then rust.Notice( netuser, targname .. " is alrady invited!" ) return end
             self.Guild.temp[ targuserID ] = guild
             timer.Once( 60, function()
                 if( self.Guild.temp[ targuserID ]) then
@@ -1084,7 +1136,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         else
             rust.Notice( netuser, "You're not allowed to invite players to the guild!" )
         end
-    elseif ( action == "accept") then
+    elseif ( tostring( args[1] ) == "accept") then
         -- /g accept
         local netuserID = rust.GetUserID( netuser )
         if( self.Guild.temp[ netuserID ] ) then
