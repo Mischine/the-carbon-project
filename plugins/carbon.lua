@@ -1150,7 +1150,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.Notice( netuser, "Tag does not exist." )
     elseif ( action == "rank") then
         -- /g rank list                             -- Shows available ranks
-
+        -- HAI THIS UPDATED?!
         -- /g rank list info                        -- Shows the rank capabilities
 
         -- /g rank give 'rank' name                 -- Add a rank to a member                           [ canrank ]
