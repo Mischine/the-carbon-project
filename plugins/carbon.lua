@@ -72,9 +72,8 @@ function PLUGIN:Init()
 end
 
 function PLUGIN:dump( netuser, cmd, args )
-    local tbl = netuser:LoadAvatar()
-    print ( tbl )
-    rust.SendChatToUser( netuser, "x: " .. tostring(tbl.pos.x) .. " y: " .. tostring(tbl.pos.y ))
+    local msg = self:xpbar(tonumber(args[1]))
+    rust.BroadcastChat( msg )
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Loads after all the other plugins are loaded!
@@ -139,6 +138,7 @@ function table.containsval(t,cv) for _, v in ipairs(t) do  if v == cv then retur
 function PLUGIN:count( table ) local i = 0 for k, v in pairs( table ) do i = i + 1 end return i end
 function PLUGIN:sayTable( table, sep ) local msg = "" local count = #table if( count <= 0 ) then return "N/A" end local i = true
 for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. "." return msg end
+function table.returnvalues( table ) if( not table ) then return false end local msg = "" for k,v in pairs( table ) do msg = msg .. "[ " .. v .. " ]" end return msg end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --TEMPORARY PLUGIN FOR INVISIBILITY GEAR
@@ -959,7 +959,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser( netuser, chat, "Guild Name    : " .. guild )
         rust.SendChatToUser( netuser, chat, "Guild Tag        : " .. data.tag )
         rust.SendChatToUser( netuser, chat, "Guild Level     : " .. data.glvl )
-        rust.SendChatToUser( netuser, chat, "Guild XP          : (" .. data.xp .. "/" .. data.xpforLVL .. ") (+" .. data.xpforLVL - data.xp .. ")" )
+        rust.SendChatToUser( netuser, chat, "Guild XP          : (" .. data.xp .. "/" .. data.xpforLVL .. '('.. math.floor(data.xp / data.xpforLVL * 100) .. '%)' .. ") (+" .. data.xpforLVL - data.xp .. ")" )
         rust.SendChatToUser( netuser, " ", " " )
         rust.SendChatToUser( netuser, chat, "Guild Leader   : " .. self:getGuildLeader( guild ))
         rust.SendChatToUser( netuser, chat, "Members        : " .. self:count( data.members ))
@@ -1076,7 +1076,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         if( not guild ) then rust.Notice( netuser, "You're not in a guild! " ) return end
         local cando = self:hasAbility( netuser, guild, "cankick" )
         if( not cando ) then rust.Notice(netuser, "You're not permitted to kick a player from the guild." ) return end
-        local targtag = string.upper( tostring( args[2] ))
+        local targtag = '['..string.upper( tostring( args[2] ))..']'
         for k,v in pairs( self.Guild ) do
             if( v.tag == targtag )then
                 self:engageWar( guild, k, netuser )
@@ -1084,22 +1084,35 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             end
         end
         rust.Notice( netuser, "Tag does not exist." )
-    elseif ( action == "rank") then
-        if( args[2] ) then action2 = tostring(args[2]):lower() end
-        -- /g rank list                             -- Shows available ranks
-        if( action2 == "list" ) then
-        -- /g rank give 'rank' name                 -- Add a rank to a member                           [ canrank ]
-        elseif( action2 == "give" ) then
-        -- /g rank delete 'rank' name               -- Deletes a rank from a member                     [ canrank ]
-        elseif( action2 == "delete" ) then
-
-        -- /g rank add 'rank'                       -- Create a new custom rank                         [ canrank ]
-        elseif( action2 == "give" ) then
-
-        -- /g rank edit 'rank'                      -- Create a new custom rank                         [ canrank ]
-        elseif( action2 == "give" ) then
+    elseif ( action == "rank" ) then                            -- show rank. if [ canrank ] then show options too.
+        if( not args ) then
+            local guild = self:getGuild( netuser )
+            if( not guild ) then rust.Notice( netuser, "You're not in a guild! " ) return end
+            local rank = self:getrank( netuser, guild )
+            rust.SendChatToUser( netuser, guild, 'Your rank: ' .. tostring( rank ))
+            rust.SendChatToUser( netuser, guild, '/g rank list shows the capabilities of every rank.')
+            local cando = self:hasAbility( netuser, guild, "canrank" )
+            if( cando ) then rust.SendChatToUser( netuser, self.sysname, '/g rank [list][give][take][add][edit]' ) return end
         end
-    elseif ( action == "vault" ) then               --                                                  [ canvault ]
+        if( args[2] ) then args[2] = tostring(args[2]):lower() end
+        -------------------------------------
+        if( args[2] == "list" ) then                            -- /g rank list | shows list of ranks + abilities
+            local guild = self:getGuild( netuser )
+            if( not guild ) then rust.Notice( netuser, "You're not in a guild! " ) return end
+            for k, v in pairs( self.Guild[guild].ranks) do
+                rust.SendChatToUser( netuser, guild, 'Rank: ' .. k .. ' Abilities: ' .. table.returnvalues( self.Guild[guild].ranks[k] ))
+            end
+        elseif( args[2] == "give" ) then                        -- /g rank give 'rank' name | Add a rank to a member        [ canrank ]
+
+        elseif( args[2] == "take" ) then                        -- /g rank take 'rank' name | takes a rank from a member    [ canrank ]
+
+
+        elseif( args[2] == "add" ) then                         -- /g rank add 'rank' | Create a new custom rank            [ canrank ]
+
+
+        elseif( args[2] == "edit" ) then                        -- /g rank edit 'rank' | Create a new custom rank           [ canrank ]
+        end
+    elseif ( action == "vault" ) then -- [ canvault ]
         -- /g vault buy                             -- Buy a vault
 
         -- /g vault add                             -- Add items/money to the guild vault
@@ -1135,7 +1148,7 @@ function PLUGIN:engageWar( guild, guild2, netuser )
         table.insert( self.Guild[ guild ].war, guild2 )
         table.insert( self.Guild[ guild2 ].war, guild1 )
         self:sendGuildMsg( guild, 'WAR', guild .. ' is now at war with ' .. guild2 .. '!' )
-        self:sendGuildMsg( guild, 'WAR', guild2 .. ' is now at war with ' .. guild .. '!' )
+        self:sendGuildMsg( guild2, 'WAR', guild2 .. ' is now at war with ' .. guild .. '!' )
     else
         rust.Notice( netuser, 'Invalid input.' )
     end
@@ -1537,6 +1550,19 @@ function PLUGIN:GuildUpdate()
     self.GuildFile = util.GetDatafile( "carbon_gld" )
     local txt = self.GuildFile:GetText()
     self.Guild = json.decode ( txt )
+end
+
+function PLUGIN:xpbar( value )
+        msg = "▐"
+    for i=1, 25 do
+        if( (value / 4) >= i ) then
+            msg = msg .. "█"
+        else
+            msg = msg .. "▒"
+        end
+    end
+    msg = msg .. "▌"
+    return msg
 end
 
 --api.Call( "economy", "takeMoneyFrom", netuser, value )
