@@ -141,43 +141,6 @@ function PLUGIN:sayTable( table, sep ) local msg = "" local count = #table if( c
 for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. "." return msg end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- CARBON CHAT COMMANDS
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:cmdCarbon(netuser, cmd, args)
-    local netuserID = rust.GetUserID( netuser )
-    if( not (args[1] ) ) then
-        rust.SendChatToUser( netuser, self.sysname,  "The Carbon Project [Version " .. tostring(self.Version) .. "]" )
-        rust.SendChatToUser( netuser, self.sysname,  "Copyright (c) 2014 Tempus Forge. All rights reserved." )
-        rust.SendChatToUser( netuser, self.sysname, " ")
-        rust.SendChatToUser( netuser, self.sysname, tostring( "/c help" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "For more information on a specific command, type help command-name" ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "xp                  Displays characters experience, level, and death penalty." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "attr                Displays characters attributes." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "skills              Displays or modifies character skills." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "perks               Displays or changes character perks." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "penalty             View your current penalties and effects." ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( "profession          ... coming soon ... " ))
-        return
-
-    elseif ((args[1]) and (not(args[2]))) then
-        local subject = tostring(args[1])
-        if (subject == "xp") then
-            local nextLVL = (self.User[netuserID].lvl+1)
-            local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
-            local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.User[netuserID].xp)
-            rust.SendChatToUser( netuser, self.sysname, "Name: " .. tostring( self.User[netuserID].name ))
-            rust.SendChatToUser( netuser, self.sysname, "Level: " .. tostring( self.User[netuserID].lvl ))
-            rust.SendChatToUser( netuser, self.sysname, "Experience: " .. tostring( self.User[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
-            rust.SendChatToUser( netuser, self.sysname, "-")
-            rust.SendChatToUser( netuser, self.sysname, "Death Penalty: " .. tostring( self.User[netuserID].dp ))
-        end
-    elseif(( args[1] ) and ( args[2] )) then
-        local subject = tostring(args[1])
-        local value = (args[2])
-    end
-end
-
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --TEMPORARY PLUGIN FOR INVISIBILITY GEAR
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:x( netuser, cmd, args )
@@ -714,18 +677,27 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
     if(#args==0)then
         rust.SendChatToUser( netuser, self.sysname,  'The Carbon Project [Version ' .. tostring(self.Version) .. ']' )
         rust.SendChatToUser( netuser, self.sysname,  'Copyright (c) 2014 Tempus Forge. All rights reserved.' )
-        rust.SendChatToUser( netuser, self.sysname, ' ')
+        rust.SendChatToUser( netuser, self.sysname, '▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬')
         rust.SendChatToUser( netuser, self.sysname, tostring( 'For more information on a specific command, type /c help command-name' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'xp                  Displays characters experience, level, and death penalty.' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'attr                Displays characters attributes.' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'skills              Displays character weapon skill levels and experience.' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'perks               Displays character perks.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'xp                                Displays characters experience, level, and death penalty.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'attr                             Displays characters attributes.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'skills                           Displays character weapon skill levels and experience.' ))
+        rust.SendChatToUser( netuser, self.sysname, tostring( 'perks                          Displays character perks.' ))
         --rust.SendChatToUser( netuser, self.sysname, tostring( 'profession          ... coming soon ... ' ))
         return
     elseif (#args==1) then
         if (args[1] == 'xp') then
-            rust.SendChatToUser(netuser,self.sysname,' ')rust.SendChatToUser(netuser,self.sysname,' ')
-            rust.SendChatToUser(netuser,self.sysname,'Level: ' .. tostring(netuserData.lvl) .. 'Experience: '.. tostring(netuserData.xp) .. '\r' .. 'another test')
+            local a=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100;
+            local b=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100-netuserData.xp
+            local c=math.floor((netuserData.xp/b)*100)
+            rust.SendChatToUser(netuser,self.sysname,"\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
+            rust.SendChatToUser(netuser,self.sysname,'█\n█')
+            rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(netuserData.lvl) .. "\n█" )
+            rust.SendChatToUser(netuser,self.sysname,'█ Experience:              ' .. tostring(netuserData.xp) .. '/' .. tostring(a) .. ' (' .. tostring(b) .. ')' .. "\n█")
+            rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         ' .. tostring(netuserData.dp) .. "\n█")
+            rust.SendChatToUser(netuser,self.sysname,"█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
+            rust.SendChatToUser(netuser,self.sysname,self:xpbar( c ))
+
         elseif (args[1] == 'attr') then
             rust.SendChatToUser( netuser, self.sysname, ' ')
         elseif (args[1] == 'skills') then
@@ -735,25 +707,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         end
 
     end
-
-    --[[
-    if ( #args < 2 ) then
-
-    end
-    elseif (args=='help') and (args[2])) then
-        local subject = tostring(args[1]:lower())
-        if (subject == "help") then
-            local nextLVL = (self.User[netuserID].lvl+1)
-            local xpforLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100)))
-            local xptoLVL = math.ceil((((nextLVL*nextLVL)+nextLVL)/self.Config.settings.lvlmodifier*100-(nextLVL*100))-self.User[netuserID].xp)
-            rust.SendChatToUser( netuser, self.sysname, "Name: " .. tostring( self.User[netuserID].name ))
-            rust.SendChatToUser( netuser, self.sysname, "Level: " .. tostring( self.User[netuserID].lvl ))
-            rust.SendChatToUser( netuser, self.sysname, "Experience: " .. tostring( self.User[netuserID].xp .. " / " .. tostring(xpforLVL) .. " (" .. tostring(xptoLVL) .. ")"))
-            rust.SendChatToUser( netuser, self.sysname, "-")
-            rust.SendChatToUser( netuser, self.sysname, "Death Penalty: " .. tostring( self.User[netuserID].dp ))
-        elseif (subject == "help") then
-    end
-    --]]
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdWhisper
