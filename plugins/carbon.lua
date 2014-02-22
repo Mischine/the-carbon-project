@@ -1136,7 +1136,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         else
             rust.Notice( netuser, "You're not allowed to invite players to the guild!" )
         end
-    elseif ( tostring( args[1] ) == "accept") then
+    elseif ( action == "accept") then
         -- /g accept
         local netuserID = rust.GetUserID( netuser )
         if( self.Guild.temp[ netuserID ] ) then
