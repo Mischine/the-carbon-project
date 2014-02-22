@@ -614,11 +614,8 @@ function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
     local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.id ].xp+xp))+25))+50)/100)
     if (calcLvl ~= netuserData.skills[ weaponData.id ].lvl) then
         netuserData.skills[ weaponData.id ].lvl = calcLvl
-<<<<<<< Updated upstream
         timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
-=======
         timer.Once( 5, function()  rust.Notice( netuser, "Your skill with the " .. tostring(weaponData.name) .. " is now level " .. tostring(calcLvl) .. "!", 5 ) end )
->>>>>>> Stashed changes
     end
 end
 
@@ -692,7 +689,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             local a=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100
             local b=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100-netuserData.xp
             local c=math.floor((netuserData.xp/a)*100)
-<<<<<<< Updated upstream
             rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
             rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(netuserData.lvl) .. '\n█' )
@@ -705,7 +701,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             rust.SendChatToUser(netuser,self.sysname,self:medxpbar( c ))
             rust.SendChatToUser(netuser,self.sysname,' ')
             rust.SendChatToUser(netuser,self.sysname,self:minixpbar( c ))
-=======
             local d=netuserData.dp/(((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100)/2*100
             rust.SendChatToUser(netuser,self.sysname,"\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
@@ -716,7 +711,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( d ) .. "\n█")
             rust.SendChatToUser(netuser,self.sysname,"█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
             rust.SendChatToUser(netuser,self.sysname," ")
->>>>>>> Stashed changes
             rust.InventoryNotice( netuser, self:sidexpbar( c ) )
 
 
