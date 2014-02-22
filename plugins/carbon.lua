@@ -123,7 +123,7 @@ function PLUGIN:Init()
     self:AddChatCommand("x", self.x)
     --
 
-    self:AddChatCommand( "c", self.cmdCarbon )
+    self:AddChatCommand( "c", self.sysname, self.cmdCarbon ) self:AddChatCommand( "C", self.sysname, self.cmdCarbon )
     self:AddChatCommand( "g", self.cmdGuilds )
     self:AddChatCommand( "w", self.cmdWhisper )
     self:AddChatCommand( "mail", self.cmdMail )
@@ -738,24 +738,25 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CARBON CHAT COMMANDS
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:cmdCarbon(netuser, cmd, args)
+function PLUGIN:cmdCarbon(netuser, c, args)
     local netuserID = rust.GetUserID( netuser )
 
-    for n,args in ipairs(args) do args[n]=tostring(args[n]):lower()  end
+    for k, v in ipairs(args) do args[k]=tostring(args[k]):lower() end
 
-    if(not args)then
-        rust.SendChatToUser( netuser, self.sysname,  'The Carbon Project [Version ' .. tostring(self.Version) .. ']' )
-        rust.SendChatToUser( netuser, self.sysname,  'Copyright (c) 2014 Tempus Forge. All rights reserved.' )
-        rust.SendChatToUser( netuser, self.sysname, ' ')
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'For more information on a specific command, type /c help command-name' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'xp                  Displays characters experience, level, and death penalty.' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'attr                Displays characters attributes.' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'skills              Displays character weapon skill levels and experience.' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( 'perks               Displays character perks.' ))
+    if(#args==0)then
+        rust.SendChatToUser( netuser, c,  'The Carbon Project [Version ' .. tostring(self.Version) .. ']' )
+        rust.SendChatToUser( netuser, c,  'Copyright (c) 2014 Tempus Forge. All rights reserved.' )
+        rust.SendChatToUser( netuser, c, ' ')
+        rust.SendChatToUser( netuser, c, tostring( 'For more information on a specific command, type /c help command-name' ))
+        rust.SendChatToUser( netuser, c, tostring( 'xp                  Displays characters experience, level, and death penalty.' ))
+        rust.SendChatToUser( netuser, c, tostring( 'attr                Displays characters attributes.' ))
+        rust.SendChatToUser( netuser, c, tostring( 'skills              Displays character weapon skill levels and experience.' ))
+        rust.SendChatToUser( netuser, c, tostring( 'perks               Displays character perks.' ))
         --rust.SendChatToUser( netuser, self.sysname, tostring( 'profession          ... coming soon ... ' ))
         return
     elseif(#args==1)then
-        rust.Broadcast(tostring(args[1]))
+
+        rust.BroadcastChat(args[1])
     end
 
     --[[
