@@ -689,18 +689,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             local a=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100
             local b=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100-netuserData.xp
             local c=math.floor((netuserData.xp/a)*100)
-            rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-            rust.SendChatToUser(netuser,self.sysname,'█\n█')
-            rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(netuserData.lvl) .. '\n█' )
-            rust.SendChatToUser(netuser,self.sysname,'█ Experience:              ' .. tostring(netuserData.xp) .. '/' .. tostring(a) .. ' (' .. tostring(b) .. ')' .. '\n█')
-            rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         ' .. tostring(netuserData.dp) .. '\n█')
-            rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-            rust.SendChatToUser(netuser,self.sysname,' ')
-            rust.SendChatToUser(netuser,self.sysname,self:xpbar( c ))
-            rust.SendChatToUser(netuser,self.sysname,' ')
-            rust.SendChatToUser(netuser,self.sysname,self:medxpbar( c ))
-            rust.SendChatToUser(netuser,self.sysname,' ')
-            rust.SendChatToUser(netuser,self.sysname,self:minixpbar( c ))
             local d=netuserData.dp/(((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100)/2*100
             rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
