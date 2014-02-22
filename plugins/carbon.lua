@@ -689,14 +689,21 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         if (args[1] == 'xp') then
             local a=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100;
             local b=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100-netuserData.xp
-            local c=math.floor((netuserData.xp/b)*100)
+            local c=math.floor((netuserData.xp/a)*100)
             rust.SendChatToUser(netuser,self.sysname,"\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
             rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(netuserData.lvl) .. "\n█" )
             rust.SendChatToUser(netuser,self.sysname,'█ Experience:              ' .. tostring(netuserData.xp) .. '/' .. tostring(a) .. ' (' .. tostring(b) .. ')' .. "\n█")
             rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         ' .. tostring(netuserData.dp) .. "\n█")
             rust.SendChatToUser(netuser,self.sysname,"█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀")
+            rust.SendChatToUser(netuser,self.sysname," ")
             rust.SendChatToUser(netuser,self.sysname,self:xpbar( c ))
+            rust.SendChatToUser(netuser,self.sysname," ")
+            rust.SendChatToUser(netuser,self.sysname,self:medxpbar( c ))
+            rust.SendChatToUser(netuser,self.sysname," ")
+            rust.SendChatToUser(netuser,self.sysname,self:minixpbar( c ))
+            rust.InventoryNotice( netuser, self:sidexpbar( c ) )
+
 
         elseif (args[1] == 'attr') then
             rust.SendChatToUser( netuser, self.sysname, ' ')
@@ -1562,6 +1569,43 @@ function PLUGIN:xpbar( value )
         end
     end
     msg = msg .. "▌"
+    return msg
+end
+function PLUGIN:medxpbar( value )
+    msg = "■"
+    for i=1, 25 do
+        if( (value / 4) >= i ) then
+            msg = msg .. "■"
+        else
+            msg = msg .. "□"
+        end
+    end
+    msg = msg .. "■"
+    return msg
+end
+function PLUGIN:minixpbar( value )
+    msg = "▪"
+    for i=1, 100 do
+        if( (value / 1) >= i ) then
+            msg = msg .. "▪"
+        else
+            msg = msg .. "▫"
+        end
+    end
+    msg = msg .. "▪"
+    return msg
+end
+
+function PLUGIN:sidexpbar( value )
+    msg = "■"
+    for i=1, 10 do
+        if( (value / 10) >= i ) then
+            msg = msg .. "■"
+        else
+            msg = msg .. "□"
+        end
+    end
+    msg = msg .. "■"
     return msg
 end
 
