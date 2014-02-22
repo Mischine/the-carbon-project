@@ -615,7 +615,7 @@ function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
     if (calcLvl ~= netuserData.skills[ weaponData.id ].lvl) then
         netuserData.skills[ weaponData.id ].lvl = calcLvl
         timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
-        timer.Once( 5, function()  rust.Notice( netuser, "Your skill with the " .. tostring(weaponData.name) .. " is now level " .. tostring(calcLvl) .. "!", 5 ) end )
+        timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
     end
 end
 
