@@ -1,8 +1,8 @@
 {
     "guild": {
         "create": {
-            "syntax": "Syntax: /g create \"guildname\" \"TAG\"",
-            "txt": {
+            "header": "Syntax: /g create \"guildname\" \"TAG\"",
+            "subheader": {
                 "1": "Create a guild by typing /g create \"GuildName\" \"Tag\". ",
                 "2": "There are disabled tags. There is a fee to creating a guild.",
                 "3": "Fee: $25000 ",
@@ -11,8 +11,8 @@
             }
         },
         "delete": {
-            "syntax": "Syntax: /g delete \"GuildName\" \"Tag\"",
-            "req": "It is required to have the ability: \"candelete\"",
+            "header": "Syntax: /g delete \"GuildName\" \"Tag\"",
+            "subheader": "It is required to have the ability: \"candelete\"",
             "txt": {
                 "1": "The leader is the only person who can dissemble a guild.",
                 "2": "This is adjustable by editing rank permissions.",
@@ -21,7 +21,7 @@
             }
         },
         "info": {
-            "syntax": "Syntax: /g info",
+            "header": "Syntax: /g info",
             "txt": {
                 "1": "/g info displays information about a guild.",
                 "2": "Information regarding guildname, guild tag, guild level, current guild xp,",
@@ -31,7 +31,7 @@
             }
         },
         "stats": {
-            "syntax": "Syntax /g stats",
+            "header": "Syntax /g stats",
             "txt": {
                 "1": "/g stats displays statistical information about a guild.",
                 "2": "Information regarding player with the most contributed xp and money, ...",
@@ -39,8 +39,8 @@
             }
         },
         "invite": {
-            "syntax": "Syntax /g invite \"PlayerName\"",
-            "req": "It is required to have the ability: caninvite",
+            "header": "Syntax /g invite \"PlayerName\"",
+            "subheader": "It is required to have the ability: caninvite",
             "txt": {
                 "1": "/g invite \"PlayerName\" to initiate someone into your guild.",
                 "2": "The person to be initiated must be online and name correctly spelled",
@@ -52,8 +52,8 @@
             }
         },
         "kick": {
-            "syntax": "Syntax /g kick \"PlayerName\"",
-            "req": "It is required to have the ability: cankick",
+            "header": "Syntax /g kick \"PlayerName\"",
+            "subheader": "It is required to have the ability: cankick",
             "txt": {
                 "1": "/g kick \"PlayerName\" to remove a player from your guild entirely.",
                 "2": "If someone is about to be kicked, the target user does not have to be online",
@@ -64,8 +64,8 @@
             }
         },
         "war": {
-            "syntax": "Syntax /g war \"GuildTag\"",
-            "req": "It is required to have the ability: canwar",
+            "header": "Syntax /g war \"GuildTag\"",
+            "subheader": "It is required to have the ability: canwar",
             "txt": {
                 "1": "/g war \"GuildTag\" signals a war with another guild of your choice.",
                 "2": "When a guild is in war then all the guild calls will be activated.",
@@ -74,8 +74,8 @@
             }
         },
         "rank": {
-            "syntax": "Syntax /g rank give/add/edit",
-            "req": "It is required to have the ability: canrank",
+            "header": "Syntax /g rank give/add/edit",
+            "subheader": "It is required to have the ability: canrank",
             "txt": {
                 "1": "Ranks in guilds are mainly to assign permissions and figurative status.",
                 "2": "There are 6 default ranks: Leader, Co-Leader, Quartermaster, War-Leader,",
@@ -96,7 +96,7 @@
             }
         },
         "ability": {
-            "syntax": "Ability information:",
+            "header": "Ability information:",
             "txt": {
                 "1": "Abilities are required for certain actions.",
                 "2": "These abilities are given per rank.",
