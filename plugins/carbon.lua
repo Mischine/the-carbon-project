@@ -52,7 +52,7 @@ function PLUGIN:Init()
     self:AddChatCommand('cotw', self.addcotw ) -- TESTING ONLY!
     self:AddChatCommand('x', self.x)
     --
-
+    self:AddChatCommand( 'storm', self.cmdStorm )
     self:AddChatCommand( 'c', self.cmdCarbon )
     self:AddChatCommand( 'g', self.cmdGuilds )
     self:AddChatCommand( 'w', self.cmdWhisper )
@@ -68,6 +68,7 @@ function PLUGIN:Init()
     self.rnd = 0
     timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
     timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
+
     print( 'Carbon Loaded!' )
 end
 
@@ -80,6 +81,7 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PostInit()
     self.CS = econ_mod.CurrencySymbol
+
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Testing plugin reload!
@@ -179,7 +181,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
             return
             -- NPC vs PLAYER
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
-            self:GiveDp( vicuser, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
+            self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
         end
     end
     -- PLAYER vs NPC
@@ -356,7 +358,13 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 netuserData.skills[weaponData.id] = {['xp']=0,['lvl']=0}
                 self:UserSave()
             end
-
+--[[
+local attacker = dmg.attacker
+table.insert(dmg.victim, attacker)
+local vicuser = dmg.victim.client.netUser
+local viuserID = rust.GetUserID(vicuser)
+if (self.debugr == true) then rust.BroadcastChat('This is me!!!' .. tostring(self.User[vicuserID].name)) end
+--]]
             --DEATH PENALTY MODIFIER
             dmg.amount = self:modifyDP(netuserData, dmg.amount)
             if (self.debugr == true) then rust.BroadcastChat('DP MODIFIER: ' .. tostring(dmg.amount)) end
@@ -665,6 +673,27 @@ end
 
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:SleeperRadius
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:cmdStorm(netuser,cmd, args)
+    local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, 'timeOfDay' )
+    local Time = vTimeOfDay()
+    timer.Repeat(1, 100, function() Time = Time+0.0066666667 end)
+        if Time < 2 or Time > 22 then
+        timer.Repeat( 5, 20, function()
+            local randomTime = math.random(0,2.5)
+            timer.Once( randomTime, function()
+                rust.RunServerCommand( 'env.timescale 99999999' )
+                local randomLength = math.random(0.10,0.25)
+                timer.Once( randomLength, function()
+                    rust.RunServerCommand( 'env.timescale 0.0066666667' )
+                    rust.RunServerCommand( 'env.time ' .. Time )
+                end)
+            end)
+        end )
+    end
+end
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CARBON CHAT COMMANDS
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdCarbon(netuser,cmd,args)
@@ -700,38 +729,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,' ')
             rust.InventoryNotice( netuser, self:sidexpbar( c ) )
-
-
-            timer.Once( 1, function()
-                local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, 'timeOfDay' )
-                local Time = vTimeOfDay()
-                rust.RunServerCommand( 'env.timescale 225' )
-                timer.Once( 0.3, function()
-                    rust.RunServerCommand( 'env.timescale 0.0066666667' )
-                    rust.RunServerCommand( 'env.time ' .. Time )
-                end)
-
-            end)
-
-            timer.Once( 3, function()
-                local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, 'timeOfDay' )
-                local Time = vTimeOfDay()
-                rust.RunServerCommand( 'env.timescale 250' )
-                timer.Once( 0.2, function()
-                    rust.RunServerCommand( 'env.timescale 0.0066666667' )
-                    rust.RunServerCommand( 'env.time ' .. Time )
-                end)
-
-            end)
-            local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, 'timeOfDay' )
-            local Time = vTimeOfDay()
-            rust.RunServerCommand( 'env.timescale 200' )
-            timer.Once( 0.25, function()
-                rust.RunServerCommand( 'env.timescale 0.0066666667' )
-                rust.RunServerCommand( 'env.time ' .. Time )
-            end)
-
-
         elseif (args[1] == 'attr') then
             rust.SendChatToUser( netuser, self.sysname, ' ')
         elseif (args[1] == 'skills') then
@@ -1512,6 +1509,7 @@ end
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnUserConnect( netuser )
+    --[[
     self:AlphaTXT( netuser )
     if netuser.displayName:find'%W' then
         rust.SendChatToUser( netuser, ' ', ' ' )
@@ -1519,6 +1517,7 @@ function PLUGIN:OnUserConnect( netuser )
         timer.Once(7, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
         return
     end
+    --]]
     local data = self:GetUserData( netuser ) -- asks for dat.
     data.name = netuser.displayName
 
@@ -1529,7 +1528,7 @@ function PLUGIN:OnUserConnect( netuser )
         for k, v in pairs( self.User[ netuserID ].mail ) do
             if( not v.read ) then i = i + 1 end
         end
-        if( i > 0 ) then rust.SendChatToUser( netuser,'\Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
+        if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
     end
 end
 
