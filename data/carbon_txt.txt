@@ -2,7 +2,7 @@
     "guild": {
         "create": {
             "header": "Syntax: /g create \"guildname\" \"TAG\"",
-            "subheader": {
+            "txt": {
                 "1": "Create a guild by typing /g create \"GuildName\" \"Tag\". ",
                 "2": "There are disabled tags. There is a fee to creating a guild.",
                 "3": "Fee: $25000 ",
