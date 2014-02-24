@@ -163,7 +163,7 @@ function PLUGIN:Percentage( g, s, c )
     local bal = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
 
     local getbal = math.floor(( bal * ( math.floor( math.random( self.Config.Rewards.PlayerKill.min, self.Config.Rewards.PlayerKill.max )) / 100 )))
-    bal = math.floor((( bal - getbal ) - ( bal * ( math.floor( math.random( self.Config.Rewards.OnKilled.min, self.Config.Rewards.OnKilled.max )) / 100 ))))
+    local take = math.floor((getbal ) + ( bal * ( math.floor( math.random( self.Config.Rewards.OnKilled.min, self.Config.Rewards.OnKilled.max )) / 100 )))
     while getbal >= 10000 do
         gg = gg + 1
         getbal = getbal - 10000
@@ -174,17 +174,15 @@ function PLUGIN:Percentage( g, s, c )
     end
     local gc = getbal
 
-    while bal >= 10000 do
+    while take >= 10000 do
         tg = tg + 1
-        bal = bal - 10000
+        take = bal - 10000
     end
-    while (bal >= 100 ) do
+    while (take >= 100 ) do
         ts = ts + 1
-        bal = bal - 100
+        take = take - 100
     end
-    local tc = bal
-    print( tostring( 'gg: ' .. gg .. ' | gs: ' .. gs .. ' | gc: ' .. gc ))
-    print( tostring( 'tg: ' .. tg .. ' | ts: ' .. ts .. ' | tc: ' .. tc ))
+    local tc = take
     local tbl = {['tg']= tg,['ts']= ts,['tc']=tc,['gg']= gg,['gs']= gs,['gc']=gc}
     return tbl
 end

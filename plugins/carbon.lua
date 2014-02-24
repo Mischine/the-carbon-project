@@ -948,7 +948,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         if not guild then
             rust.SendChatToUser( netuser, ' ', '█  ' .. '\n█')
             rust.SendChatToUser( netuser, self.sysname, tostring( '█ To create a guild you need a level of 10 or higher.' .. '\n█' ))
-            rust.SendChatToUser( netuser, self.sysname, tostring( '█ The cost to create a guild is ' .. self.Config.guild.prices.create .. '.' .. '\n█' ))
+            rust.SendChatToUser( netuser, self.sysname, tostring( '█ The cost to create a guild is 25 Silver.' .. '\n█' ))
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser( netuser, self.sysname, tostring('                      Copyright (c) 2014 Tempus Forge. All rights reserved.' ))
             return end
@@ -1184,6 +1184,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             end
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser( netuser, ' ', ' ' )
+            return
         end
         if( args[2] ) then args[2] = tostring(args[2]):lower() end
         -------------------------------------
@@ -1199,7 +1200,6 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
             for i = 8, 1, -.1 do
-                print( tostring( i ))
                 if msg[tostring(i)] then
                     rust.SendChatToUser( netuser, guild,'█ ' .. msg[tostring(i)] .. '\n█' )
                 end
@@ -1235,49 +1235,62 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
             if( not self:hasAbility( netuser, guild, 'canrank' ) ) then rust.Notice(netuser, 'You\'re not permitted to add ranks.' ) return end
             if( not args[3] ) then rust.SendChatToUser( netuser, '/g rank add "rankname" ') return end
-            if( self.Guild[guild].ranks[ tostring(args[3]) ]:lower() == tostring(args[3])) then rust.Notice( args[2] .. ' already exist!') return end
+            if( self.Guild[ guild ].ranks[ tostring(args[3]) ]) then rust.Notice( netuser, args[3] .. ' already exist!') return end
             self.Guild[ guild ].ranks[tostring(args[3])] = {}
+            rust.SendChatToUser( netuser, 'Added new rank: ' .. args[3] )
             self:GuildSave()
+        elseif( args[2] == 'del' ) then                        -- /g rank del 'rank' | delete a rank           [ canrank ]
+            if(( args[3] ) and ( not args[4] )) then
+                local guild = self:getGuild( netuser )
+                if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
+                if( not self:hasAbility( netuser, guild, 'canrank' ) ) then rust.Notice(netuser, 'You\'re not permitted to add ranks.' ) return end
+                if ( args[3] == "Assasin" ) then rust.Notice( netuser, 'You cannot delete rank Assasin!' ) return end
+                if ( args[3] == "Leader" ) then rust.Notice( netuser, 'You cannot delete rank Leader!' ) return end
+                if( self.Guild[ guild ].ranks[tostring(args[3])]) then
+                    self.Guild[ guild ].ranks[tostring(args[3])] = nil
+                    rust.Notice( netuser, 'Rank ' .. args[3] .. ' has been deleted! ')
+                    return
+                else
+                    rust.Notice( netuser, 'Rank ' .. args[3] .. ' does not exist!' )
+                    return
+                end
+            else
+                rust.SendChatToUser( netuser, '/g rank del "rank" ' )
+            end
         elseif( args[2] == 'edit' ) then                        -- /g rank edit 'rank' | Create a new custom rank           [ canrank ]
             local guild = self:getGuild( netuser )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
             if( not self:hasAbility( netuser, guild, 'canrank' ) ) then rust.Notice(netuser, 'You\'re not permitted to edit ranks.' ) return end
             if( not args[3] and not args[4] and not args[5] ) then
-                rust.SendChatToUser(netuser,' ','\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-                rust.SendChatToUser(netuser,' ','█\n█')
-                rust.SendChatToUser( netuser, guild,'█ ' .. 'Ranks can be configured however you want!' .. '\n█' )
-                rust.SendChatToUser( netuser, guild,'█ ' .. 'To configure a rank: /g rank edit "rankname" [ID] true/false' .. '\n█' )
-                rust.SendChatToUser( netuser, guild,'█ ' .. '[1] candelete : Is able to delete the guild.' .. '\n█' )
-                rust.SendChatToUser( netuser, guild,'█ ' .. '[2] caninvite : Is able to invite new players to the guild.' .. '\n█' )
-                rust.SendChatToUser( netuser, guild,'█ ' .. '[3] cankick   : Is able to kick guildmembers.' .. '\n█' )
-                rust.SendChatToUser( netuser, guild,'█ ' .. '[4] canvault  : Coming soon!' .. '\n█' )
-                rust.SendChatToUser( netuser, guild,'█ ' .. '[5] canwar    : Is able to start wars with other guilds.' .. '\n█' )
-                rust.SendChatToUser( netuser, guild,'█ ' .. '[6] canrank   : Is able to give/add/edit ranks.' .. '\n█' )
-                rust.SendChatToUser(netuser,' ','█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-                rust.SendChatToUser( netuser, ' ', ' ' )
+                self:sendTXT( netuser, guild, self.txt.guild.rankinfo )
             elseif( args[3] and args[4] and args[5] ) then
-                if ( not self.Guild[guild].ranks[tostring(args[3])] == tostring(args[3])) then rust.Notice( netuser, 'Rank: ' .. tostring(args[3]).. ' doesn\'t exist!' ) return end
+                if ( args[3] == "Assasin" ) then rust.Notice( netuser, 'You cannot edit rank Assasin!' ) return end
+                if ( not self.Guild[guild].ranks[tostring(args[3])] ) then rust.Notice( netuser, 'Rank: ' .. tostring(args[3]).. ' doesn\'t exist!' ) return end
                 if ( tonumber(args[4]) > 7 ) then rust.Notice( netuser, 'This rank abillity is not found. Chooose between 1 - 6' ) return end
-                if(( args[5] == true ) or ( args[5] == false )) then
+                if(( args[5] == 'true' ) or ( args[5] == 'false' )) then
                     local tbl = {'candelete','caninvite','cankick','canvault','canwar','canrank' }
                     local ability = tbl[ tonumber( args[4] )]
-                    if( args[5] == true ) then
+                    if( args[5] == 'true' ) then
                         local contains = table.containsval( self.Guild[ guild ].ranks[tostring(args[3])])
                         if( contains ) then rust.Notice( netuser, tostring(args[3]) .. ' already has ' .. ability ) return end
                         table.insert( self.Guild[ guild ].ranks[tostring(args[3])], ability )
                         rust.Notice( netuser, ability .. ' has been added to ' .. tostring( args[3] ))
-                    elseif( args[5] == false ) then
-                        local contains = table.containsval( self.Guild[ guild ].ranks[tostring(args[3])])
+                    elseif( args[5] == 'false' ) then
+                        local contains = table.containsval( self.Guild[ guild ].ranks[tostring(args[3])], ability )
                         if( not contains ) then rust.Notice( netuser, tostring(args[3]) .. ' doesn\'t have ' .. ability ) return end
                         for i,v in pairs( self.Guild[ guild ].ranks[tostring(args[3])] ) do
                             if( v == ability ) then
-                                table.delete( self.Guild[ guild ].ranks[tostring(args[3])], i )
+                                table.remove( self.Guild[ guild ].ranks[tostring(args[3])], i )
                                 rust.Notice( netuser, ability .. ' has been taken from ' .. tostring( args[3] ))
                             end
                         end
                     end
                     self:GuildSave()
+                else
+                    self:sendTXT( netuser, guild, self.txt.guild.rankinfo )
                 end
+            else
+                rust.SendChatToUser( netuser, '/g rank edit "rankname" [ID] true/false || /g rank ;For more information')
             end
         else
             if( self:hasAbility( netuser, guild, 'canrank' ) ) then rust.SendChatToUser( netuser, guild, '/g rank [list][give][take][add][edit]' )
@@ -1361,19 +1374,13 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         if( v.tag == ('[' .. tag .. ']') ) then rust.Notice( netuser, 'This guild tag is already used!' ) return end
     end
     -- Check if player has enough money.
-    local b, bal = api.Call( 'economy', 'getMoney', netuser )
+    local b, bal = api.Call( 'ce', 'canBuy', netuser, 0,25,0 )
     if ( b ) then
-        -- if ( bal < self.Config.guild.prices.create) then
-        --    rust.Notice( netuser, 'Not enough money! Requires: '.. self.CS .. self.Config.guild.prices.create )
-        --    return
-        --else
-        api.Call( 'economy', 'takeMoneyFrom', netuser, self.Config.guild.prices.create )
-        --end
+        api.Call( 'ce', 'RemoveBalance', netuser, 0,25,0 )
     else
-        rust.Notice( netuser, 'Couldn\'t find your balance!' )
+        rust.Notice( netuser, 'You do not have enough money! 25 Silver is required' )
         return
     end
-
     local netuserID = rust.GetUserID( netuser )
     local entry = {}
     entry.tag = '[' .. tag .. ']'                                                                                   -- Guild Tag
