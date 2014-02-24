@@ -25,14 +25,13 @@ function reloadCarbon(carbon)
         return false, 'Failed to reload carbon'
     end
     print('Carbon reloader complete.')
-    return true, 'Carbon reloaded'
+    return true, 'Carbon reloaded asdfasdf'
 end
 
 function PLUGIN:cmdReload( netuser )
     if not reloadtoken then
         local b, str = reloadCarbon('carbon')
-        --rust.Notice(netuser, "X", str, 1)
-        rust.Notice(netuser, "", "You must be at a workbench to do this.", 4)
+        rust.Notice(netuser, str)
         rust.RunServerCommand( 'wildlife.forceupdate' )
     end
 end
