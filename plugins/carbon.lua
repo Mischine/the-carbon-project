@@ -163,12 +163,12 @@ function PLUGIN:OnKilled (takedamage, dmg)
                 --TAKEMONEY !!!!!! CareX
                 self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
             elseif(netuser == vicuser) then
-                self:GiveDp( netuser, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
+                self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
             end
             return
             -- NPC vs PLAYER
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
-            self:GiveDp( vicuser, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
+            self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
         end
     end
     -- PLAYER vs NPC
@@ -723,23 +723,20 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             local a = netuserData.lvl+1 --level +1
             local b = self.Config.settings.lvlmodifier --level modifier
             local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
-            local d = math.floor(netuserData.xp/c)*100 -- percent currently to next level.
+            local d = (netuserData.xp/c)*100 -- percent currently to next level.
             local e = c-netuserData.xp -- left to go until level
-            local g = ((a-1)*a-1+a-1)/b*100-(a-1)*100 -- amount needed for current level
-            local f = netuserData.dp/g/2*100 -- percentage of dp
-
-
-            local d=netuserData.dp/(((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100)/2*100
+            local g = ((a-1)*(a-1)+(a-1))/b*100-((a-1)*100) -- amount needed for current level
+            local f = ((netuserData.dp/g)/2)*100 -- percentage of dp
             rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
             rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(a-1) .. '\n█' )
             rust.SendChatToUser(netuser,self.sysname,'█ Experience:              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')' .. '\n█')
-            rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( c ) .. '\n█')
-            rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(g/2) .. ')   [' .. tostring(f) .. '%]' ..  '\n█')
             rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( d ) .. '\n█')
+            rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(g/2) .. ')   [' .. tostring(f) .. '%]' ..  '\n█')
+            rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( f ) .. '\n█')
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,' ')
-            rust.InventoryNotice( netuser, self:sidexpbar( c ) )
+            rust.InventoryNotice( netuser, self:sidexpbar( d ) )
         elseif (args[1] == 'attr') then
             rust.SendChatToUser( netuser, self.sysname, ' ')
         elseif (args[1] == 'skills') then
