@@ -1,6 +1,6 @@
 PLUGIN.Title = "Carbon Ecnomy"
 PLUGIN.Description = ""
-PLUGIN.Version = "0.1 alpha"
+PLUGIN.Version = "0.0.1 alpha"
 PLUGIN.Author = "Mischa & CareX"
 
 
@@ -31,6 +31,17 @@ function PLUGIN:Init()
         self.CfgFile:SetText( json.encode( self.Config, { indent = true } ) )
         self.CfgFile:Save()
     end
+    -- Gets item File
+    self.ItemFile = util.GetDatafile( "carbon_itm" )
+    local itm_txt = self.ItemFile:GetText()
+    if ( itm_txt ~= "" ) then
+        self.Item = json.decode( itm_txt )
+        print( "carbon_itm file loaded" )
+    else
+        print( 'carbon_itm not found!' )
+    end
+
+    self.cat = { 'misc','armor','food','weapons','building','adv building','tools', 'mats', 'ammo','mods' }
 
     local count = 0
     for _,v in pairs(self.Data) do count = count + 1 end
@@ -43,11 +54,17 @@ function PLUGIN:Init()
     -- Initializing chat commands
     self:AddChatCommand( "ehelp", self.cmdHelp )
     self:AddChatCommand( "bal", self.cmdBal )
+    self:AddChatCommand( "ereload", self.cmdReload )
 
-    self:AddChatCommand('ereload', self.cmdReload)
+    self:AddChatCommand( "store", self.cmdStore )
+    self:AddChatCommand( "buy", self.cmdBuy )
+    self:AddChatCommand( "sell", self.cmdSell )
 
     print( "carbon_econ version " .. self.Version .. " Loading complete." )
+
 end
+
+function table.containsval(t,cv) for _, v in ipairs(t) do  if v == cv then return true  end  end return nil end
 
 function PLUGIN:cmdReload( netuser, cmd, args )
     if not reloadtoken then
@@ -88,8 +105,6 @@ function PLUGIN:OnKilled ( takedamage, dmg )
                         rust.SendChatToUser( VicNetuser, self.Chat, "You've been killed by " .. AttNetuser.displayName .. "!")
                         local vBal = self:getBalance( VicNetuser )
                         local data = self:Percentage( vBal.g, vBal.s, vBal.c )
-                        print( tostring( 'gg: ' .. data.gg .. ' | gs: ' .. data.gs .. ' | gc: ' .. data.gc ))
-                        print( tostring( 'tg: ' .. data.tg .. ' | ts: ' .. data.ts .. ' | tc: ' .. data.tc ))
                         self:AddBalance( AttNetuser, data.gg, data.gs, data.gc )
                         self:RemoveBalance( VicNetuser,data.tg, data.ts, data.tc )
                     end
@@ -274,10 +289,129 @@ end
 
 -- end
 
+-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--  STORE FUNCTIONS!!
+-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:cmdStore( netuser, cmd, args )
+    if( not args[1] ) then
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.Chat,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.Chat,'║ store >')
+        rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.Chat,'║ Carbon Economy is a complex but easy to use')
+        rust.SendChatToUser(netuser,self.Chat,'║ economy system. To navigate trough the shop')
+        rust.SendChatToUser(netuser,self.Chat,'║ you\'ll be using categories and ID\'s')
+        rust.SendChatToUser(netuser,self.Chat,'║ Available categories: ')
+        rust.SendChatToUser(netuser,self.Chat,'║ food, tools, mats, armor, weapons, ammo,')
+        rust.SendChatToUser(netuser,self.Chat,'║ mods, building, adv building and misc')
+        rust.SendChatToUser(netuser,self.Chat,'║ If you\'ve found your item, check the ID.')
+        rust.SendChatToUser(netuser,self.Chat,'║ With the ID you can buy items from the shop or')
+        rust.SendChatToUser(netuser,self.Chat,'║ even sell items with the ID. It is however possible')
+        rust.SendChatToUser(netuser,self.Chat,'║ to buy and sell with full item names. ')
+        rust.SendChatToUser(netuser,self.Chat,'║ But be aware, it must be exactly the item name.')
+        rust.SendChatToUser(netuser,self.Chat,'║ ie: "Cooked Chicken Breast" ')
+        rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.Chat,'║ ⌘ /store CATERGORY ')
+        rust.SendChatToUser(netuser,self.Chat,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
+    elseif( args[1] ) and ( not args[2] ) then
+        local cat = args[1]:lower()
+        local b = table.containsval(self.cat, cat )
+        if( b) then
+            rust.SendChatToUser(netuser,self.Chat,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.Chat,'║ store > ' .. cat )
+            rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+            for k, v in pairs( self.Item ) do
+                if ( v.cat == cat ) then
+                    if( not( v.price.g == 0 and v.price.s == 0 and v.price.c == 0)) then
+                        rust.SendChatToUser(netuser,self.Chat,'║  [ID: ' .. tostring(k) .. ' }  Item: ' .. v.name )
+                    end
+                end
+            end
+            rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.Chat,'║ ⌘ /buy ID | /sell ID ')
+            rust.SendChatToUser(netuser,self.Chat,'╚════════════════════════')
+        else
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,self.Chat,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.Chat,'║ store > ' .. cat .. ' > ϟ error')
+            rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.Chat,'║ Invalid category.')
+            rust.SendChatToUser(netuser,self.Chat,'║ Available categories:')
+            rust.SendChatToUser(netuser,self.Chat,'║ food, tools, mats, armor, weapons, ammo,')
+            rust.SendChatToUser(netuser,self.Chat,'║ mods, building, adv building and misc')
+            rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.Chat,'║ ⌘ /store CATERGORY ')
+            rust.SendChatToUser(netuser,self.Chat,'╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        end
+    else
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.Chat,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.Chat,'║ store > ϟ error')
+        rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.Chat,'║ Invalid arguments.')
+        rust.SendChatToUser(netuser,self.Chat,'║ Available arguments are:')
+        rust.SendChatToUser(netuser,self.Chat,'║ /store')
+        rust.SendChatToUser(netuser,self.Chat,'║ /store CATEGORY')
+        rust.SendChatToUser(netuser,self.Chat,'║ Available categories:')
+        rust.SendChatToUser(netuser,self.Chat,'║ food, tools, mats, armor, weapons, ammo,')
+        rust.SendChatToUser(netuser,self.Chat,'║ mods, building, adv building and misc')
+        rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.Chat,'║ ⌘ /store CATERGORY ')
+        rust.SendChatToUser(netuser,self.Chat,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
+    end
+end
+-- self.cat = { 'misc','armor','food','weapons','building','adv building','tools', 'mats', 'ammo','mods' }
+function PLUGIN:cmdBuy( netuser, cmd, args )
+    -- Getting da item!
+    if ( tonumber(args[1]) ) then
+        local data = self.Item[ tostring(args[1]) ]
+        if( data ) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then
+            local price = ""
+            if( data.price.g > 0 ) then
+                price = tostring( '[ Gold: ' .. data.price.g .. ' ] ' )
+            elseif( data.price.s > 0 ) then
+                price = price .. tostring(  '[ Silver: ' .. data.price.s .. ' ] ' )
+            elseif( data.price.c > 0 ) then
+                price = price .. tostring( '[ Copper: ' .. data.price.c .. ' ] ' )
+            end
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,' ','╔════════════════════════')
+            rust.SendChatToUser(netuser,' ','║ ' .. self.Chat .. '  buy > [' .. tostring(args[1]) .. ']  ' .. data.name )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ Name: ' .. data.name )
+            rust.SendChatToUser(netuser,' ','║ Price: ' .. tostring( price ) )
+            rust.SendChatToUser(netuser,' ','║ Stock: ( ' .. data.amount .. ' / ' .. data.max .. ' )'  )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ Category: ' .. data.cat )
+            rust.SendChatToUser(netuser,' ','╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        else
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,' ','╔════════════════════════')
+            rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  buy > ID: ' .. tostring(args[1]) .. ' > ϟ error ')
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ Item ID: ' .. tostring(args[1]) .. ' not found!' )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ ⌘ /store to check for ID\'s ' )
+            rust.SendChatToUser(netuser,' ','╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        end
+    else
+        rust.Notice( netuser, 'txt' )
+    end
+end
+
+function PLUGIN:cmdSell( netuser, cmd, args)
+
+end
+
 function PLUGIN:LoadDefaultConfig()
     self.Config = {}
     self.Config[ "TransferFee" ] = 5                                            -- Fee that will be deducted when transfering money to friends ( In percent ( $ ))
-    self.Config[ "Chat" ] = "CarbonEcon"                                        -- Chat name
+    self.Config[ "Chat" ] = "₠"                                                 -- Chat name
     self.Config[ "Rewards" ] = {}
     self.Config.Rewards[ "PlayerKill" ] = {['max']=15,['min']=8}                -- Reward for killing a Player ( In percent ( % ))
     self.Config.Rewards[ "OnKilled" ] = {['max']=10,['min']=6}                  -- Penalty for being killed ( In percent ( % ))
