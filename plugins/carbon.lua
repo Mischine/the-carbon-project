@@ -76,7 +76,7 @@ function PLUGIN:Init()
 
     self.debugr = false
     self.rnd = 0
-    timer.Repeat(.5, function() self.rnd = math.random(100) end)
+    timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
     --timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
     timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
     print( 'Carbon Loaded!' )
@@ -214,8 +214,6 @@ end
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
-    math.randomseed(self.rnd)
-    if (self.debugr == true) then  rust.BroadcastChat('seed: ' .. tostring(self.rnd) .. ' | ' .. 'rnd 0-100: ' .. math.random(100)) end
     if(dmg.extraData) then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -387,6 +385,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             end
             dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)
             if (self.debugr == true) then rust.BroadcastChat('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
+            rust.BroadcastChat('DAMAGE: ' .. tostring(dmg.amount))
             return dmg
         end
     end
@@ -622,8 +621,7 @@ function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
     local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.id ].xp+xp))+25))+50)/100)
     if (calcLvl ~= netuserData.skills[ weaponData.id ].lvl) then
         netuserData.skills[ weaponData.id ].lvl = calcLvl
-        timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
-        timer.Once( 5, function()  rust.Notice( netuser, "Your skill with the " .. tostring(weaponData.name) .. " is now level " .. tostring(calcLvl) .. "!", 5 ) end )
+        timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.id) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
     end
 end
 
@@ -722,16 +720,22 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         return
     elseif (#args==1) then
         if (args[1] == 'xp') then
-            local a=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100
-            local b=((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100-netuserData.xp
-            local c=math.floor((netuserData.xp/a)*100)
+            local a = netuserData.lvl+1 --level +1
+            local b = self.Config.settings.lvlmodifier --level modifier
+            local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
+            local d = math.floor(netuserData.xp/c)*100 -- percent currently to next level.
+            local e = c-netuserData.xp -- left to go until level
+            local g = ((a-1)*a-1+a-1)/b*100-(a-1)*100 -- amount needed for current level
+            local f = netuserData.dp/g/2*100 -- percentage of dp
+
+
             local d=netuserData.dp/(((netuserData.lvl+1)*netuserData.lvl+1+netuserData.lvl+1)/self.Config.settings.lvlmodifier*100-(netuserData.lvl+1)*100)/2*100
             rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,'█\n█')
-            rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(netuserData.lvl) .. '\n█' )
-            rust.SendChatToUser(netuser,self.sysname,'█ Experience:              (' .. tostring(netuserData.xp) .. '/' .. tostring(a) .. ')   [' .. tostring(c) .. '%]   ' .. '(' .. tostring(b) .. ')' .. '\n█')
+            rust.SendChatToUser(netuser,self.sysname,'█ Level:                          ' .. tostring(a-1) .. '\n█' )
+            rust.SendChatToUser(netuser,self.sysname,'█ Experience:              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')' .. '\n█')
             rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( c ) .. '\n█')
-            rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(a/2) .. ')   [' .. tostring(d) .. '%]' ..  '\n█')
+            rust.SendChatToUser(netuser,self.sysname,'█ Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(g/2) .. ')   [' .. tostring(f) .. '%]' ..  '\n█')
             rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( d ) .. '\n█')
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,' ')
