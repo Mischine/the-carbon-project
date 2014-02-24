@@ -702,12 +702,23 @@ function PLUGIN:cmdStorm(netuser,cmd, args)
     end
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- CARBON POPUP
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:Notice(netuser,text,duration)
+    Rust.Rust.Notice.Popup( netuser.networkPlayer, " ", text .. '      ', duration or 4.0 )
+end
+function PLUGIN:InventoryNotice(netuser,text,duration)
+    RustNoticePopup( netuser.networkPlayer, " ", text, duration or 4.0 )
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CARBON CHAT COMMANDS
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdCarbon(netuser,cmd,args)
     local netuserID = rust.GetUserID( netuser )
     local netuserData = self.User[netuserID]
-
+    self:Notice(netuser, 'woah it works')
+    self:InventoryNotice(netuser, 'testing', 5)
     for k,v in ipairs(args)do args[k]=tostring(args[k]):lower()end
 
     if(#args==0)then
@@ -736,7 +747,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( d ) .. '\n█')
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,' ')
-            rust.InventoryNotice( netuser, self:sidexpbar( c ) )
+            --rust.InventoryNotice( netuser, self:sidexpbar( c ) )
         elseif (args[1] == 'attr') then
             rust.SendChatToUser( netuser, self.sysname, ' ')
         elseif (args[1] == 'skills') then
@@ -746,7 +757,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         end
 
     end
-    self.Notice(netuser, "yo", 4)
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdWhisper
@@ -1859,10 +1869,5 @@ function class(superclass, name)
         end
         return self
     end})
-end
-function PLUGIN:Notice(netuser)
-    local text = 'this is a test'
-    local duration = 2
-    Rust.Rust.Notice.Popup( netuser.networkPlayer, " ", text .. '      ', duration or 4.0 )
 end
 --api.Call( 'economy', 'takeMoneyFrom', netuser, value )
