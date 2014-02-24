@@ -5,7 +5,7 @@ PLUGIN.Author = "Mischa & CareX"
 
 
 function PLUGIN:Init()
-    print( "Cor.Money version " .. self.Version .. " Loading..." )
+    print( "Carbon Econ version " .. self.Version .. " Loading..." )
 
     -- Gets/Creates Data File
     self.DataFile = util.GetDatafile( "carbon_econ_dat" )
@@ -71,34 +71,31 @@ function reloadCarbon(carbonecon)
 end
 
 function PLUGIN:OnKilled ( takedamage, dmg )
-
     if ( takedamage:GetComponent( "HumanController" )) then
-        if ( self.Config.Rewards.HumanController > 0 ) then
-            local victim = takedamage:GetComponent( "HumanController" )
-            if ( victim ) then
-                local netplayer = victim.networkViewOwner
-                if ( netplayer ) then
-                    local VicNetuser = rust.NetUserFromNetPlayer( netplayer )
-                    if ( VicNetuser ) then
-                        local VicUserID = rust.GetUserID( VicNetuser )
-                        if (( dmg.attacker.client ) and ( dmg.attacker.client.netUser )) then
-                            local AttNetuser = dmg.attacker.client.netUser
-                            if ( AttNetuser.displayName == VicNetuser.displayName ) then
-                                -- Suicide
-                                return
-                            end
-                            rust.SendChatToUser( AttNetuser, self.Chat, "You've killed " .. VicNetuser.displayName .. "!")
-                            rust.SendChatToUser( VicNetuser, self.Chat, "You've been killed by " .. AttNetuser.displayName .. "!")
-                            local vBal = self:getBalance( VicNetuser )
-                            local data = self:Percentage( vBal.g, vBal.s, vBal.c )
-                            self:AddBalance( AttNetuser, data.gg, data.gs, data.gc )
-                            self:RemoveBalance( VicNetuser,data.tg, data.ts, data.tc )
+        local victim = takedamage:GetComponent( "HumanController" )
+        if ( victim ) then
+            local netplayer = victim.networkViewOwner
+            if ( netplayer ) then
+                local VicNetuser = rust.NetUserFromNetPlayer( netplayer )
+                if ( VicNetuser ) then
+                    if (( dmg.attacker.client ) and ( dmg.attacker.client.netUser )) then
+                        local AttNetuser = dmg.attacker.client.netUser
+                        if ( AttNetuser.displayName == VicNetuser.displayName ) then
+                            -- Suicide
+                            return
                         end
+                        rust.SendChatToUser( AttNetuser, self.Chat, "You've killed " .. VicNetuser.displayName .. "!")
+                        rust.SendChatToUser( VicNetuser, self.Chat, "You've been killed by " .. AttNetuser.displayName .. "!")
+                        local vBal = self:getBalance( VicNetuser )
+                        local data = self:Percentage( vBal.g, vBal.s, vBal.c )
+                        print( tostring( 'gg: ' .. data.gg .. ' | gs: ' .. data.gs .. ' | gc: ' .. data.gc ))
+                        print( tostring( 'tg: ' .. data.tg .. ' | ts: ' .. data.ts .. ' | tc: ' .. data.tc ))
+                        self:AddBalance( AttNetuser, data.gg, data.gs, data.gc )
+                        self:RemoveBalance( VicNetuser,data.tg, data.ts, data.tc )
                     end
                 end
             end
         end
-        return
     end
     local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
     for _, npcController in ipairs(npcController) do
@@ -128,7 +125,7 @@ end
 
 function PLUGIN:OnUserConnect( netuser )
     local data = self:getUserData( netuser )
-    rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser ) )
+    rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser,0,0,0 ) )
 end
 
 function PLUGIN:getUserData( netuser )
@@ -147,6 +144,12 @@ function PLUGIN:getUserData( netuser )
     return data
 end
 
+function PLUGIN:getBalance( netuser )
+    local UserID = rust.GetUserID( netuser )
+    local data = self.Data[ UserID ].Balance
+    return data
+end
+
 function PLUGIN:canBuy( netuser, g, s, c )
     local UserID = rust.GetUserID( netuser )
     local data = self.Data[ UserID ].Balance
@@ -155,11 +158,11 @@ function PLUGIN:canBuy( netuser, g, s, c )
     if( bal >= cost ) then return true else return false end
 end
 
-function PLUGIN:Percentage( g, s, c, take )
+function PLUGIN:Percentage( g, s, c )
     local gg, gs, tg, ts = 0,0,0,0
     local bal = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
-    local getbal = ( bal * ( math.floor( math.random( self.Config.Rewards.PlayerKill.min, self.Config.Rewards.PlayerKill.max )) / 100 ))
-    bal = (( bal - getbal ) - ( bal * ( math.floor( math.random( self.Config.Rewards.OnKilled.min, self.Config.Rewards.OnKilled.max )) / 100 )))
+    local getbal = math.floor(( bal * ( math.floor( math.random( self.Config.Rewards.PlayerKill.min, self.Config.Rewards.PlayerKill.max )) / 100 )))
+    bal = math.floor((( bal - getbal ) - ( bal * ( math.floor( math.random( self.Config.Rewards.OnKilled.min, self.Config.Rewards.OnKilled.max )) / 100 ))))
     while getbal >= 10000 do
         gg = gg + 1
         getbal = getbal - 10000
@@ -179,7 +182,9 @@ function PLUGIN:Percentage( g, s, c, take )
         bal = bal - 100
     end
     local tc = bal
-    local tbl = {['take']={['g']= tc,['s']= ts,['c']=tc},['get']={['g']= gg,['s']= gs,['c']=gc}}
+    print( tostring( 'gg: ' .. gg .. ' | gs: ' .. gs .. ' | gc: ' .. gc ))
+    print( tostring( 'tg: ' .. tg .. ' | ts: ' .. ts .. ' | tc: ' .. tc ))
+    local tbl = {['tg']= tg,['ts']= ts,['tc']=tc,['gg']= gg,['gs']= gs,['gc']=gc}
     return tbl
 end
 
@@ -199,14 +204,10 @@ function PLUGIN:AddBalance( netuser, g, s, c )
     while( self.Data[ UserID ].Balance.c >= 100 ) do
         self.Data[ UserID ].Balance.s = self.Data[ UserID ].Balance.s + 1
         self.Data[ UserID ].Balance.c = self.Data[ UserID ].Balance.c - 100
-        s = s + 1
-        c = self.Data[ UserID ].Balance.c
     end
     while( self.Data[ UserID ].Balance.s >= 100 ) do
         self.Data[ UserID ].Balance.g = self.Data[ UserID ].Balance.g + 1
         self.Data[ UserID ].Balance.s = self.Data[ UserID ].Balance.s - 100
-        g = g + 1
-        s = self.Data[ UserID ].Balance.s
     end
     rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser, g, s, c, true ) )
     self:Save()
@@ -267,6 +268,7 @@ end
 
 function PLUGIN:cmdBal( netuser )
     rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser,0,0,0 ))
+    rust.SendChatToUser( netuser, self.Chat, "HAI 4!" )
 end
 
 -- function PLUGIN:cmdHelp( netuser, cmd, args)

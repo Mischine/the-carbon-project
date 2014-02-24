@@ -53,6 +53,7 @@ function PLUGIN:Init()
     if (txt ~= '') then
         print( 'carbon_txt file loaded!' )
         self.txt = json.decode( txt_txt )
+        print( txt_txt )
     else
         print( 'carbon_txt file is missing!' )
     end
@@ -1297,6 +1298,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
 
     elseif ( action == 'help' ) then
         local guild = self:getGuild( netuser )
+        if( not guild ) then guild = self.sysname end
         if not args[2] then
             self:sendTXT( netuser, guild, self.txt.guild.help )
             return
@@ -1427,12 +1429,12 @@ end
 --PLUGIN:sendTXT
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:sendTXT( netuser, chatname, data )
-    if( not data ) then print( tostring( path ) .. ' was not found!' ) rust.Notice( netuser, 'txt file not found! please report this to a GM!' ) return end
+    if( not data ) then print( 'Data was not found!' ) rust.Notice( netuser, 'txt file not found! please report this to a GM!' ) return end
     rust.SendChatToUser(netuser,' ','\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
     rust.SendChatToUser(netuser,' ','█\n█')
     local v = false
-    if ( data.header ) then rust.SendChatToUser( netuser, chatname, '█  ' .. data.header .. '\n█' ) v = true end
-    if ( data.subheader ) then rust.SendChatToUser( netuser, chatname, '█  ' .. data.subheader .. '\n█' )v = true end
+    if ( data.header ) then rust.SendChatToUser( netuser, tostring( chatname ), '█  ' .. tostring( data.header ) .. '\n█' ) v = true end
+    if ( data.subheader ) then rust.SendChatToUser( netuser, tostring( chatname ), '█  ' .. tostring( data.subheader ) .. '\n█' ) v = true end
     if ( v ) then rust.SendChatToUser( netuser, ' ', '█\n█' ) end
     local i = 1
     while ( data.txt[tostring(i)] ) do
