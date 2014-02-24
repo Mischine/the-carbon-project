@@ -708,7 +708,7 @@ function PLUGIN:Notice(netuser,text,duration)
     Rust.Rust.Notice.Popup( netuser.networkPlayer, " ", text .. '      ', duration or 4.0 )
 end
 function PLUGIN:InventoryNotice(netuser,text,duration)
-    RustNoticePopup( netuser.networkPlayer, " ", text, duration or 4.0 )
+    rust.InventoryNotice( netuser, " ", text, duration or 4.0 )
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -717,9 +717,10 @@ end
 function PLUGIN:cmdCarbon(netuser,cmd,args)
     local netuserID = rust.GetUserID( netuser )
     local netuserData = self.User[netuserID]
-    self:Notice(netuser, 'woah it works')
+    self:Notice(netuser, tostring(cs.gettimestamp()))
     self:InventoryNotice(netuser, 'testing', 5)
-    for k,v in ipairs(args)do args[k]=tostring(args[k]):lower()end
+    print(cs.dump(netuser))
+    for k,v in ipairs(args)do args[k]=tostring(args[k]):lower() end
 
     if(#args==0)then
         rust.SendChatToUser( netuser, self.sysname,  'The Carbon Project [Version ' .. tostring(self.Version) .. ']' )
