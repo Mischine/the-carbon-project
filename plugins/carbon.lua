@@ -13,17 +13,6 @@ function PLUGIN:Init()
     if( not api.Exists( 'ce' ) ) then print( '[CARBON] Carbon needs carbon-econ to function.' ) return end
 
     print( 'Loading Carbon...' )
-    --LOAD/CREATE TABLE PROBE FILE
-    self.MetaFile = util.GetDatafile( 'carbon_met' )
-    local met_txt = self.MetaFile:GetText()
-    if (met_txt ~= '') then
-        print( 'Carbon met file loaded!' )
-        self.Meta = json.decode( met_txt )
-    else
-        print( 'Creating carbon met file...' )
-        self.Meta = {}
-        self:MetaSave()
-    end
     --LOAD/CREATE CFG FILE
     self.ConfigFile = util.GetDatafile( 'carbon_cfg' )
     local cfg_txt = self.ConfigFile:GetText()
@@ -87,7 +76,8 @@ function PLUGIN:Init()
 
     self.debugr = false
     self.rnd = 0
-    timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
+    timer.Repeat(.5, function() self.rnd = math.random(100) end)
+    --timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
     timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
     print( 'Carbon Loaded!' )
 end
@@ -224,6 +214,8 @@ end
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
+    math.randomseed(self.rnd)
+    if (self.debugr == true) then  rust.BroadcastChat('seed: ' .. tostring(self.rnd) .. ' | ' .. 'rnd 0-100: ' .. math.random(100)) end
     if(dmg.extraData) then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -704,11 +696,8 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CARBON POPUP
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:Notice(netuser,text,duration)
-    Rust.Rust.Notice.Popup( netuser.networkPlayer, " ", text .. '      ', duration or 4.0 )
-end
-function PLUGIN:InventoryNotice(netuser,text,duration)
-    rust.InventoryNotice( netuser, " ", text, duration or 4.0 )
+function PLUGIN:Notice(netuser,prefix,text,duration)
+    Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ", text .. '      ', duration or 4.0 )
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -717,9 +706,7 @@ end
 function PLUGIN:cmdCarbon(netuser,cmd,args)
     local netuserID = rust.GetUserID( netuser )
     local netuserData = self.User[netuserID]
-    self:Notice(netuser, tostring(cs.gettimestamp()))
-    self:InventoryNotice(netuser, 'testing', 5)
-    print(cs.dump(netuser))
+
     for k,v in ipairs(args)do args[k]=tostring(args[k]):lower() end
 
     if(#args==0)then
@@ -748,7 +735,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             rust.SendChatToUser(netuser,self.sysname,'█ ' .. self:medxpbar( d ) .. '\n█')
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser(netuser,self.sysname,' ')
-            --rust.InventoryNotice( netuser, self:sidexpbar( c ) )
+            rust.InventoryNotice( netuser, self:sidexpbar( c ) )
         elseif (args[1] == 'attr') then
             rust.SendChatToUser( netuser, self.sysname, ' ')
         elseif (args[1] == 'skills') then
@@ -960,7 +947,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         if not guild then
             rust.SendChatToUser( netuser, ' ', '█  ' .. '\n█')
             rust.SendChatToUser( netuser, self.sysname, tostring( '█ To create a guild you need a level of 10 or higher.' .. '\n█' ))
-            rust.SendChatToUser( netuser, self.sysname, tostring( '█ The cost to create a guild is ' .. self.CS .. self.Config.guild.prices.create .. '.' .. '\n█' ))
+            rust.SendChatToUser( netuser, self.sysname, tostring( '█ The cost to create a guild is ' .. self.Config.guild.prices.create .. '.' .. '\n█' ))
             rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
             rust.SendChatToUser( netuser, self.sysname, tostring('                      Copyright (c) 2014 Tempus Forge. All rights reserved.' ))
             return end
@@ -1761,19 +1748,6 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CONFIG UPDATE AND SAVE
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:MetaSave()
-    self.MetaFile:SetText( json.encode( self.Meta, { indent = true } ) )
-    self.MetaFile:Save()
-    self:MetaUpdate()
-end
-function PLUGIN:MetaUpdate()
-    self.MetaFile = util.GetDatafile( 'carbon_met' )
-    local txt = self.MetaFile:GetText()
-    self.Meta = json.decode ( txt )
-end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- CONFIG UPDATE AND SAVE
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
     self.ConfigFile:Save()
@@ -1859,17 +1833,5 @@ function PLUGIN:sidexpbar( value )
     end
     msg = msg .. '■'
     return msg
-end
-function class(superclass, name)
-    local cls = superclass and superclass() or {}
-    cls.__name = name or ""
-    cls.__super = superclass
-    return setmetatable(cls, {__call = function (c, ...)
-        self = setmetatable({__class = cls}, cls)
-        if cls.__init then
-            cls.__init(self, ...)
-        end
-        return self
-    end})
 end
 --api.Call( 'economy', 'takeMoneyFrom', netuser, value )
