@@ -10,8 +10,7 @@ PLUGIN.Author = 'Mischa & CareX'
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:Init()
 
-    if( not api.Exists( 'economy' ) ) then print( '[CARBON] Carbon needs an economy plugin to work' ) return end
-    econ_mod = ((plugins.Find( 'econ' )) or (plugins.Find( 'market' )))
+    if( not api.Exists( 'ce' ) ) then print( '[CARBON] Carbon needs carbon-econ to function.' ) return end
 
     print( 'Loading Carbon...' )
     --LOAD/CREATE CFG FILE
@@ -90,7 +89,7 @@ end
 -- Loads after all the other plugins are loaded!
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PostInit()
-    self.CS = econ_mod.CurrencySymbol
+
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Testing plugin reload!
@@ -461,9 +460,9 @@ end
 --PLUGIN:critCheck
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:critCheck(weaponData, netuser, netuserData, damage)
-    if( self.Users[ netuserData.id ].buffs[ 'ParryCrit' ]) then
+    if( self.User[ netuserData.id ].buffs[ 'ParryCrit' ]) then
         damage = damage * 2
-        self.Users[ netuserData.id ].buffs[ 'ParryCrit' ] = nil
+        self.User[ netuserData.id ].buffs[ 'ParryCrit' ] = nil
         return damage
     end
     if (netuserData.attributes.agi>0) then
@@ -1344,7 +1343,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             self:sendTXT( netuser, guild, self.txt.guild.assassin )
         elseif( action2 == '' ) then
         else
-            rust.SendChatToUser( netuser, self.sysname, 'Invalid command! Please type /g create/delete/info/stats/invite/kick/war/rank/vault' )
+            rust.SendChatToUser( netuser, self.sysname, 'Please type /g create | delete | info | stats | invite | kick | war | rank | vault' )
         end
     else
         rust.SendChatToUser( netuser, self.sysname, 'Invalid command! Please type /g to view all available guild commands.' )
