@@ -161,6 +161,7 @@ end
 function PLUGIN:Percentage( g, s, c )
     local gg, gs, tg, ts = 0,0,0,0
     local bal = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
+
     local getbal = math.floor(( bal * ( math.floor( math.random( self.Config.Rewards.PlayerKill.min, self.Config.Rewards.PlayerKill.max )) / 100 )))
     bal = math.floor((( bal - getbal ) - ( bal * ( math.floor( math.random( self.Config.Rewards.OnKilled.min, self.Config.Rewards.OnKilled.max )) / 100 ))))
     while getbal >= 10000 do

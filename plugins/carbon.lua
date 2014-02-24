@@ -556,13 +556,13 @@ function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
         rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
         self:PlayerLvl(netuser, netuserData, xp)
         self:WeaponLvl(weaponData, netuser, netuserData, xp)
-    elseif((xp>netuserData.dp) and (not (netuserData.dp<= 0))) then
+    else
         local xp = xp-netuserData.dp
         netuserData.xp = netuserData.xp+xp
         netuserData.skills[ weaponData.id ].xp = netuserData.skills[ weaponData.id ].xp + xp
+        netuserData.dp = 0
         rust.InventoryNotice( netuser, '-' .. netuserData.dp .. 'dp' )
         rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
-        netuserData.dp = 0
         self:PlayerLvl(netuser, netuserData, xp)
         self:WeaponLvl(weaponData, netuser, netuserData, xp)
     end
@@ -600,18 +600,17 @@ function PLUGIN:PlayerLvl(netuser, netuserData, xp)
         netuserData.lvl = calcLvl
         rust.Notice( netuser, 'You are now level ' .. calcLvl .. '!', 5 )
     end
-    --[[
-    local calcAp = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100/3)
-    if (calcAp ~= netuserData.ap) then
+    local calcAp = math.floor(((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/3)
+    if (calcAp > netuserData.ap) then
         netuserData.ap = calcAp
-        rust.Notice( netuser, 'You earned an att' .. calcAp .. ' !', 5 )
+        timer.Once(2, function() rust.SendChatToUser( netuser, self.sysname, 'You have earned an attribute point!') end)
     end
-    local calcAp = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100/3)
-    if (calcAp ~= netuserData.ap) then
-        netuserData.ap = calcAp
-        rust.Notice( netuser, 'You earned an att' .. calcAp .. ' !', 5 )
+    local calcPp = math.floor(((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/6)
+    if (calcPp > netuserData.pp) then
+        netuserData.pp = calcPp
+        timer.Once(3, function() rust.SendChatToUser( netuser, self.sysname, 'You have earned a perk point!') end)
     end
-    --]]
+    rust.SendChatToUser( netuser, self.sysname, tostring(netuserData.ap) .. ' ' .. tostring(netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
 end
 
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1612,6 +1611,8 @@ function PLUGIN:SetDefaultConfig()
             ['Rock']={['id']='Rock',['type']='m',['dmg']=1,['lvl']=1},
             ['Shotgun']={['id']='Shotgun',['type']='c',['dmg']=1,['lvl']=1},
             ['Stone Hatchet']={['id']='Stone Hatchet',['type']='m',['dmg']=1,['lvl']=1},
+            ['Uber Hatchet']={['id']='Uber Hatchet',['type']='c',['dmg']=1,['lvl']=1},
+            ['Uber Hunting Bow']={['id']='Uber Hunting Bow',['type']='l',['dmg']=1,['lvl']=1},
         },
         ['settings']={
             ['filename']='carbon',
