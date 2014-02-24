@@ -266,7 +266,7 @@ function PLUGIN:printBalance( netuser, g, s, c, alter )
 end
 
 function PLUGIN:cmdBal( netuser )
-    rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser ))
+    rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser,0,0,0 ))
 end
 
 -- function PLUGIN:cmdHelp( netuser, cmd, args)

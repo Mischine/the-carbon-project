@@ -1721,6 +1721,7 @@ function PLUGIN:OnUserConnect( netuser )
 
     -- Check mail
     local netuserID = rust.GetUserID( netuser )
+    if( not self.User[ netuserID ] ) then return end
     if ( self.User[ netuserID ].mail ) then
         local i = 0
         for k, v in pairs( self.User[ netuserID ].mail ) do
