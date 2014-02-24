@@ -13,6 +13,17 @@ function PLUGIN:Init()
     if( not api.Exists( 'ce' ) ) then print( '[CARBON] Carbon needs carbon-econ to function.' ) return end
 
     print( 'Loading Carbon...' )
+    --LOAD/CREATE TABLE PROBE FILE
+    self.MetaFile = util.GetDatafile( 'carbon_met' )
+    local met_txt = self.MetaFile:GetText()
+    if (met_txt ~= '') then
+        print( 'Carbon met file loaded!' )
+        self.Meta = json.decode( met_txt )
+    else
+        print( 'Creating carbon met file...' )
+        self.Meta = {}
+        self:MetaSave()
+    end
     --LOAD/CREATE CFG FILE
     self.ConfigFile = util.GetDatafile( 'carbon_cfg' )
     local cfg_txt = self.ConfigFile:GetText()
@@ -69,10 +80,10 @@ function PLUGIN:Init()
     self:AddChatCommand( 'mail', self.cmdMail )
     self:AddChatCommand( 'alpha', self.AlphaTXT )     -- Alpha welcome text!
     -----------------------------------------------------------------------------------
+    self:AddChatCommand( 'storm', self.cmdStorm )
     self:AddChatCommand('debug', self.cmdDebug)
     self:AddChatCommand('dump', self.dump)
     self:AddChatCommand('reset', self.SetDefaultConfig)
-    self:AddChatCommand('reload', self.cmdReload)
 
     self.debugr = false
     self.rnd = 0
@@ -92,30 +103,6 @@ function PLUGIN:PostInit()
 
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- Testing plugin reload!
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function reloadCarbon(carbon)
-    reloadtoken = timer.Once(3,function() reloadtoken = nil  end)
-    print('Carbon reloader initiated.. .')
-    cs.reloadplugin(carbon)
-    local cplugin = plugins.Find(carbon)
-    if cplugin then
-        cplugin:Init()
-        if cplugin.PostInit then cplugin:PostInit() end
-    else
-        return false, 'Failed to reload carbon'
-    end
-    print('Carbon reloader complete.')
-    return true, 'Carbon reloaded'
-end
-
-function PLUGIN:cmdReload( netuser, cmd, args )
-    if not reloadtoken then
-        local b, str = reloadCarbon('carbon')
-        rust.Notice(netuser,str)     end
-end
-
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- GameUpdate() -- Updates Guildcollectionsystem.
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GameUpdate()
@@ -128,8 +115,10 @@ end
 function PLUGIN:cmdDebug( netuser, cmd , args )
     if( self.debugr ) then
         self.debugr = false
+        rust.SendChatToUser( netuser, self.sysname, 'debug: off' )
     else
         self.debugr = true
+        rust.SendChatToUser( netuser, self.sysname, 'debug: on' )
     end
 end
 
@@ -228,9 +217,7 @@ end
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    if (self.debugr == true) then  rust.BroadcastChat('damageTypes: ' .. tostring(dmg.damageTypes)) end
-    if (self.debugr == true) then  rust.BroadcastChat('sender: ' .. tostring(dmg.sender)) end
-    if (self.debugr == true) then  rust.BroadcastChat('extraData ' .. tostring(dmg.extraData)) end
+
 end
 
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -240,6 +227,9 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
     if(dmg.extraData) then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
+    if (self.debugr == true) then  rust.BroadcastChat(self.sysname) end
+    if (self.debugr == true) then  rust.BroadcastChat('DATA INFO: ' .. tostring(dmg.victim.networkView.name)) end
+    if (self.debugr == true) then  rust.BroadcastChat('HEALTH: ' .. tostring(dmg.sender.health)) end
     if (takedamage:GetComponent( 'HumanController' )) then
         if(dmg.victim.client and dmg.attacker.client) then
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
@@ -254,6 +244,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                         netuserData.skills[weaponData.id] = {['xp']=0,['lvl']=0}
                         self:UserSave()
                     end
+
                     --START: ADJUST ATTACKER DAMAGE
                     --PERK PARRY
                     dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
@@ -366,13 +357,13 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 netuserData.skills[weaponData.id] = {['xp']=0,['lvl']=0}
                 self:UserSave()
             end
---[[
-local attacker = dmg.attacker
-table.insert(dmg.victim, attacker)
-local vicuser = dmg.victim.client.netUser
-local viuserID = rust.GetUserID(vicuser)
-if (self.debugr == true) then rust.BroadcastChat('This is me!!!' .. tostring(self.User[vicuserID].name)) end
---]]
+            --[[
+            local attacker = dmg.attacker
+            table.insert(dmg.victim, attacker)
+            local vicuser = dmg.victim.client.netUser
+            local viuserID = rust.GetUserID(vicuser)
+            if (self.debugr == true) then rust.BroadcastChat('This is me!!!' .. tostring(self.User[vicuserID].name)) end
+            --]]
             --DEATH PENALTY MODIFIER
             dmg.amount = self:modifyDP(netuserData, dmg.amount)
             if (self.debugr == true) then rust.BroadcastChat('DP MODIFIER: ' .. tostring(dmg.amount)) end
@@ -696,7 +687,7 @@ function PLUGIN:cmdStorm(netuser,cmd, args)
     local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, 'timeOfDay' )
     local Time = vTimeOfDay()
     timer.Repeat(1, 100, function() Time = Time+0.0066666667 end)
-        if Time < 2 or Time > 22 then
+    if Time < 2 or Time > 22 then
         timer.Repeat( 5, 20, function()
             local randomTime = math.random(0,2.5)
             timer.Once( randomTime, function()
@@ -1292,10 +1283,10 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             if( self:hasAbility( netuser, guild, 'canrank' ) ) then rust.SendChatToUser( netuser, guild, '/g rank [list][give][take][add][edit]' )
             else rust.SendChatToUser( netuser, '/g rank [list]' ) end
         end
-    -- elseif ( action == 'perks' ) then -- [ canvault ]
+        -- elseif ( action == 'perks' ) then -- [ canvault ]
 
 
-    -- elseif ( action == 'vault' ) then -- [ canvault ]
+        -- elseif ( action == 'vault' ) then -- [ canvault ]
         -- /g vault buy                             -- Buy a vault
 
         -- /g vault add                             -- Add items/money to the guild vault
@@ -1602,6 +1593,7 @@ function PLUGIN:SetDefaultConfig()
             ['Rabbit']={['id']='Rabbit',['ai']='RabbitAI',['name']='Rabbit',['xp']=5,['dmg']=1,['sta']=1,['str']=1},
         },
         ['weapon']={
+            ['Unarmed']={['id']='unarmed',['type']='m',['dmg']=1,['lvl']=1},
             ['9mm Pistol']={['id']='9mm Pistol',['type']='c',['dmg']=1,['lvl']=1},
             ['M4']={['id']='M4',['type']='l',['dmg']=1,['lvl']=1},
             ['Bolt Action Rifle']={['id']='Bolt Action Rifle',['type']='l',['dmg']=1,['lvl']=1},
@@ -1756,6 +1748,19 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CONFIG UPDATE AND SAVE
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:MetaSave()
+    self.MetaFile:SetText( json.encode( self.Meta, { indent = true } ) )
+    self.MetaFile:Save()
+    self:MetaUpdate()
+end
+function PLUGIN:MetaUpdate()
+    self.MetaFile = util.GetDatafile( 'carbon_met' )
+    local txt = self.MetaFile:GetText()
+    self.Meta = json.decode ( txt )
+end
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- CONFIG UPDATE AND SAVE
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
     self.ConfigFile:Save()
@@ -1794,7 +1799,7 @@ function PLUGIN:GuildUpdate()
 end
 
 function PLUGIN:xpbar( value )
-       local msg = '▐'
+    local msg = '▐'
     for i=1, 25 do
         if( (value / 4) >= i ) then
             msg = msg .. '█'
