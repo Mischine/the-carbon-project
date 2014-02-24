@@ -746,6 +746,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         end
 
     end
+    self.Notice(netuser, "yo", 4)
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdWhisper
@@ -1847,5 +1848,21 @@ function PLUGIN:sidexpbar( value )
     msg = msg .. '■'
     return msg
 end
-
+function class(superclass, name)
+    local cls = superclass and superclass() or {}
+    cls.__name = name or ""
+    cls.__super = superclass
+    return setmetatable(cls, {__call = function (c, ...)
+        self = setmetatable({__class = cls}, cls)
+        if cls.__init then
+            cls.__init(self, ...)
+        end
+        return self
+    end})
+end
+function PLUGIN:Notice(netuser)
+    local text = 'this is a test'
+    local duration = 2
+    Rust.Rust.Notice.Popup( netuser.networkPlayer, " ", text .. '      ', duration or 4.0 )
+end
 --api.Call( 'economy', 'takeMoneyFrom', netuser, value )

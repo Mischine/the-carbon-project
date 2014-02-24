@@ -56,7 +56,7 @@ function PLUGIN:cmdReloader( netuser )
         local b, str = reloaderCarbon('carbon_reload')
         local text = 'this is a test'
         local duration = 2
-        Rust.Rust.Notice.Popup( netuser.networkPlayer, " ", text, duration or 4.0 )
+        Rust.Rust.Notice.Popup( netuser.networkPlayer, " ", text .. '      ', duration or 4.0 )
         --rust.Notice( netuser, "   ", text, duration or 4.0 )
         rust.RunServerCommand( 'wildlife.forceupdate' )
     end
