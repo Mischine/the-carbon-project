@@ -535,10 +535,10 @@ end
 --PLUGIN:GiveTimedBuff
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GiveTimedBuff( vicuserID, time, buff )
-    if not self.Users[ vicuserID ].buffs['ParryCrit'] then
-        self.Users[ vicuserID ].buffs['ParryCrit']=true
+    if not self.User[ vicuserID ].buffs['ParryCrit'] then
+        self.User[ vicuserID ].buffs['ParryCrit']=true
         timer.Once( time, function()
-            if( self.User[ vicuserID ].buffs[ buff ] ) then self.Users[ vicuserID ].buffs[ buff ] = nil end
+            if( self.User[ vicuserID ].buffs[ buff ] ) then self.User[ vicuserID ].buffs[ buff ] = nil end
         end )
     end
 end

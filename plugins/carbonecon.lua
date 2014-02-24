@@ -89,7 +89,6 @@ function PLUGIN:OnKilled ( takedamage, dmg )
                             end
                             rust.SendChatToUser( AttNetuser, self.Chat, "You've killed " .. VicNetuser.displayName .. "!")
                             rust.SendChatToUser( VicNetuser, self.Chat, "You've been killed by " .. AttNetuser.displayName .. "!")
-                            local aBal = self:getBalance( AttNetuser )
                             local vBal = self:getBalance( VicNetuser )
                             local data = self:Percentage( vBal.g, vBal.s, vBal.c )
                             self:AddBalance( AttNetuser, data.gg, data.gs, data.gc )
@@ -157,7 +156,7 @@ function PLUGIN:canBuy( netuser, g, s, c )
 end
 
 function PLUGIN:Percentage( g, s, c, take )
-    local gg, gs, gc, tg, ts, tc = 0,0,0,0,0,0
+    local gg, gs, tg, ts = 0,0,0,0
     local bal = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
     local getbal = ( bal * ( math.floor( math.random( self.Config.Rewards.PlayerKill.min, self.Config.Rewards.PlayerKill.max )) / 100 ))
     bal = (( bal - getbal ) - ( bal * ( math.floor( math.random( self.Config.Rewards.OnKilled.min, self.Config.Rewards.OnKilled.max )) / 100 )))
@@ -169,7 +168,7 @@ function PLUGIN:Percentage( g, s, c, take )
         gs = gs + 1
         getbal = getbal - 100
     end
-    gc = getbal
+    local gc = getbal
 
     while bal >= 10000 do
         tg = tg + 1
@@ -179,7 +178,7 @@ function PLUGIN:Percentage( g, s, c, take )
         ts = ts + 1
         bal = bal - 100
     end
-    tc = bal
+    local tc = bal
     local tbl = {['take']={['g']= tc,['s']= ts,['c']=tc},['get']={['g']= gg,['s']= gs,['c']=gc}}
     return tbl
 end
@@ -266,13 +265,13 @@ function PLUGIN:printBalance( netuser, g, s, c, alter )
     return msg
 end
 
-function PLUGIN:cmdBal( netuser, cmd, args )
+function PLUGIN:cmdBal( netuser )
     rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser ))
 end
 
-function PLUGIN:cmdHelp( netuser, cmd, args)
+-- function PLUGIN:cmdHelp( netuser, cmd, args)
 
-end
+-- end
 
 function PLUGIN:LoadDefaultConfig()
     self.Config = {}
