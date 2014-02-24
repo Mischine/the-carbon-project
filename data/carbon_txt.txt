@@ -1,0 +1,125 @@
+{
+    "guild": {
+        "create": {
+            "header": "Syntax: /g create \"guildname\" \"TAG\"",
+            "txt": {
+                "1": "Create a guild by typing /g create \"GuildName\" \"Tag\". ",
+                "2": "There are disabled tags. There is a fee to creating a guild.",
+                "3": "Fee: $25000 ",
+                "4": "It is required to be level 10 or above.",
+                "5": "To learn how to manage a guild simply type /g help rank."
+            }
+        },
+        "delete": {
+            "header": "Syntax: /g delete \"GuildName\" \"Tag\"",
+            "subheader": "It is required to have the ability: \"candelete\"",
+            "txt": {
+                "1": "The leader is the only person who can dissemble a guild.",
+                "2": "This is adjustable by editing rank permissions.",
+                "3": "We do not recommend changing this setting!",
+                "4": "To learn how to edit ranks type simply  /g help rank."
+            }
+        },
+        "info": {
+            "header": "Syntax: /g info",
+            "txt": {
+                "1": "/g info displays information about a guild.",
+                "2": "Information regarding guildname, guild tag, guild level, current guild xp,",
+                "3": "number of members, the collection interval/amount, available calls,",
+                "4": "active calls, and the tags of enemey guilds.",
+                "5": "To learn more about collection simply type /g help collection"
+            }
+        },
+        "stats": {
+            "header": "Syntax /g stats",
+            "txt": {
+                "1": "/g stats displays statistical information about a guild.",
+                "2": "Information regarding player with the most contributed xp and money, ...",
+                "3": "To learn more about war simply type /g help war"
+            }
+        },
+        "invite": {
+            "header": "Syntax /g invite \"PlayerName\"",
+            "subheader": "It is required to have the ability: caninvite",
+            "txt": {
+                "1": "/g invite \"PlayerName\" to initiate someone into your guild.",
+                "2": "The person to be initiated must be online and name correctly spelled",
+                "3": "and the initiated person will recieve a join message and they can choose to accept",
+                "4": "However, the initiated person can deny the invitation to the guild.",
+                "5": "The initiated member will need to type /g accept. The entire guild will be notified!",
+                "6": "The guild should welcome the new member and guide him throughout.",
+                "7": "To learn more about kicking a member simply type /g help kick"
+            }
+        },
+        "kick": {
+            "header": "Syntax /g kick \"PlayerName\"",
+            "subheader": "It is required to have the ability: cankick",
+            "txt": {
+                "1": "/g kick \"PlayerName\" to remove a player from your guild entirely.",
+                "2": "If someone is about to be kicked, the target user does not have to be online",
+                "3": "and will recieve mail regarding their status being removed from the guild.",
+                "4": "Due to limitations, reasons for status being remove is not available",
+                "5": "You can always send them a message using the mail system or /w when they are online.",
+                "6": "To learn more about the mail system simply type /mail help"
+            }
+        },
+        "war": {
+            "header": "Syntax /g war \"GuildTag\"",
+            "subheader": "It is required to have the ability: canwar",
+            "txt": {
+                "1": "/g war \"GuildTag\" signals a war with another guild of your choice.",
+                "2": "When a guild is in war then all the guild calls will be activated.",
+                "3": "Guild calls will only work on the enemy guilds.",
+                "4": "To learn more about guild calls simply type /g calls help.( COMING SOON! )"
+            }
+        },
+        "rank": {
+            "header": "Syntax /g rank give/add/edit",
+            "subheader": "It is required to have the ability: canrank",
+            "txt": {
+                "1": "Ranks in guilds are mainly to assign permissions and figurative status.",
+                "2": "There are 6 default ranks: Leader, Co-Leader, Quartermaster, War-Leader,",
+                "3": "Assassin ( coming soon! ) and member.",
+                "4": "Quartermasters are able to add/take from the guildvault also they are able",
+                "5": "to edit the rate and collection amount.",
+                "6": "To learn more about ranks simply type /g rank"
+            }
+        },
+        "vault": {
+            "txt": {
+                "1": "COMING SOON!"
+            }
+        },
+        "collection": {
+            "txt": {
+                "1": "COMING SOON!"
+            }
+        },
+        "ability": {
+            "header": "Ability information:",
+            "txt": {
+                "1": "Abilities are required for certain actions.",
+                "2": "These abilities are given per rank.",
+                "3": "For example, a member of a guild must have the \"caninvite\" to invite other players to the guild.",
+                "4": "Guild members with the ability \"canrank\" can edit these ranks and add new ranks as well."
+            }
+        },
+        "calls": {
+            "txt": {
+                "1": "COMING SOON!"
+            }
+        },
+        "assassin": {
+            "txt": {
+                "1": "COMING SOON!"
+            }
+        },
+        "help": {
+            "txt": {
+                "1": "Get started with the basic of the guilds by typing /g help \"topic\"",
+                "2": "Topics: create, delete, info, stats, invite, kick, war, rank, ",
+                "3": "vault, collection, ability"
+            }
+        }
+    }
+}
