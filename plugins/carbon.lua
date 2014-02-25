@@ -1,6 +1,6 @@
 PLUGIN.Title = 'Carbon'
 PLUGIN.Description = 'experience. levels. skills. rewards.'
-PLUGIN.Version = '0.0.8a'
+PLUGIN.Version = '0.0.8.1141a'
 PLUGIN.Author = 'Mischa & CareX'
 --[[ SPECIAL NOTES
 
@@ -712,7 +712,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                 'Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(h) .. ')   [' .. tostring(g) .. '%]',
                 self:medxpbar( g ),
             }
-            self:cmdText(netuser, 'atr', msg, '•  train  •  untrain  •') return
+            self:cmdText(netuser, 'xp', msg, ' ') return
         elseif args[1]=='atr' then
             local msg = {
                 'Strength:     ' .. netuserData.attributes.str,
