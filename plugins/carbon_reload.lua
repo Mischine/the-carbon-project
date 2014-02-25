@@ -13,11 +13,11 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Testing plugin reload!
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function reloadCarbon(carbon)
+function reloadCarbon(plugin)
     reloadtoken = timer.Once(3,function() reloadtoken = nil  end)
     print('Carbon reloader initiated.. .')
-    cs.reloadplugin(carbon)
-    local cplugin = plugins.Find(carbon)
+    cs.reloadplugin(plugin)
+    local cplugin = plugins.Find(plugin)
     if cplugin then
         cplugin:Init()
         if cplugin.PostInit then cplugin:PostInit() end
@@ -25,13 +25,13 @@ function reloadCarbon(carbon)
         return false, 'Failed to reload carbon'
     end
     print('Carbon reloader complete.')
-    return true, 'Carbon reloaded'
+    return true, (plugin .. ' reloaded!')
 end
 
-function PLUGIN:cmdReload( netuser )
+function PLUGIN:cmdReload( netuser, cmd, args )
     if not reloadtoken then
-        local str = reloadCarbon('carbon')
-        Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ", str .. '      ', duration or 4.0 )
+        local b, str = reloadCarbon(args[1])
+        Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ϟ", str .. '      ', duration or 4.0 )
         rust.RunServerCommand( 'wildlife.forceupdate' )
     end
 end

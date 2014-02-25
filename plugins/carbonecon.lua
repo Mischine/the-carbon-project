@@ -44,30 +44,7 @@ function PLUGIN:Init()
     self:AddChatCommand( "ehelp", self.cmdHelp )
     self:AddChatCommand( "bal", self.cmdBal )
 
-    self:AddChatCommand('ereload', self.cmdReload)
-
     print( "carbon_econ version " .. self.Version .. " Loading complete." )
-end
-
-function PLUGIN:cmdReload( netuser, cmd, args )
-    if not reloadtoken then
-        local b, str = reloadCarbon('carbonecon')
-        rust.Notice(netuser,str)     end
-end
-
-function reloadCarbon(carbonecon)
-    reloadtoken = timer.Once(3,function() reloadtoken = nil  end)
-    print('Carbon Econ reloader initiated.. .')
-    cs.reloadplugin(carbonecon)
-    local ceplugin = plugins.Find(carbonecon)
-    if ceplugin then
-        ceplugin:Init()
-        if ceplugin.PostInit then cplugin:PostInit() end
-    else
-        return false, 'Failed to reload carbon'
-    end
-    print('Carbon Econ reloader complete.')
-    return true, 'Carbon Econ reloaded'
 end
 
 function PLUGIN:OnKilled ( takedamage, dmg )
@@ -267,7 +244,7 @@ end
 
 function PLUGIN:cmdBal( netuser )
     rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser,0,0,0 ))
-    rust.SendChatToUser( netuser, self.Chat, "HAI 4!" )
+    rust.SendChatToUser( netuser, self.Chat, "HAI 5!" )
 end
 
 -- function PLUGIN:cmdHelp( netuser, cmd, args)
