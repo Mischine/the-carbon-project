@@ -396,12 +396,12 @@
         "cat": "tools"
     },
     "38": {
-        "amount": 0,
-        "max": 0,
+        "amount": 500,
+        "max": 1000,
         "price": {
             "g": 0,
             "s": 0,
-            "c": 0
+            "c": 1
         },
         "name": "Metal Ore",
         "cat": "mats"
@@ -792,12 +792,12 @@
         "cat": "weapons"
     },
     "74": {
-        "amount": 0,
-        "max": 0,
+        "amount": 50,
+        "max": 50,
         "price": {
             "g": 0,
             "s": 0,
-            "c": 0
+            "c": 2
         },
         "name": "Bolt Action Rifle",
         "cat": "weapons"
@@ -957,12 +957,12 @@
         "cat": "armor"
     },
     "90": {
-        "amount": 0,
-        "max": 0,
+        "amount": 5,
+        "max": 100,
         "price": {
             "g": 0,
-            "s": 2,
-            "c": 0
+            "s": 0,
+            "c": 2
         },
         "name": "Leather Pants",
         "cat": "armor"
