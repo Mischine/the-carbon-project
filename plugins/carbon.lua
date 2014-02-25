@@ -1127,10 +1127,11 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         end
 
     elseif ( action == 'delete') then  --                                                  [ candelete ]
+        local guild = self:getGuild( netuser )
+        if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ') return end
         -- /g delete GuildTag                       -- Deletes the guild
-        if( args[2] and args[3] ) then
+        if( args[2] and args[3] and not args[4] ) then
             -- Delete guild
-            local guild = self:getGuild( netuser )
             if( guild ) then
                 local tag = '[' .. tostring( args[3]) .. ']'
                 local rank = self:hasRank( netuser, guild, 'Leader' )
@@ -1143,9 +1144,6 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                     rust.Notice( netuser, 'You\'re not the guild leader!' )
                     return
                 end
-            else
-                rust.Notice( netuser, 'You\'re not in a guild!' )
-                return
             end
         else
             rust.SendChatToUser( netuser, self.sysname, '/g delete "Guild Name" "Guild Tag" ' )
