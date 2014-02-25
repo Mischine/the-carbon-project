@@ -955,6 +955,11 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
         local targid = self:findIDByName( tostring( args[2] ))
         if( not targid ) then rust.Notice( netuser, 'No player with the name: ' .. tostring( args[2]) .. ' found in the database.' ) return end
         -- Get guild
+
+        local b, canbuy = api.Call('ce', 'canBuy', netuser, 0,0,5 )
+        if( not canbuy ) then rust.Notice( netuser, ' Not enough copper! 5 copper required! ') return end
+        api.Call( 'ce', 'RemoveBalance', netuser, 0,0,5 )
+
         local guild = self:getGuild( netuser )
         -- Generating msg
         local i = 3
@@ -1502,7 +1507,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     end
     -- Check if player has enough money.
     local b, bal = api.Call( 'ce', 'canBuy', netuser, 0,25,0 )
-    if ( b ) then
+    if ( bal ) then
         api.Call( 'ce', 'RemoveBalance', netuser, 0,25,0 )
     else
         rust.Notice( netuser, 'You do not have enough money! 25 Silver is required' )
@@ -1829,7 +1834,8 @@ function PLUGIN:AlphaTXT( netuser )
     rust.SendChatToUser( netuser, self.sysname, 'Use /c for global information. Use /g for guild commands.' )
     rust.SendChatToUser( netuser, self.sysname, 'Take a look around, for more information visit: www.tempusforge.com' )
     rust.SendChatToUser( netuser, ' ', ' ' )
-    rust.SendChatToUser( netuser, self.sysname, 'Disclaimer: This is an ALPHA test, there will be bugs, there will be crashes, there will be restarts and there will be wipes.' )
+    rust.SendChatToUser( netuser, self.sysname, 'Disclaimer: This is an ALPHA test, there will be bugs, there will be crashes, ' )
+    rust.SendChatToUser( netuser, self.sysname, 'there will be restarts and there will be wipes.' )
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1839,7 +1845,7 @@ function PLUGIN:OnUserConnect( netuser )
     self:AlphaTXT( netuser )
     if netuser.displayName:find'%W' then
         rust.SendChatToUser( netuser, ' ', ' ' )
-        rust.SendChatToUser( netuser, '**ALERT**', 'We have a slight problem. Your name must be alphanumeric( numbers and letters )! Please change your name. You\'ll be kicked' )
+        rust.SendChatToUser( netuser, '**ALERT**', 'Your name must be alphanumeric( numbers and letters )! Please change your name. You\'ll be kicked' )
         timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
         return
     end
@@ -1986,4 +1992,30 @@ function PLUGIN:sidexpbar( value )
     msg = msg .. '■'
     return msg
 end
---api.Call( 'economy', 'takeMoneyFrom', netuser, value )
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- GUILD DOOR ACCESS!
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- TESTING IF THIS IS A GOOD ADDITION! ( if not, wait till they fixed it )
+local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
+function PLUGIN:CanOpenDoor( netuser, door )
+    -- Get and validate the deployable
+    local deployable = door:GetComponent( "DeployableObject" )
+    if (not deployable) then return end
+
+    -- Get the owner ID and the user ID
+    local ownerID = tostring( DeployableObjectOwnerID( deployable ) )
+    local userID = rust.GetUserID( netuser )
+
+    -- check if user is owner.
+    if (ownerID == userID) then rust.Notice( netuser, 'Entered your own house! ') return true end
+
+    -- if not get guilds
+    local ownernetuser = rust.FindNetUsersByName( self.User[ ownerID ].name )
+    local ownerGuild = self:getGuild( ownernetuser )
+    local userGuild = self:getGuild( netuser )
+    if not ( ownerGuild and userGuild ) then return end
+
+    -- Check if in same guild
+    if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. self.User[ ownerID ].name .. '\'s house! ') return true end
+end
