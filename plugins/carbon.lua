@@ -1,6 +1,6 @@
 PLUGIN.Title = 'Carbon'
 PLUGIN.Description = 'experience. levels. skills. rewards.'
-PLUGIN.Version = '0.0.8.1141a'
+PLUGIN.Version = '0.0.8.1437a'
 PLUGIN.Author = 'Mischa & CareX'
 --[[ SPECIAL NOTES
 
@@ -163,7 +163,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
                 self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
             end
             return
------------------PVE CS CLIENT
+-----------------PVE VS CLIENT
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
             self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
         end
