@@ -9,7 +9,6 @@ PLUGIN.Author = 'Mischa & CareX'
 -- PLUGIN:Init | http://wiki.rustoxide.com/index.php?title=Hooks/Init
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:Init()
-
     if( not api.Exists( 'ce' ) ) then print( '[CARBON] Carbon needs carbon-econ to function.' ) return end
 
     print( 'Loading Carbon...' )
@@ -83,7 +82,8 @@ function PLUGIN:Init()
 end
 
 function PLUGIN:dump( netuser, cmd, args )
-    local msg = self:xpbar(tonumber(args[1]))
+    local msg = s
+    elf:xpbar(tonumber(args[1]))
     rust.BroadcastChat( msg )
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -643,18 +643,28 @@ end
 --PLUGIN:cmdStorm
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdStorm(netuser,cmd, args)
-    local vTimeOfDay = util.GetStaticPropertyGetter( Rust.EnvironmentControlCenter, 'timeOfDay' )
-    local Time = vTimeOfDay()
+    --rust.RunServerCommand( 'env.daylength 45')
+    --rust.RunServerCommand( 'env.nightlength 15' )
+
+    local Time = Rust.EnvironmentControlCenter.Singleton:GetTime()
     if Time < 2 or Time > 22 then
         timer.Repeat(1, 100, function() Time = Time+0.0066666667 end)
         timer.Repeat( 5, 20, function()
-            local randomTime = math.random(0,2.5)
+            local randomTime = math.random(0,10)
             timer.Once( randomTime, function()
-                rust.RunServerCommand( 'env.timescale 99999999' )
+                --rust.RunServerCommand( 'env.daylength 0.0005')
+                --rust.RunServerCommand( 'env.nightlength 0.005' )
+                local randomFlashCount = math.floor(math.random(0,5.9))
+                local randomInterval = math.random(0.05, 0.05)
+                timer.Repeat(randomInterval, randomFlashCount,
+                    function() Rust.EnvironmentControlCenter.Singleton:SetTime(12) timer.Once(0.005, function() Rust.EnvironmentControlCenter.Singleton:SetTime(Time) end)
+                end)
+
                 local randomLength = math.random(0.10,0.25)
                 timer.Once( randomLength, function()
-                    rust.RunServerCommand( 'env.timescale 0.0066666667' )
-                    rust.RunServerCommand( 'env.time ' .. Time )
+                    --rust.RunServerCommand( 'env.daylength 45')
+                    --rust.RunServerCommand( 'env.nightlength 15' )
+                    Rust.EnvironmentControlCenter.Singleton:SetTime(Time)
                 end)
             end)
         end )

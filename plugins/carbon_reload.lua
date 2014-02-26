@@ -22,7 +22,7 @@ function reloadCarbon(plugin)
         cplugin:Init()
         if cplugin.PostInit then cplugin:PostInit() end
     else
-        return false, 'Failed to reload carbon'
+        return false, 'Failed to reload ' .. plugin
     end
     print('Carbon reloader complete.')
     return true, (plugin .. ' reloaded!')
