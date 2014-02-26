@@ -82,7 +82,7 @@ function PLUGIN:Init()
     self:AddChatCommand('debug', self.cmdDebug)
     self:AddChatCommand('dump', self.dump)
     self:AddChatCommand('reset', self.SetDefaultConfig)
-
+    spamNet = {}
     self.debugr = false
     self.rnd = 0
     timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
@@ -212,11 +212,116 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--[[
+local StatusIntGetter = util.GetFieldGetter( RustFirstPass.DamageEvent, "status", nil, System.Int32 )
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
+    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
+    dmg = self:ModifyDamage(takedamage, dmg)
+    local status = StatusIntGetter( dmg )
+    if (status == LifeStatus_WasKilled and takedamage.health <= 0 ) then
+        --print( "setting health to 0!" )
+        takedamage.health = 0
+        self:OnKilled(takedamage, dmg)
+    elseif (status == LifeStatus_IsAlive and takedamage.health > 0) then
+        --print( "reducing health!" )
+        --print( takedamage.health )
+        takedamage.health = takedamage.health - dmg.amount
+        --print( takedamage.health )
+        self:OnHurt(takedamage, dmg)
+    end
+    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
+    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
+    return dmg
+end
+
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
+typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
+--Will print out alive or died in the server console when something takes damage.
+function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+
+    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
+    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
+
+    dmg = self:ModifyDamage(takedamage, dmg) or dmg
+    local status = dmg.status
+    rust.BroadcastChat(tostring(status))
+
+    if (status == LifeStatus.WasKilled or status == LifeStatus.IsDead) and takedamage.health > 0 then
+        dmg.status = LifeStatus.IsAlive
+        takedamage.health = takedamage.health - dmg.amount
+        self:OnKilled(takedamage, dmg)
+    end
+    if (status == LifeStatus.IsAlive) then
+        takedamage.health = takedamage.health - dmg.amount
+        self:OnHurt(takedamage, dmg)
+    end
+
+    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
+    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
+
+    return dmg
+end
+
+function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
+    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
+    dmg = self:ModifyDamage(takedamage, dmg)
+    self.BroadcastChat(tostring(takedamage.status))
+    takedamage.health = takedamage.health - dmg.amount
+    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
+    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
+    return dmg
+end
+local StatusIntGetter = util.GetFieldGetter( RustFirstPass.DamageEvent, "status", nil, System.Int32 )
+local LifeStatus_IsAlive = 0
+local LifeStatus_IsDead = 2
+local LifeStatus_WasKilled = 1
+local LifeStatus_Failed = -1
+--]]
+function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+    dmg = self:ModifyDamage(takedamage, dmg) or dmg
+    if (GetTakeNoDamage( takedamage )) then return dmg end
+    local status = StatusIntGetter( dmg )
+
     if dmg.extraData then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
+    if dmg.attacker.client then
+        local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
+        if not isSamePlayer then
+            if self:GetUserData(dmg.attacker.client.netUser) then
+                local netuser = dmg.attacker.client.netUser
+                local netuserData = self.User[rust.GetUserID(netuser)]
+                if weaponData.lvl > netuserData.lvl then
+                    local netuser = dmg.attacker.client.netUser
+                    local netuserData = self.User[rust.GetUserID(netuser)]
+                    dmg.status = LifeStatus.IsAlive
+                    dmg.amount = 0
+                    if not spamNet[weaponData.name .. netuser.displayName] then
+                        self:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
+                        spamNet[weaponData.name .. netuser.displayName] = true
+                        timer.Once(6, function() spamNet[weaponData.name .. netuser.displayName] = nil end)
+                    end
+                end
+            end
+        end
+    end
+    if (status == LifeStatus_WasKilled) then
+        --print( "setting health to 0!" )
+        takedamage.health = 0
+        self:OnKilled(takedamage, dmg)
+    elseif (status == LifeStatus_IsAlive) then
+        --print( "reducing health!" )
+        --print( takedamage.health )
+        takedamage.health = takedamage.health - dmg.amount
+        --print( takedamage.health )
+        self:OnHurt(takedamage, dmg)
+    end
+    return dmg
 end
+--]]
+
 
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
@@ -240,15 +345,24 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     end
 
                     if (self.debugr == true) then print('---------------BEGIN ME VS PVP---------------') end
-                    --[[ STEP 1 DAMAGE ROLL --]] dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
-                    --[[ STEP 2 DP MODIFIER --]] dmg.amount = self:modifyDP(netuserData, dmg.amount)
-                    --[[ STEP 3 ATR MODIFIER --]]dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
-                    --[[ STEP 4 WPN MODIFIER --]]dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
-                    --[[ STEP 5 CRIT CHECK --]]dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
-                    --[[ STEP 6 VIC MODIFIER --]] if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
-                    --[[ STEP 7 VIC STA MOD --]] dmg.amount = self:staModify(netuserData, vicuserData, nil, dmg.amount)
-                    --[[ STEP 8 PERK STONE --]]dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount)
-                    --[[ STEP 9 PERK PARRY --]]dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
+                    -- STEP 1 DAMAGE ROLL
+                    dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+                    -- STEP 2 DP MODIFIER
+                    dmg.amount = self:modifyDP(netuserData, dmg.amount)
+                    --STEP 3 ATR MODIFIER
+                    dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+                    -- STEP 4 WPN MODIFIER
+                    dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+                    --STEP 5 CRIT CHECK
+                    dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
+                    -- STEP 6 VIC MODIFIER
+                    if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
+                    --STEP 7 VIC STA MOD
+                    dmg.amount = self:staModify(netuserData, vicuserData, nil, dmg.amount)
+                    --STEP 8 PERK STONE
+                    dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount)
+                    -- STEP 9 PERK PARRY
+                    dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
 
                     --GUILD: MODIFIERS
                     local guild = self:getGuild( netuser )
@@ -289,15 +403,24 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 local vicuserData = self.User[rust.GetUserID(vicuser)]
                 local npcData = self.Config.npc[string.gsub(tostring(dmg.attacker.networkView.name), '%(Clone%)', '')]
                 if (self.debugr == true) then print('---------------BEGIN PVE VS ME---------------') end
-                --[[ STEP 1 DAMAGE ROLL --]] dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
-                --[[ STEP 2 DP MODIFIER --]] -- dmg.amount = self:modifyDP(netuserData, dmg.amount) NEEDS WORK FOR DEFENSE CHANGES
-                --[[ STEP 3 ATR MODIFIER --]]dmg.amount = self:attrModify(weaponData, npcData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
-                --[[ STEP 4 WPN MODIFIER --]]dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
-                --[[ STEP 5 CRIT CHECK --]]dmg.amount = self:critCheck(weaponData, npcData, vicuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
-                --[[ STEP 6 VIC MODIFIER --]] if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
-                --[[ STEP 7 VIC STA MOD --]] dmg.amount = self:staModify(nil, vicuserData, nil, dmg.amount)if (self.debugr == true) then print('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
-                --[[ STEP 8 PERK STONE --]]dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount) if (self.debugr == true) then print('STONESKIN PERK: ' .. tostring(dmg.amount)) end
-                --[[ STEP 9 PERK PARRY --]]dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)--PERK PARRY
+                --STEP 1 DAMAGE ROLL
+                dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+                --STEP 2 DP MODIFIER
+                --dmg.amount = self:modifyDP(netuserData, dmg.amount) NEEDS WORK FOR DEFENSE CHANGES
+                -- STEP 3 ATR MODIFIER
+                dmg.amount = self:attrModify(weaponData, npcData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+                -- STEP 4 WPN MODIFIER
+                dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+                -- STEP 5 CRIT CHECK
+                dmg.amount = self:critCheck(weaponData, npcData, vicuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
+                --STEP 6 VIC MODIFIER
+                if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
+                -- STEP 7 VIC STA MOD
+                dmg.amount = self:staModify(nil, vicuserData, nil, dmg.amount)if (self.debugr == true) then print('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
+                --STEP 8 PERK STONE
+                dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount) if (self.debugr == true) then print('STONESKIN PERK: ' .. tostring(dmg.amount)) end
+                --STEP 9 PERK PARRY
+                dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)--PERK PARRY
 
                --GUILD: MODIFIERS
                 local guild = self:getGuild( vicuser )
@@ -309,6 +432,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                         dmg.amount = dmg.amount * cotw
                     end
                 end
+
 
                 return dmg
             end
@@ -327,13 +451,20 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 self:UserSave()
             end
             if (self.debugr == true) then print('---------------BEGIN ME VS PVE---------------') end
-            --[[ STEP 1 DAMAGE ROLL --]] dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
-            --[[ STEP 2 DP MODIFIER --]] dmg.amount = self:modifyDP(netuserData, dmg.amount)
-            --[[ STEP 3 ATR MODIFIER --]]dmg.amount = self:attrModify(weaponData, netuserData, npcData, dmg.amount)      if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
-            --[[ STEP 4 WPN MODIFIER --]]dmg.amount = dmg.amount+netuserData.skills[ weaponData.name ].lvl*0.3      if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
-            --[[ STEP 5 CRIT CHECK --]]dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)       if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
-            --[[ STEP 6 VIC MODIFIER --]] dmg.amount = dmg.amount*npcData.dmg     if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end
-            --[[ STEP 7 VIC STA MOD --]] dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)    if (self.debugr == true) then print('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
+            --STEP 1 DAMAGE ROLL
+            dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+            --STEP 2 DP MODIFIER
+            dmg.amount = self:modifyDP(netuserData, dmg.amount)
+            -- STEP 3 ATR MODIFIER
+            dmg.amount = self:attrModify(weaponData, netuserData, npcData, dmg.amount)      if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+            --STEP 4 WPN MODIFIER
+            dmg.amount = dmg.amount+netuserData.skills[ weaponData.name ].lvl*0.3      if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+            -- STEP 5 CRIT CHECK
+            dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)       if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
+            -- STEP 6 VIC MODIFIER
+            dmg.amount = dmg.amount*npcData.dmg     if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end
+            --STEP 7 VIC STA MOD
+            dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)    if (self.debugr == true) then print('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
 
             --GUILD STUFF
             local guild = self:getGuild( netuser )
@@ -656,7 +787,6 @@ end
 function PLUGIN:cmdStorm(netuser,cmd, args)
     --rust.RunServerCommand( 'env.daylength 45')
     --rust.RunServerCommand( 'env.nightlength 15' )
-
     local Time = Rust.EnvironmentControlCenter.Singleton:GetTime()
     if Time < 2 or Time > 22 then
         timer.Repeat(1, 100, function() Time = Time+0.0066666667 end)
@@ -1152,7 +1282,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             rust.SendChatToUser( netuser, self.sysname, '/g create "Guild Name" "Guild Tag" ')
         end
 
-    elseif ( action == 'delete') then  --                                                  [ candelete ]
+    elseif ( action == 'delete') then  --[ candelete ]
         local guild = self:getGuild( netuser )
         if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ') return end
         -- /g delete GuildTag                       -- Deletes the guild
@@ -1828,24 +1958,32 @@ function PLUGIN:SetDefaultConfig()
         },
         ['weapon']={
             ['Unarmed']={['name']='Unarmed',['type']='m',['dmg']=1,['lvl']=1},
-            ['9mm Pistol']={['name']='9mm Pistol',['type']='c',['dmg']=1,['lvl']=1},
-            ['M4']={['name']='M4',['type']='l',['dmg']=1,['lvl']=1},
+            ['Uber Hunting Bow']={['name']='Uber Hunting Bow',['type']='l',['dmg']=1,['lvl']=1},
+            ['Stone Hatchet']={['name']='Stone Hatchet',['type']='m',['dmg']=1,['lvl']=1},
+            ['Hatchet']={['name']='Hatchet',['type']='m',['dmg']=1,['lvl']=1},
+            ['Pick Axe']={['name']='Pick Axe',['type']='m',['dmg']=1,['lvl']=1},
+
+
+            ['Hand Cannon']={['name']='Hand Cannon',['type']='c',['dmg']=1,['lvl']=1},
+            ['Pipe Shotgun'] ={['name']='Pipe Shotgun',['type']='c',['dmg']=1,['lvl']=1},
+            ['Revolver']={['name']='Revolver',['type']='c',['dmg']=1,['lvl']=1},
+            ['9mm Pistol']={['name']='9mm Pistol',['type']='c',['dmg']=1,['lvl']=3},
+            ['M4']={['name']='M4',['type']='l',['dmg']=1,['lvl']=5},
             ['Bolt Action Rifle']={['name']='Bolt Action Rifle',['type']='l',['dmg']=1,['lvl']=1},
             ['Explosive Charge']={['name']='Explosive Charge',['type']='e',['dmg']=1,['lvl']=1},
             ['F1 Grenade']={['name']='F1 Grenade',['type']='e',['dmg']=1,['lvl']=1},
-            ['Hand Cannon']={['name']='Hand Cannon',['type']='c',['dmg']=1,['lvl']=1},
-            ['Hatchet']={['name']='Hatchet',['type']='m',['dmg']=1,['lvl']=1},
+
+
             ['Hunting Bow']={['name']='Hunting Bow',['type']='l',['dmg']=1,['lvl']=1},
             ['MP5A4']={['name']='MP5A4',['type']='l',['dmg']=1,['lvl']=1},
             ['P250']={['name']='P250',['type']='c',['dmg']=1,['lvl']=1},
-            ['Pick Axe']={['name']='Pick Axe',['type']='m',['dmg']=1,['lvl']=1},
-            ['Pipe Shotgun'] ={['name']='Pipe Shotgun',['type']='c',['dmg']=1,['lvl']=1},
-            ['Revolver']={['name']='Revolver',['type']='c',['dmg']=1,['lvl']=1},
+
+
+
             ['Rock']={['name']='Rock',['type']='m',['dmg']=1,['lvl']=1},
             ['Shotgun']={['name']='Shotgun',['type']='c',['dmg']=1,['lvl']=1},
-            ['Stone Hatchet']={['name']='Stone Hatchet',['type']='m',['dmg']=1,['lvl']=1},
+
             ['Uber Hatchet']={['name']='Uber Hatchet',['type']='c',['dmg']=1,['lvl']=1},
-            ['Uber Hunting Bow']={['name']='Uber Hunting Bow',['type']='l',['dmg']=1,['lvl']=1},
         },
         ['settings']={
             ['filename']='carbon',
@@ -2015,6 +2153,7 @@ function PLUGIN:UserSave()
     self.UserFile:SetText( json.encode( self.User, { indent = true } ) )
     self.UserFile:Save()
     self:UserUpdate()
+    spamNet = {}
 end
 function PLUGIN:UserUpdate()
     self.UserFile = util.GetDatafile( 'carbon_usr' )
@@ -2027,7 +2166,7 @@ end
 function PLUGIN:GuildSave()
     self.GuildFile:SetText( json.encode( self.Guild, { indent = true } ) )
     self.GuildFile:Save()
-    -- self.GuildUpdate()
+    -- self:GuildUpdate()
 end
 function PLUGIN:GuildUpdate()
     self.GuildFile = util.GetDatafile( 'carbon_gld' )
