@@ -148,7 +148,7 @@ end
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnKilled (takedamage, dmg)
-    --PLAYER vs PLAYER
+-----------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
         local vicuser = dmg.victim.client.netUser
         local vicuserData = self.User[rust.GetUserID(vicuser)]
@@ -163,12 +163,12 @@ function PLUGIN:OnKilled (takedamage, dmg)
                 self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
             end
             return
-            -- NPC vs PLAYER
+-----------------PVE CS CLIENT
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
             self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
         end
     end
-    -- PLAYER vs NPC
+-------------------CLIENT VS PVE
     local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
@@ -185,7 +185,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
             self:GiveXp( weaponData, netuser, netuserData, xp)
             return end --break out of all loops after finding controller type
     end
-    --PLAYER vs SLEEPER
+-------------------CLIENT VS SLEEPER
     --[[
 	if (string.find(takedamage.gameObject.Name, 'MaleSleeper(',1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
 		local actorUser = dmg.attacker.client.netUser
@@ -213,7 +213,7 @@ end
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
-
+--------------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
         if(dmg.victim.client and dmg.attacker.client) then
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
@@ -272,6 +272,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 --SUICIDE ACTION HERE
                 return dmg
             end
+----------------------PVE VS CLIENT
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
             if not dmg.damageTypes then return dmg end
             if (self:GetUserData(dmg.victim.client.netUser)) then
@@ -305,6 +306,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             end
         end
     end
+----------------------------CLIENT VS PVE
     local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI' }
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
@@ -339,6 +341,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             return dmg
         end
     end
+-----------------------CLIENT VS SLEEPER
     if (string.find(tostring(takedamage.gameObject.Name), 'MaleSleeper(',1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
         if(sleepreId ~= nil) then
             --SLEEPER ACTION HERE
