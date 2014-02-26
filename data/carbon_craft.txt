@@ -1,0 +1,1050 @@
+{
+    "Cloth Helmet": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "Armorsmith",
+        "mats": {
+            "Cloth": 5
+        }
+    },
+    "Cloth Vest": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Cloth": 10
+        }
+    },
+    "Cloth Pants": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Cloth": 8
+        }
+    },
+    "Cloth Boots": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Cloth": 3
+        }
+    },
+    "Kevlar Helmet": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 5,
+            "Leather": 3
+        }
+    },
+    "Kevlar Vest": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 6,
+            "Leather": 6
+        }
+    },
+    "Kevlar Pants": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 4,
+            "Leather": 4
+        }
+    },
+    "Kevlar Boots": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 4,
+            "Leather": 3
+        }
+    },
+    "Leather Helmet": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Leather": 7
+        }
+    },
+    "Leather Vest": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Leather": 15
+        }
+    },
+    "Leather Pants": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Leather": 12
+        }
+    },
+    "Leather Boots": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Leather": 4
+        }
+    },
+    "Stone Hatchet": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Stones": 5,
+            "Wood": 10
+        }
+    },
+    "Hatchet": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Metal Fragments": 20,
+            "Wood": 10
+        }
+    },
+    "Pickaxe": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Metal Fragments": 10,
+            "Wood": 40
+        }
+    },
+    "Revolver": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 60,
+            "Cloth": 10,
+            "Metal Fragments": 80
+        }
+    },
+    "9mm Pistol": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 10
+        }
+    },
+    "P250": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 12
+        }
+    },
+    "MP5A4": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 20
+        }
+    },
+    "M4": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 30
+        }
+    },
+    "Shotgun": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            " Low Quality Metal": 10
+        }
+    },
+    "Hand Cannon": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 20,
+            "Metal Fragments": 20
+        }
+    },
+    "Pipe Shotgun": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 50,
+            "Metal Fragments": 50
+        }
+    },
+    "Hunting Bow": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 35,
+            "Cloth": 5
+        }
+    },
+    "Bolt Action Rifle": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 30,
+            "Wood": 50,
+            "Leather": 50
+        }
+    },
+    "Explosive Charge": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Explosives": 15,
+            "Flare": 1,
+            "Leather": 5
+        }
+    },
+    "F1 Grenade": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Gunpowder": 80,
+            "Metal Fragments": 40
+        }
+    },
+    "Handmade Shell": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Gunpowder": 5,
+            "Stones": 1
+        }
+    },
+    "9mm Ammo": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Gunpowder": 3,
+            "Metal Fragments": 1
+        }
+    },
+    "566 Ammo": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Gunpowder": 5,
+            "Metal Fragments": 1
+        }
+    },
+    "Shotgun Shell": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Gunpowder": 5,
+            "Metal Fragments": 2
+        }
+    },
+    "Arrow": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Stones": 1,
+            "Wood": 4
+        }
+    },
+    "Flashlight Mod": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 5
+        }
+    },
+    "Holo sight": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 5
+        }
+    },
+    "Laser Sight": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 5
+        }
+    },
+    "Silencer": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 5
+        }
+    },
+    "Bandage": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Cloth": 2
+        }
+    },
+    "Small Medkit": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "cloth": 2,
+            "Blood Bag": 1
+        }
+    },
+    "Large medkit": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "cloth": 3,
+            "Blood Bag": 3
+        }
+    },
+    "Wood Shelter": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 50
+        }
+    },
+    "Wooden Foundation": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 8
+        }
+    },
+    "Wood Pillar": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 2
+        }
+    },
+    "Wood Wall": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 4
+        }
+    },
+    "Wood Doorway": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 4
+        }
+    },
+    "Wood Window": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 4
+        }
+    },
+    "Wood Stairs": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 5
+        }
+    },
+    "Wood Ramp": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 5
+        }
+    },
+    "Wood Ceiling": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 6
+        }
+    },
+    "Wood Door": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 30
+        }
+    },
+    "Wood Gateway": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 400
+        }
+    },
+    "Wood Gate": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood Planks": 120
+        }
+    },
+    "Metal Foundation": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 8
+        }
+    },
+    "Metal Pillar": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 2
+        }
+    },
+    "Metal Wall": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 4
+        }
+    },
+    "Metal Doorway": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 4
+        }
+    },
+    "Metal Window": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 4
+        }
+    },
+    "Metal Stairs": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 5
+        }
+    },
+    "Metal Ramp": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 5
+        }
+    },
+    "Metal Ceiling": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Low Quality Metal": 6
+        }
+    },
+    "Metal Door": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Metal Fragments": 200
+        }
+    },
+    "Wood Barricade": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 30
+        }
+    },
+    "Spike Wall": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 100
+        }
+    },
+    "Large Spike Wall": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 200
+        }
+    },
+    "Wood Storage Box": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 30
+        }
+    },
+    "Large Wood Storage Box": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 60
+        }
+    },
+    "Metal Window Bars": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Metal Fragments": 100
+        }
+    },
+    "Small Stash": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Leather": 10
+        }
+    },
+    "Furnace": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Stones": 15,
+            "Wood": 20,
+            "Low Grade Fuel": 10
+        }
+    },
+    "Workbench": {
+        "xp": {
+            "min": 11,
+            "max": 16
+        },
+        "ct": 5,
+        "req": 1,
+        "dif": 1,
+        "prof": "armorsmith",
+        "mats": {
+            "Stones": 8,
+            "Wood": 50
+        }
+    },
+    "Camp Fire": {
+        "xp": {
+            "min": 11,
+            "max": 16
+        },
+        "ct": 5,
+        "req": 1,
+        "dif": 0,
+        "prof": "Armorsmith",
+        "mats": {
+            "Wood": 5
+        }
+    },
+    "Sleeping Bag": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Cloth": 15
+        }
+    },
+    "Bed": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Metal Fragments": 100,
+            "Cloth": 40
+        }
+    },
+    "Flare": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Metal Fragments": 8,
+            "Gunpowder": 8
+        }
+    },
+    "Explosives": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Gunpowder": 20,
+            "Low Grade Fuel": 2,
+            "Sulfur": 5,
+            "Metal Fragments": 10
+        }
+    },
+    "Gunpowder": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Sulfur": 2,
+            "Gunpowder": 2
+        }
+    },
+    "Low Grade Fuel": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Animal Fat": 2,
+            "Cloth": 1
+        }
+    },
+    "Low Quality Metal": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Metal Fragments": 15
+        }
+    },
+    "Wood Planks": {
+        "xp": {
+            "min": 0,
+            "max": 0
+        },
+        "ct": 0,
+        "req": 1,
+        "dif": 0,
+        "prof": "armorsmith",
+        "mats": {
+            "Wood": 10
+        }
+    }
+}

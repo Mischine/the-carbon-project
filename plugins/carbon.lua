@@ -49,9 +49,18 @@ function PLUGIN:Init()
     --LOAD/CREATE TEXT FILE
     self.txtFile = util.GetDatafile( 'carbon_txt' )
     local txt_txt = self.txtFile:GetText()
-    if (txt ~= '') then
+    if (txt_txt ~= '') then
         print( 'carbon_txt file loaded!' )
         self.txt = json.decode( txt_txt )
+    else
+        print( 'carbon_txt file is missing!' )
+    end
+    --LOAD/CREATE TEXT FILE
+    self.CraftFile = util.GetDatafile( 'carbon_craft' )
+    local craft_txt = self.CraftFile:GetText()
+    if (craft_txt ~= '') then
+        print( 'carbon_craft file loaded!' )
+        self.craft = json.decode( craft_txt )
     else
         print( 'carbon_txt file is missing!' )
     end
@@ -67,6 +76,7 @@ function PLUGIN:Init()
     self:AddChatCommand( 'w', self.cmdWhisper )
     self:AddChatCommand( 'mail', self.cmdMail )
     self:AddChatCommand( 'alpha', self.AlphaTXT )     -- Alpha welcome text!
+    self:AddChatCommand( 'inspect', self.cmdInspect )     -- Alpha welcome text!
     -----------------------------------------------------------------------------------
     self:AddChatCommand( 'storm', self.cmdStorm )
     self:AddChatCommand('debug', self.cmdDebug)
@@ -76,8 +86,8 @@ function PLUGIN:Init()
     self.debugr = false
     self.rnd = 0
     timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
-    --timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
-    timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
+    -- timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
+    -- timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
     print( 'Carbon Loaded!' )
 end
 
@@ -157,7 +167,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
             local netuserData = self.User[rust.GetUserID(netuser)]
             if (netuser ~= vicuser) then
                 netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
-                --TAKEMONEY !!!!!! CareX
                 self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
             elseif(netuser == vicuser) then
                 self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
@@ -300,7 +309,6 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                         dmg.amount = dmg.amount * cotw
                     end
                 end
-
 
                 return dmg
             end
@@ -1247,6 +1255,79 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         else
             rust.Notice( netuser, 'You\'re not allowed to invite players to the guild!' )
         end
+    elseif ( action == 'members') then -- /g members list all members + ranks | /g members "name" list all information about a member.
+        local guild = self:getGuild( netuser )
+        if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
+        local data = self:getGuildData( guild )
+        if not data then rust.Notice( netuser, 'Guild data not found! Report to a GM please.' ) return end
+        if( not args[2] ) then -- get list of all guild members
+            local i = 0
+            local msg = ""
+            local count = self:count( data.members )
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,' ','╔════════════════════════')
+            rust.SendChatToUser(netuser,' ','║ ' .. guild .. ' > members' )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ Total members: ' .. tostring( count )  )
+            for k, v in pairs( data.members ) do
+                if msg ~= "" then msg = msg .. ', ' end
+                if i >= 2 then
+                    msg = msg .. '[' .. v.rank .. ']' .. v.name .. ', '
+                    rust.SendChatToUser(netuser,' ','║ '.. msg )
+                    i = 0
+                    msg = ""
+                else
+                    msg = msg .. '[' .. v.rank .. ']' .. v.name
+                    i = i + 1
+                end
+            end
+            if not ( i >= 3 ) then rust.SendChatToUser(netuser,' ','║ '.. msg ) end
+            rust.SendChatToUser(netuser,' ','║ ' )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ ⌘ ' )
+            rust.SendChatToUser(netuser,' ','╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        elseif ( args[2]) then -- get info about a specific guild member
+            local name = tostring( args[2] )
+            local found = false
+            for k,v in pairs( data.members ) do
+                if v.name == name then
+                    found = true
+                    rust.SendChatToUser(netuser,' ',' ')
+                    rust.SendChatToUser(netuser,' ','╔════════════════════════')
+                    rust.SendChatToUser(netuser,' ','║ ' .. guild .. ' > ' .. name )
+                    rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                    rust.SendChatToUser(netuser,' ','║ Rank                             :' .. v.rank )
+                    rust.SendChatToUser(netuser,' ','║ XP contributed         :' .. v.xpcon )
+                    rust.SendChatToUser(netuser,' ','║ Money contributed  :' .. v.moncon )
+                    rust.SendChatToUser(netuser,' ','║ ' )
+                    rust.SendChatToUser(netuser,' ','║ Level: ' .. self.User[ k ].lvl )
+                    rust.SendChatToUser(netuser,' ','║ Attributes: ' )
+                    rust.SendChatToUser(netuser,' ','║     str   : ' .. self.User[ k ].attributes.str )
+                    rust.SendChatToUser(netuser,' ','║     agi   : ' .. self.User[ k ].attributes.agi )
+                    rust.SendChatToUser(netuser,' ','║     sta  : ' .. self.User[ k ].attributes.sta )
+                    rust.SendChatToUser(netuser,' ','║     int   : ' .. self.User[ k ].attributes.int )
+                    rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                    rust.SendChatToUser(netuser,' ','║ ⌘ ' )
+                    rust.SendChatToUser(netuser,' ','╚════════════════════════')
+                    rust.SendChatToUser(netuser,' ',' ')
+                end
+            end
+            if not found then
+                rust.SendChatToUser(netuser,' ',' ')
+                rust.SendChatToUser(netuser,' ','╔════════════════════════')
+                rust.SendChatToUser(netuser,' ','║ ' .. guild .. ' > ' .. name .. ' > ϟ error' )
+                rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                rust.SendChatToUser(netuser,' ','║ ' .. name .. ' is not in your guild!' )
+                rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                rust.SendChatToUser(netuser,' ','║ ⌘ ' )
+                rust.SendChatToUser(netuser,' ','╚════════════════════════')
+                rust.SendChatToUser(netuser,' ',' ')
+            end
+
+        else
+
+        end
     elseif ( action == 'accept') then
         -- /g accept
         local netuserID = rust.GetUserID( netuser )
@@ -1876,6 +1957,9 @@ function PLUGIN:OnUserConnect( netuser )
         if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
     end
     rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
+
+    -- Reset crafting:
+    self.User[ netuserID ].crafting = false
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1899,7 +1983,13 @@ function PLUGIN:GetUserData( netuser )
         data.buffs = {}
         data.skills = {}
         data.perks = {}
+        data.crafting = false
         data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
+        data.prof = {['Engineer']={['lvl']=1,['xp']=0},
+                     ['Medic']={['lvl']=0,['xp']=0},
+                     ['Carpenter']={['lvl']=1,['xp']=0},
+                     ['Armorsmith']={['lvl']=1,['xp']=0},
+                     ['Weaponsmith']={['lvl']=1,['xp']=0}}
         self.User[ netuserID ] = data
         self:UserSave()
     end
@@ -2012,6 +2102,7 @@ end
 -- TESTING IF THIS IS A GOOD ADDITION! ( if not, wait till they fixed it )
 local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
 function PLUGIN:CanOpenDoor( netuser, door )
+
     -- Get and validate the deployable
     local deployable = door:GetComponent( "DeployableObject" )
     if (not deployable) then return end
@@ -2024,11 +2115,198 @@ function PLUGIN:CanOpenDoor( netuser, door )
     if (ownerID == userID) then rust.Notice( netuser, 'Entered your own house! ') return true end
 
     -- if not get guilds
-    local ownernetuser = rust.FindNetUsersByName( self.User[ ownerID ].name )
+    local b, ownernetuser = rust.FindNetUsersByName( self.User[ ownerID ].name )
+    if( not b ) then return end
     local ownerGuild = self:getGuild( ownernetuser )
     local userGuild = self:getGuild( netuser )
     if not ( ownerGuild and userGuild ) then return end
 
     -- Check if in same guild
-    if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. self.User[ ownerID ].name .. '\'s house! ') return true end
+    if ( userGuild == ownerGuild ) then
+        print('11') rust.Notice( netuser, 'Entered ' .. self.User[ ownerID ].name .. '\'s house! ') return true end
+end
+
+local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
+    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
+    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
+    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
+    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
+
+function PLUGIN:OnStartCrafting( inv, blueprint, amount )
+    local s = tostring( inv )
+    local f = "Player"
+    local deb = string.find(s, f ) +7
+    local fin = string.find( s, "(" , deb, true) - 2
+    local s2 = string.sub(s, deb, fin)
+    local validate, netuser = rust.FindNetUsersByName( tostring(s2) )
+    if (not validate) then
+        if (netuser == 0) then
+            print( "[ OnStartCrafting ] No players found with name: " .. tostring( s2 ))
+        else
+            print( "[ OnStartCrafting ] Multiple players found with name: " .. tostring( s2 ))
+        end
+        return false
+    end
+    local inv = rust.GetInventory( netuser )
+    if not inv then rust.Notice('Inventory not found, report to a GM. Unable to craft.') return false end
+    print( tostring( blueprint.resultItem.name ))
+    if( self.craft[ blueprint.resultItem.name ] ) then
+        local netuserID = rust.GetUserID( netuser )
+        if self.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
+        self.User[ netuserID ].crafting = true
+        local data = self.craft[ blueprint.resultItem.name ]
+        if not data then rust.Notice( netuser, 'No data found...' ) return false end
+        local craftdata = self.User[ netuserID ].prof[ data.prof ]
+        if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') return false end
+        -- Crafting:
+        -- check for crit
+        -- check for failed
+
+        local Time = data.ct * amount
+        -- If crit, then Time becomes = 0. This means instant craft.
+        if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
+        local i = Time
+        timer.Repeat( 1, Time, function()
+            print( 'timer' )
+            if Time > 0 then rust.InventoryNotice( netuser, tostring(i) ) end
+            i = i - 1
+            if( i <= 0 ) then
+                -- del mats
+                for k,v in pairs( data.mats ) do
+                    if failed then v = v/2 end
+                    print ( k )
+                    local datablock = rust.GetDatablockByName( k )
+                    local isUnstackable = table.containsval(unstackable, k )
+                    local y = 0
+                    local item = inv:FindItem(datablock)
+                    if (item) then
+                        if (not isUnstackable) then
+                            while (y < v) do
+                                if (item.uses > 0) then
+                                    item:SetUses(item.uses - 1)
+                                    y = y + 1
+                                else
+                                    inv:RemoveItem(item)
+                                    item = inv:FindItem(datablock)
+                                    if (not item) then
+                                        break
+                                    end
+                                end
+                            end
+                        else
+                            while (y < v) do
+                                inv:RemoveItem(item)
+                                y = y + 1
+                                item = inv:FindItem(datablock)
+                                if (not item) then
+                                    break
+                                end
+                            end
+                        end
+                    else rust.Notice(netuser, "Item not found in inventory!") return false end
+                    if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
+                    -- check if they didn't drop the items in the mean time.
+                    if not ( y == v ) then rust.Notice( netuser, 'Dont cheat bro. You just lost your mats.' ) return false end
+                end
+
+                local item2 = rust.GetDatablockByName( blueprint.resultItem.name )
+                -- craft crit the double the amount is given.
+                if crit then amount = amount * 2 end
+
+                -- if craft failed, then no items are given.
+                if not failed then
+                    timer.Once( 1, function()
+                        inv:AddItemAmount( item2, amount )
+                        rust.InventoryNotice( netuser, amount .. 'x ' .. blueprint.resultItem.name )
+                        self.User[ netuserID ].crafting = false
+                    end)
+                end
+                -- add xp || Random xp is not random... o.O     <-- best smiley evah?
+                --                                      ___     <-- best smiley evah?
+                local xp = math.floor(( math.random( data.xp.min, data.xp.max ))*amount)
+                if failed then xp = xp / 2 end
+                if failed then rust.Notice( netuser, 'Crafting failure!' ) end
+                -- self:AddCraftXP( netuser, prof, xp )
+                craftdata.xp = craftdata.xp + xp -- TEMPORARY!
+                timer.Once(3, function()
+                    rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
+                end)
+                self:UserSave()
+            end
+        end )
+        return false
+    else
+        print( '[ CRAFTING ] ' .. blueprint.resultItem.name .. ' is not in carbon_craft' )
+        rust.Notice( netuser, blueprint.resultItem.name .. ' is not in the carbon_craft file, please report to a GM.' )
+        return false
+    end
+end
+
+-- inspect items. Crafting and maybe Economy.
+function PLUGIN:cmdInspect( netuser, cmd, args )
+    if not args[1] then
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect > help')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ With the inspect feature you\'re able')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect any item ingame. This will show the')
+        rust.SendChatToUser(netuser,self.sysname,'║ crafting information. ')
+        rust.SendChatToUser(netuser,self.sysname,'║ ')
+        rust.SendChatToUser(netuser,self.sysname,'║ Simply type /inspect "Item Name" ')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
+    elseif args[1] and not args[2] then
+        local itemname = tostring( args[1] )
+        if( not self.craft[ itemname ] ) then -- item not found
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.sysname,'║ inspect > ' .. itemname .. ' > ϟ error')
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ '.. itemname .. ' was not found in the crafting item library!' )
+            rust.SendChatToUser(netuser,self.sysname,'║ ' )
+            rust.SendChatToUser(netuser,self.sysname,'║ Please report this on the forums!' )
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+            rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        else
+            local data = self.craft[ itemname ]
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.sysname,'║ inspect > ' .. itemname )
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ Item                        : ' .. itemname )
+            rust.SendChatToUser(netuser,self.sysname,'║ Profession           : ' .. data.prof)
+            rust.SendChatToUser(netuser,self.sysname,'║ Required level      : ' .. data.req)
+            rust.SendChatToUser(netuser,self.sysname,'║ Difficulty               : ' .. data.dif)
+            rust.SendChatToUser(netuser,self.sysname,'║ Crafting Time       : ' .. data.ct)
+            rust.SendChatToUser(netuser,self.sysname,'║ XP                           : ' .. data.xp.min .. ' - ' .. data.xp.max )
+            rust.SendChatToUser(netuser,self.sysname,'║ ')
+            rust.SendChatToUser(netuser,self.sysname,'║ Materials: ')
+            for k, v in pairs( data.mats ) do
+                rust.SendChatToUser(netuser,self.sysname,'║ - ' .. v .. 'x ' .. k )
+            end
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+            rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        end
+    else
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect > help')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ With the inspect feature you\'re able')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect any item ingame. This will show the')
+        rust.SendChatToUser(netuser,self.sysname,'║ crafting information. ')
+        rust.SendChatToUser(netuser,self.sysname,'║ ')
+        rust.SendChatToUser(netuser,self.sysname,'║ Simply type /inspect "Item Name" ')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
+    end
 end
