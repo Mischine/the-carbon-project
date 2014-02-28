@@ -144,7 +144,7 @@ end
 -- Resource table
 local resource ={
     "car_startup", ":boar_prefab", ":stag_prefab", ":rabbit_prefab_a", ":chicken_prefab", ":bear_prefab", ":wolf_prefab", ":mutant_bear", ":mutant_wolf",
-    "AmmoLootBox", "MedicalLootBox", "BoxLoot", "WeaponLootBox", "FireBarrel", ":player_soldier",
+    "AmmoLootBox", "MedicalLootBox", "BoxLoot", "WeaponLootBox", "FireBarrel", ":player_soldier"
 }
 
 local resource2 = {
@@ -152,7 +152,7 @@ local resource2 = {
 }
 
 local LimitAI = {
-    ":bear_prefab", ":wolf_prefab", ":mutant_bear", ":mutant_wolf", ":npc_zombie", ":npc_zombie_fast", ":npc_zombie_slow"
+    ":bear_prefab", ":wolf_prefab", ":mutant_bear", ":mutant_wolf"
 }
 
 -- Function Add End
