@@ -8,7 +8,20 @@ local GetTakeNoDamage, SetTakeNoDamage = typesystem.GetField( Rust.TakeDamage, "
 local GetEyesOrigin, SetEyesOrigin = typesystem.GetField( Rust.Character, "eyesOrigin", bf.public_instance )
 
 --[[ SPECIAL NOTES
- Mischa fucked up the github.
+
+local content = {
+  ['prefix']='',
+  ['header']='',
+  ['subheader']='',
+  ['msg'] ='', --must be a single line of text
+  ['list'] = {}, --no word wrap, you control the length. keep it under 50 chars.
+  ['cmds']={}, -- the commands on the bottom i.e. ['cmds']={'help','donthelp','sacrebleu'},
+  ['suffix']='',
+  }
+self:TextBox(netuser, content, cmd, args) return
+
+self:TextBoxError(netuser, content, cmd, args) return
+
 --]]
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:Init | http://wiki.rustoxide.com/index.php?title=Hooks/Init
@@ -396,23 +409,28 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     end
 
                     if (self.debugr == true) then print('---------------BEGIN ME VS PVP---------------') end
-                    -- STEP 1 DAMAGE ROLL
-                    dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
-                    -- STEP 2 DP MODIFIER
-                    dmg.amount = self:modifyDP(netuserData, dmg.amount)
-                    --STEP 3 ATR MODIFIER
-                    dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
-                    -- STEP 4 WPN MODIFIER
-                    dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
-                    --STEP 5 CRIT CHECK
-                    dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
-                    -- STEP 6 VIC MODIFIER
+                    -- STEP 1 VIC MODIFIER
                     if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
-                    --STEP 7 VIC STA MOD
+                    -- STEP 2 WPN DMG MODIFIER
+                    if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if (self.debugr == true) then print('WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
+
+
+                    -- STEP 3 DAMAGE ROLL
+                    dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+                    -- STEP 4 DP MODIFIER
+                    dmg.amount = self:modifyDP(netuserData, dmg.amount)
+                    -- STEP 5 WPN MODIFIER
+                    dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+
+                    --STEP 6 ATR MODIFIER
+                    dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+                    --STEP 7 CRIT CHECK
+                    dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
+                    --STEP 8 VIC STA MOD
                     dmg.amount = self:staModify(netuserData, vicuserData, nil, dmg.amount)
-                    --STEP 8 PERK STONE
+                    --STEP 9 PERK STONE
                     dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount)
-                    -- STEP 9 PERK PARRY
+                    -- STEP 10 PERK PARRY
                     dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
 
                     --GUILD: MODIFIERS
@@ -454,23 +472,25 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 local vicuserData = self.User[rust.GetUserID(vicuser)]
                 local npcData = self.Config.npc[string.gsub(tostring(dmg.attacker.networkView.name), '%(Clone%)', '')]
                 if (self.debugr == true) then print('---------------BEGIN PVE VS ME---------------') end
-                --STEP 1 DAMAGE ROLL
-                dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
-                --STEP 2 DP MODIFIER
-                --dmg.amount = self:modifyDP(netuserData, dmg.amount) NEEDS WORK FOR DEFENSE CHANGES
-                -- STEP 3 ATR MODIFIER
-                --dmg.amount = self:attrModify(weaponData, npcData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
-                -- STEP 4 WPN MODIFIER
-                dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
-                -- STEP 5 CRIT CHECK
-                dmg.amount = self:critCheck(weaponData, npcData, vicuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
-                --STEP 6 VIC MODIFIER
+                --STEP 1 VIC MODIFIER
                 if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
-                -- STEP 7 VIC STA MOD
+                -- STEP 2 WPN DMG MODIFIER
+                if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if (self.debugr == true) then print('WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
+                --STEP 3 DAMAGE ROLL
+                dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+                --STEP 4 DP MODIFIER
+                --dmg.amount = self:modifyDP(netuserData, dmg.amount) NEEDS WORK FOR DEFENSE CHANGES
+                -- STEP 5 WPN SKILL MODIFIER
+                dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+                -- STEP 6 ATR MODIFIER
+                --dmg.amount = self:attrModify(weaponData, npcData, vicuserData, dmg.amount)  if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+                -- STEP 7 CRIT CHECK
+                dmg.amount = self:critCheck(weaponData, npcData, vicuserData, dmg.amount)    if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
+                -- STEP 8 VIC STA MOD
                 dmg.amount = self:staModify(nil, vicuserData, nil, dmg.amount)if (self.debugr == true) then print('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
-                --STEP 8 PERK STONE
+                --STEP 9 PERK STONE
                 dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount) if (self.debugr == true) then print('STONESKIN PERK: ' .. tostring(dmg.amount)) end
-                --STEP 9 PERK PARRY
+                --STEP 10 PERK PARRY
                 dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)--PERK PARRY
 
                 --GUILD: MODIFIERS
@@ -502,18 +522,20 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 self:UserSave()
             end
             if (self.debugr == true) then print('---------------BEGIN ME VS PVE---------------') end
-            --STEP 1 DAMAGE ROLL
+            -- STEP 1 VIC MODIFIER
+            dmg.amount = dmg.amount*npcData.dmg     if (self.debugr == true) then print('VICUSER DMG MODIFIER: ' .. tostring(dmg.amount)) end
+            -- STEP 1 WPN DMG MODIFIER
+            if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if (self.debugr == true) then print('WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
+            --STEP 2 DAMAGE ROLL
             dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if (self.debugr == true) then print('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
-            --STEP 2 DP MODIFIER
+            --STEP 3 DP MODIFIER
             dmg.amount = self:modifyDP(netuserData, dmg.amount)
-            -- STEP 3 ATR MODIFIER
-            dmg.amount = self:attrModify(weaponData, netuserData, npcData, dmg.amount)      if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
-            --STEP 4 WPN MODIFIER
+            --STEP 4 WPN SKILL MODIFIER
             dmg.amount = dmg.amount+netuserData.skills[ weaponData.name ].lvl*0.3      if (self.debugr == true) then print('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
-            -- STEP 5 CRIT CHECK
+            -- STEP 5 ATR MODIFIER
+            dmg.amount = self:attrModify(weaponData, netuserData, npcData, dmg.amount)      if (self.debugr == true) then print('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+            -- STEP 6 CRIT CHECK
             dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)       if (self.debugr == true) then print('CRIT CHANCE: ' .. tostring(dmg.amount)) end
-            -- STEP 6 VIC MODIFIER
-            dmg.amount = dmg.amount*npcData.dmg     if (self.debugr == true) then print('vicuser dmg modifier: ' .. tostring(dmg.amount)) end
             --STEP 7 VIC STA MOD
             dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)    if (self.debugr == true) then print('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
 
@@ -920,13 +942,13 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             local content = {
                 ['list']={
                     'Strength:     ' .. netuserData.attributes.str,
-                    self:xpbar(netuserData.attributes.str,10),
+                    self:xpbar(netuserData.attributes.str*10,10),
                     'Agility:      ' .. netuserData.attributes.agi,
-                    self:xpbar(netuserData.attributes.agi,10),
+                    self:xpbar(netuserData.attributes.agi*10,10),
                     'Stamina:      ' .. netuserData.attributes.sta,
-                    self:xpbar(netuserData.attributes.sta,10),
+                    self:xpbar(netuserData.attributes.sta*10,10),
                     'Intellect:    ' .. netuserData.attributes.int,
-                    self:xpbar(netuserData.attributes.int,10),
+                    self:xpbar(netuserData.attributes.int*10,10),
                 },
                 ['cmds']={'train','untrain'}
             }
@@ -954,17 +976,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         elseif (args[1] == 'perks') then
             local msg = {'perks info here'}
             self:TextBox(netuser, 'perks', msg, '•  list  •  active  •') return
-        elseif (args[1] == 'test') then
-            local content = {
-                --['prefix']='This is any prefix you would like to enter.',
-                --['breadcrumbs']=args,
-                --['header']='Header',
-                --['subheader']='Subheader',
-                ['msg']='Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-                ['cmds']={'other', 'help', 'exit', 'another command'},
-                --['suffix']='this is the suffix',
-            }
-            self:TextBox(netuser, content, cmd, args) return
         else
             local content={['cmds']={'xp','atr','skills','perks'}}
             self:TextBoxError(netuser, content, cmd, args) return
@@ -974,34 +985,20 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
     if #args==2 then
         if args[1] == 'atr'then
             if args[2] == 'train' then
-                local msg = {
-                    'To level up your attributes you',
-                    'must train using available attribute',
-                    'points (ap). WARNING: to untrain you',
-                    'will be required to pay a trainer.',
-                    'The cost will increase the more you',
-                    'times you untrain.',
-                    ' ',
-                    'Available AP:  ' .. netuserData.ap,
+                local content = {
+                    ['msg']='To level up your attributes you must train using available attribute points (ap). WARNING: to untrain you will be required to pay a trainer. The cost will increase the more you times you untrain.\n \nAvailable AP:  ' .. netuserData.ap,
+
+                    ['cmds']={'str #','agi #','sta #','int #'},
                 }
-                self:TextBox(netuser, 'atr > train', msg, '•  str #  •  agi #  •  sta #  •  int #  •') return
+                self:TextBox(netuser, content, cmd, args) return
             elseif args[2] == 'untrain' then
-                local msg = {
-                    'To untrain your attribute points',
-                    'you will have to pay a trainer.',
-                    'WARNING: each time you untrain',
-                    'the cost will increase.',
-                    ' ',
-                    'If you are sure you want to untrain',
-                    'use the pay command.',
-                    ' ',
-                    'i.e. /c atr untrain pay',
-                    ' ',
-                    'Cost: ' .. tonumber(self.Config.settings.untraincost*(1+self.Config.settings.untraincostgrowth)^netuserData.ut),
+                local content = {
+                    ['msg']='To untrain your attribute points you will have to pay a trainer. WARNING: each time you untrain the cost will increase.\n \nIf you are sure you want to untrain use the pay command.\n \ni.e. /c atr untrain pay\n \nCost: ' .. tonumber(self.Config.settings.untraincost*(1+self.Config.settings.untraincostgrowth)^netuserData.ut),
+                    ['cmds']={'pay'},
                 }
-                self:TextBox(netuser, 'c > atr > untrain', msg, '•  pay  •') return
             else
-                self:cmdError(netuser, 'c > atr', '•  train  •  untrain  •') return
+                local content = {['cmds']={'train','untrain'}}
+                self:TextBoxError(netuser, content, cmd, args) return
             end
         elseif args[1] == 'skills'then
             local skillData = netuserData.skills[args[2]]
@@ -1011,52 +1008,41 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                 local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
                 local d = math.floor(((skillData.xp/c)*100)+0.5) -- percent currently to next level.
                 local e = c-skillData.xp -- left to go until level
+                local content = {
+                    ['list'] = {'Skill:  ' .. skillData.name,'Level:  ' .. skillData.lvl,'Experience:  (' .. skillData.xp .. '/' .. c .. ')  [' .. d .. '%]  (' .. e .. ')', self:xpbar( d, 32 ) }
+                }
 
-                local msg = {'Skill:  ' .. skillData.name,'Level:  ' .. skillData.lvl,'Experience:  (' .. skillData.xp .. '/' .. c .. ')  [' .. d .. '%]  (' .. e .. ')', self:xpbar( d, 32 ) }
-
-                self:TextBox(netuser, 'c > skills > ' .. tostring(skillData.name), msg, ' ') return
+                self:TextBox(netuser, content, cmd, args) return
             else
-                self:cmdError(netuser, 'c > skills', '•  "skill name"  •') return
+                local content = {['cmds']={'"skill name"'}}
+                self:TextBoxError(netuser, content, cmd, args) return
             end
         else
-            self:cmdError(netuser, ' ', '•  xp  •  atr  •  skills  •  perks  •  help  •') return
+            local content={
+                ['cmds']={'xp', 'atr','skills','perks'}
+            }
+            self:TextBoxError(netuser, content, cmd, args) return
         end
     end
     if #args>=3 then
         if args[1] == 'atr' and args[2] == 'train' and tonumber(args[4]) >= 1 and (args[3] == 'str' or args[3] == 'agi' or args[3] == 'sta' or args[3] == 'int')then
             if netuserData.ap >= tonumber(args[4]) then
-                if args[3] == 'str' then
-                    if netuserData.attributes.str+tonumber(args[4])>10 or tonumber(args[4])>netuserData.ap then return end
-                    netuserData.ap=netuserData.ap-tonumber(args[4])
-                    netuserData.attributes.str=netuserData.attributes.str+tonumber(args[4])
-                    rust.InventoryNotice(netuser, '+' .. tostring(args[4]) .. ' strength!')
-                    self:UserSave()
-                elseif args[3] == 'agi' then
-                    if netuserData.attributes.agi+tonumber(args[4])>10 or tonumber(args[4])>netuserData.ap then return end
-                    netuserData.ap=netuserData.ap-tonumber(args[4])
-                    netuserData.attributes.agi=netuserData.attributes.agi+tonumber(args[4])
-                    rust.InventoryNotice(netuser, '+' .. tostring(args[4]) .. ' agility!')
-                    self:UserSave()
-                elseif args[3] == 'sta' then
-                    if netuserData.attributes.sta+tonumber(args[4])>10 or tonumber(args[4])>netuserData.ap then return end
-                    netuserData.ap=netuserData.ap-tonumber(args[4])
-                    netuserData.attributes.sta=netuserData.attributes.sta+tonumber(args[4])
-                    rust.InventoryNotice(netuser, '+' .. tostring(args[4]) .. ' stamina!')
-                    self:UserSave()
-                elseif args[3] == 'int' then
-                    if netuserData.attributes.int+tonumber(args[4])>10 or tonumber(args[4])>netuserData.ap then return end
-                    netuserData.ap=netuserData.ap-tonumber(args[4])
-                    netuserData.attributes.int=netuserData.attributes.int+tonumber(args[4])
-                    rust.InventoryNotice(netuser, '+' .. tostring(args[4]) .. ' intellect!')
-                    self:UserSave()
-                else
-
-                end
+                    if netuserData.attributes[args[3]]+tonumber(args[4])<=10 then
+                        netuserData.ap=netuserData.ap-tonumber(args[4])
+                        netuserData.attributes[args[3]]=netuserData.attributes[args[3]]+tonumber(args[4])
+                        rust.InventoryNotice(netuser, '+' .. tostring(args[4]) .. args[3])
+                    else
+                        local content = {
+                            ['msg']='You can\'t train above 10!',
+                            ['cmds']={'str #','agi #','sta #','int #'},
+                        }
+                        self:TextBoxError(netuser, content, cmd, args) return
+                    end
             else
-                local msg = {
-                    'Insufficient attribute points!'
+                local content = {
+                    ['msg'] = 'Insufficient attribute points!',
+                    ['cmds']={'str #','agi #','sta #','int #'},
                 }
-                self:cmdError(netuser, 'c > atr > train', '•  str #  •  agi #  •  sta #  •  int #  •', msg) return
             end
 
         elseif args[1] == 'atr' and args[2] == 'untrain' and args[3] == 'pay' then
@@ -1067,7 +1053,10 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             netuserData.attributes.int=0
             self:UserSave()
         else
-            self:cmdError(netuser, 'c > atr', '•  add  •  remove  •') return
+            local content = {
+                ['cmds']={'str #','agi #','sta #','int #'},
+            }
+            self:TextBoxError(netuser, content, cmd, args) return
         end
     end
 
@@ -2073,7 +2062,7 @@ function PLUGIN:SetDefaultConfig()
             ['Revolver']={['name']='Revolver',['type']='c',['dmg']=1,['lvl']=1},
             ['9mm Pistol']={['name']='9mm Pistol',['type']='c',['dmg']=1,['lvl']=3},
             ['M4']={['name']='M4',['type']='l',['dmg']=1,['lvl']=5},
-            ['Bolt Action Rifle']={['name']='Bolt Action Rifle',['type']='l',['dmg']=1,['lvl']=1},
+            ['Bolt Action Rifle']={['name']='Bolt Action Rifle',['type']='l',['dmg']=5,['lvl']=1},
             ['Explosive Charge']={['name']='Explosive Charge',['type']='e',['dmg']=1,['lvl']=1},
             ['F1 Grenade']={['name']='F1 Grenade',['type']='e',['dmg']=1,['lvl']=1},
 
@@ -2312,7 +2301,7 @@ function PLUGIN:GuildUpdate()
     local txt = self.GuildFile:GetText()
     self.Guild = json.decode ( txt )
 end
-
+--[[
 function PLUGIN:xpbar( value )
     local msg = '▐'
     for i=1, 25 do
@@ -2325,6 +2314,7 @@ function PLUGIN:xpbar( value )
     msg = msg .. '▌'
     return msg
 end
+--]]
 function PLUGIN:medxpbar( value )
     local msg = ''
     for i=1, 20 do
@@ -2340,7 +2330,7 @@ end
 function PLUGIN:xpbar( value, size )
     local msg = ''
     for i=1, size do
-        if( (value / (100/size)) >= i ) then
+        if(value / (100/size) >= i ) then
             msg = msg .. '■'
         else
             msg = msg .. '□'
