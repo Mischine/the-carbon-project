@@ -53,13 +53,33 @@ function PLUGIN:Init()
     --LOAD/CREATE TEXT FILE
     self.txtFile = util.GetDatafile( 'carbon_txt' )
     local txt_txt = self.txtFile:GetText()
-    if (txt ~= '') then
+    if (txt_txt ~= '') then
         print( 'carbon_txt file loaded!' )
         self.txt = json.decode( txt_txt )
     else
         print( 'carbon_txt file is missing!' )
     end
+    --LOAD/CREATE TEXT FILE
+    self.CraftFile = util.GetDatafile( 'carbon_craft' )
+    local craft_txt = self.CraftFile:GetText()
+    if (craft_txt ~= '') then
+        print( 'carbon_craft file loaded!' )
+        self.craft = json.decode( craft_txt )
+    else
+        print( 'carbon_txt file is missing!' )
+    end
+    --LOAD/CREATE TEXT FILE
+    self.StatsFile = util.GetDatafile( 'carbon_stats' )
+    local stats_txt = self.StatsFile:GetText()
+    if (stats_txt ~= '') then
+        print( 'carbon_stats file loaded!' )
+        self.Stats = json.decode( stats_txt )
+    else
+        self:CreateNewStatsFile()
+        print( 'carbon_stats file is created!' )
+    end
 
+    self.debug = {}
     self.sysname = self.Config.settings.sysname
     --TEMPORARY INVISIBLE GEAR COMMAND: REMOVE BEFORE RELEASE
     self:AddChatCommand('cotw', self.addcotw ) -- TESTING ONLY!
@@ -71,17 +91,19 @@ function PLUGIN:Init()
     self:AddChatCommand( 'w', self.cmdWhisper )
     self:AddChatCommand( 'mail', self.cmdMail )
     self:AddChatCommand( 'alpha', self.AlphaTXT )     -- Alpha welcome text!
+    self:AddChatCommand( 'inspect', self.cmdInspect )
+    -- self:AddChatCommand( 'debug', self.cmdDebug )
     -----------------------------------------------------------------------------------
     self:AddChatCommand( 'storm', self.cmdStorm )
-    self:AddChatCommand('debug', self.cmdDebug)
-    self:AddChatCommand('dump', self.dump)
-    self:AddChatCommand('reset', self.SetDefaultConfig)
+    self:AddChatCommand( 'debug', self.cmdDebug )
+    self:AddChatCommand( 'dump', self.dump )
+    self:AddChatCommand( 'reset', self.SetDefaultConfig )
     spamNet = {}
     self.debugr = false
     self.rnd = 0
     timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
-    --timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
-    timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
+    -- timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
+    -- timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
     print( 'Carbon Loaded!' )
 end
 
@@ -106,6 +128,32 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- TURN DEBUG ON OR OFF! DEVELOPERTOOL! DISABLE ON ALPHA!
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--[[
+function PLUGIN:cmdDebug( netuser, cmd , args )
+    if( not netuser:CanAdmin()) then rust.Notice( netuser, 'You cannot debug!' ) return end
+    if( args[1] == 'termall' ) then self.debug = {} rust.Notice( netuser, 'All debugs have been terminated!') return end
+    if not args[1] then rust.Notice( netuser, '/debug "name" ' ) return end
+    if self.debug[ targname ] then rust.Notice( netuser, util.QuoteSafe(targname) '\'s debug is terminated') self.debug[ targname ] = nil return end
+    local targname = util.QuoteSafe(args[1])
+    local validate, netuser = rust.FindNetUsersByName( targname )
+    if (not validate) then
+        if (netuser == 0) then
+            rust.Notice( netuser, 'No players found with name: ' .. util.QuoteSafe( targname ))
+        else
+            rust.Notice( netuser,'Multiple players found with name: ' .. util.QuoteSafe( targname ))
+        end
+    return end
+
+    local data = {}
+    data.targnetuser = netuser
+    self.debug[ targname ] = data
+    rust.Notice( netuser, util.QuoteSafe(targname) '\'s debug is activated')
+end
+
+-- if self.debug[ netuser.displayName ] then rust.SendChatToUser(, self.debug[ netuser.displayName ].targnetuser, 'actual debug.' ) end
+
+--]]
+
 function PLUGIN:cmdDebug( netuser, cmd , args )
     if( self.debugr ) then
         self.debugr = false
@@ -161,7 +209,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
             local netuserData = self.User[rust.GetUserID(netuser)]
             if (netuser ~= vicuser) then
                 netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
-
                 self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
             elseif(netuser == vicuser) then
                 self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
@@ -456,7 +503,6 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             return dmg
         end
     end
-
 end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:staModify
@@ -1192,32 +1238,35 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdGuilds( netuser, cmd, args )
     if( not args[1] ) then
-        rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-        rust.SendChatToUser(netuser,self.sysname,'█\n█')
-        rust.SendChatToUser( netuser, self.sysname, tostring('█ The Carbon Project [ Version ' .. tostring(self.Version) .. ' ]' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring('█ Copyright (c) 2014 Tempus Forge. All rights reserved.' .. '\n█' ))
-        rust.SendChatToUser( netuser, ' ', '█ ' .. '\n█')
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ /g help' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ For more information on a specific command, type help command-name' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ create              Creates guild' .. '\n█' ))
-        local guild = self:getGuild( netuser )
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.sysname,'║ guild > ')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ For more information on a specific command, type /help command-name')
         if not guild then
-            rust.SendChatToUser( netuser, ' ', '█  ' .. '\n█')
-            rust.SendChatToUser( netuser, self.sysname, tostring( '█ To create a guild you need a level of 10 or higher.' .. '\n█' ))
-            rust.SendChatToUser( netuser, self.sysname, tostring( '█ The cost to create a guild is 25 Silver.' .. '\n█' ))
-            rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-            rust.SendChatToUser( netuser, self.sysname, tostring('                      Copyright (c) 2014 Tempus Forge. All rights reserved.' ))
-            return end
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ delete               Deletes guild' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ info                   Displays guild\'s information that you\'re currently in.' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ stats                  Display global statistics of the guild.' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ invite                Invite a player to your guild.' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ kick                  Kicks a player from your guild.' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ war                    Engage in a war with another guild.' .. '\n█' ))
-        rust.SendChatToUser( netuser, self.sysname, tostring( '█ rank                  View/assign ranks to your guild members' .. '\n█' ))
-        rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-        rust.SendChatToUser( netuser, self.sysname, tostring('                          The Carbon Project™ 2014 Tempus Forge ©' ))
-        return end
+            rust.SendChatToUser(netuser,self.sysname,'║ To create a guild you need a level of 10 or higher.')
+            rust.SendChatToUser(netuser,self.sysname,'║ The cost to create a guild is 25 Silver.')
+        else
+            rust.SendChatToUser(netuser,self.sysname,'║ delete               Deletes guild')
+            rust.SendChatToUser(netuser,self.sysname,'║ info                   Displays guild\'s information that you\'re currently in.')
+            rust.SendChatToUser(netuser,self.sysname,'║ stats                  Display global statistics of the guild.')
+            rust.SendChatToUser(netuser,self.sysname,'║ invite                Invite a player to your guild.')
+            rust.SendChatToUser(netuser,self.sysname,'║ kick                  Kicks a player from your guild.')
+            rust.SendChatToUser(netuser,self.sysname,'║ leave                 To leave a guild.')
+            rust.SendChatToUser(netuser,self.sysname,'║ war                    Engage in a war with another guild.')
+            rust.SendChatToUser(netuser,self.sysname,'║ rank                  View/assign ranks to your guild members')
+            rust.SendChatToUser(netuser,self.sysname,'║ members               To view all guild members')
+        end
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        if not guild then
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘  • create  •  ')
+        else
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘  • delete • info • stats • invite • kick  ')
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘  • leave • war • calls • rank • members  ')
+        end
+        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
+    return end
     local action = tostring( args[1] ):lower()
     if ( action == 'create') then
         -- /g create 'Guild Name' 'Guild Tag'
@@ -1280,45 +1329,43 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         local guild = self:getGuild( netuser )
         if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
         local data = self:getGuildData( guild )
-        local chat = ( data.tag )
-        rust.SendChatToUser( netuser, ' ', ' ' )
-        rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-        rust.SendChatToUser(netuser,self.sysname,'█\n█')
-        rust.SendChatToUser( netuser, chat, '█ '.. chat .. '\'s Guild Info: ' .. '\n█' )
-        rust.SendChatToUser( netuser, ' ', '█  ' .. '\n█'  )
-        rust.SendChatToUser( netuser, chat, '█ Guild Name    : ' .. guild .. '\n█'  )
-        rust.SendChatToUser( netuser, chat, '█ Guild Tag        : ' .. data.tag .. '\n█'  )
-        rust.SendChatToUser( netuser, chat, '█ Guild Level     : ' .. data.glvl .. '\n█'  )
-        rust.SendChatToUser( netuser, chat, '█ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')' .. '\n█' )
-        rust.SendChatToUser( netuser, ' ', '█  ' .. '\n█'  )
-        rust.SendChatToUser( netuser, chat, '█ Guild Leader   : ' .. self:getGuildLeader( guild ) .. '\n█' )
-        rust.SendChatToUser( netuser, chat, '█ Members        : ' .. self:count( data.members ) .. '\n█' )
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.sysname,'║ guild > ' .. guild .. ' > info')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ Guild Name    : ' .. guild)
+        rust.SendChatToUser(netuser,self.sysname,'║ Guild Tag        : ' .. data.tag)
+        rust.SendChatToUser(netuser,self.sysname,'║ Guild Level     : ' .. data.glvl)
+        rust.SendChatToUser(netuser,self.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')')
+        rust.SendChatToUser(netuser,self.sysname,'║ ')
+        rust.SendChatToUser(netuser,self.sysname,'║ Guild Leader   : ' .. self:getGuildLeader( guild ))
+        rust.SendChatToUser(netuser,self.sysname,'║ Members        : ' .. self:count( data.members ))
         if( data.interval >= 10 ) then
-            rust.SendChatToUser( netuser, chat, '█ Collect/' .. data.interval .. 'h     : ' .. data.collect .. '\n█'  ) -- To make it semetrical. xD I'm anal like that.
+            rust.SendChatToUser(netuser,self.sysname,'║ Collect/' .. data.interval .. 'h     : ' .. data.collect)
         else
-            rust.SendChatToUser( netuser, chat, '█ Collect/' .. data.interval .. 'h      : ' .. data.collect .. '\n█'  ) -- To make it semetrical. xD I'm anal like that.
+            rust.SendChatToUser(netuser,self.sysname,'║ Collect/' .. data.interval .. 'h      : ' .. data.collect)
         end
-        rust.SendChatToUser( netuser, chat, '█ Perks               : ' .. self:sayTable( data.unlockedperks, ', ' ) .. '\n█'  )
-        rust.SendChatToUser( netuser, chat, '█ Active Perks : ' .. self:sayTable( data.activeperks, ', ' ) .. '\n█'  )
-        rust.SendChatToUser( netuser, chat, '█ War                   : ' .. self:sayTable( data.war, ', ' ) .. '\n█' )
-        rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-        rust.SendChatToUser( netuser, ' ', ' ' )
+        rust.SendChatToUser(netuser,self.sysname,'║ Perks               : ' .. self:sayTable( data.unlockedperks, ', ' ))
+        rust.SendChatToUser(netuser,self.sysname,'║ Active Perks : ' .. self:sayTable( data.activeperks, ', ' ))
+        rust.SendChatToUser(netuser,self.sysname,'║ War                   : ' .. self:sayTable( data.war, ', ' ))
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ ⌘')
+        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
     elseif ( action == 'stats') then
         -- /g stats                                 -- Displays a lists of guild statistics
         local guild = self:getGuild( netuser )
         if( not guild ) then self.Notice( netuser, 'You\'re not in a guild!' ) return end
         local data = self:getGuildData( guild )
-        local chat = ( data.tag .. ' ' .. guild )
-        rust.SendChatToUser( netuser, ' ', ' ' )
-        rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-        rust.SendChatToUser(netuser,self.sysname,'█\n█')
-        rust.SendChatToUser( netuser, self.sysname,'█ COMING SOON!' .. '\n█' )
-        rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-        rust.SendChatToUser( netuser, ' ', ' ' )
-        -- rust.SendChatToUser( netuser, chat, chat .. ''s Guild statistics:' )
-        -- rust.SendChatToUser( netuser, chat, '' )
-        -- rust.SendChatToUser( netuser, chat, '' )
-
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.sysname,'║ guild > ' .. guild .. ' > stats')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ COMING SOON!')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ ⌘')
+        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
     elseif ( action == 'invite') then  --                                                  [ caninvite ]
         -- /g invite 'name'                                                 -- Invite a player to the guild
         if( not args[2] ) then rust.Notice( netuser, '/g invite "name" ' ) return end
@@ -1356,6 +1403,79 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         else
             rust.Notice( netuser, 'You\'re not allowed to invite players to the guild!' )
         end
+    elseif ( action == 'members') then -- /g members list all members + ranks | /g members "name" list all information about a member.
+        local guild = self:getGuild( netuser )
+        if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
+        local data = self:getGuildData( guild )
+        if not data then rust.Notice( netuser, 'Guild data not found! Report to a GM please.' ) return end
+        if( not args[2] ) then -- get list of all guild members
+            local i = 0
+            local msg = ""
+            local count = self:count( data.members )
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,' ','╔════════════════════════')
+            rust.SendChatToUser(netuser,' ','║ ' .. guild .. ' > members' )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ Total members: ' .. tostring( count )  )
+            for k, v in pairs( data.members ) do
+                if msg ~= "" then msg = msg .. ', ' end
+                if i >= 2 then
+                    msg = msg .. '[' .. v.rank .. ']' .. v.name .. ', '
+                    rust.SendChatToUser(netuser,' ','║ '.. msg )
+                    i = 0
+                    msg = ""
+                else
+                    msg = msg .. '[' .. v.rank .. ']' .. v.name
+                    i = i + 1
+                end
+            end
+            if not ( i >= 3 ) then rust.SendChatToUser(netuser,' ','║ '.. msg ) end
+            rust.SendChatToUser(netuser,' ','║ ' )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ ⌘ ' )
+            rust.SendChatToUser(netuser,' ','╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        elseif ( args[2]) then -- get info about a specific guild member
+            local name = tostring( args[2] )
+            local found = false
+            for k,v in pairs( data.members ) do
+                if v.name == name then
+                    found = true
+                    rust.SendChatToUser(netuser,' ',' ')
+                    rust.SendChatToUser(netuser,' ','╔════════════════════════')
+                    rust.SendChatToUser(netuser,' ','║ ' .. guild .. ' > ' .. name )
+                    rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                    rust.SendChatToUser(netuser,' ','║ Rank                             :' .. v.rank )
+                    rust.SendChatToUser(netuser,' ','║ XP contributed         :' .. v.xpcon )
+                    rust.SendChatToUser(netuser,' ','║ Money contributed  :' .. v.moncon )
+                    rust.SendChatToUser(netuser,' ','║ ' )
+                    rust.SendChatToUser(netuser,' ','║ Level: ' .. self.User[ k ].lvl )
+                    rust.SendChatToUser(netuser,' ','║ Attributes: ' )
+                    rust.SendChatToUser(netuser,' ','║     str   : ' .. self.User[ k ].attributes.str )
+                    rust.SendChatToUser(netuser,' ','║     agi   : ' .. self.User[ k ].attributes.agi )
+                    rust.SendChatToUser(netuser,' ','║     sta  : ' .. self.User[ k ].attributes.sta )
+                    rust.SendChatToUser(netuser,' ','║     int   : ' .. self.User[ k ].attributes.int )
+                    rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                    rust.SendChatToUser(netuser,' ','║ ⌘ ' )
+                    rust.SendChatToUser(netuser,' ','╚════════════════════════')
+                    rust.SendChatToUser(netuser,' ',' ')
+                end
+            end
+            if not found then
+                rust.SendChatToUser(netuser,' ',' ')
+                rust.SendChatToUser(netuser,' ','╔════════════════════════')
+                rust.SendChatToUser(netuser,' ','║ ' .. guild .. ' > ' .. name .. ' > ϟ error' )
+                rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                rust.SendChatToUser(netuser,' ','║ ' .. name .. ' is not in your guild!' )
+                rust.SendChatToUser(netuser,' ','╟────────────────────────')
+                rust.SendChatToUser(netuser,' ','║ ⌘ ' )
+                rust.SendChatToUser(netuser,' ','╚════════════════════════')
+                rust.SendChatToUser(netuser,' ',' ')
+            end
+
+        else
+
+        end
     elseif ( action == 'accept') then
         -- /g accept
         local netuserID = rust.GetUserID( netuser )
@@ -1368,7 +1488,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             entry.xpcon = 0
             self.Guild[ guild ].members[ netuserID ] = entry
             self.User[ netuserID ][ 'guild' ] = guild
-            self:sendGuildMsg( guild, netuser.displayName, 'has joined the guild! =)' )
+            self:sendGuildMsg( guild, self.User[ netuserID ].name , 'has joined the guild! =)' )
             self.Guild.temp[ netuserID ] = nil
             self:UserSave()
             self:GuildSave()
@@ -1406,11 +1526,35 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         self.User[ targuserID ].guild = nil
         self:UserSave()
         self:GuildSave()
+ --[[   elseif ( action == 'calls') then                --                                                  [ canwar ]
+        local guild = self:getGuild( netuser )
+        if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
+        if not args[1] then
+            -- display calls, if they're active and what they do. and their modifiers.
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,' ','╔════════════════════════')
+            rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  buy > ' .. data.name .. ' > bought ')
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            rust.SendChatToUser(netuser,' ','║ ' )
+            rust.SendChatToUser(netuser,' ','╟────────────────────────')
+            if( self:hasAbility( netuser, guild, 'canwar' ) ) then -- can add calls
+                rust.SendChatToUser(netuser,' ','║ add • remove ⌘ ' )
+            else
+                rust.SendChatToUser(netuser,' ','║ ⌘ ' )
+            end
+            rust.SendChatToUser(netuser,' ','╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        elseif args[1] =='add' then
+            if args[2] then
+            else
+            end
+        end ]]
+
     elseif ( action == 'war') then                  --                                                  [ canwar ]
         -- /g war guildtag                          -- Engage a war with another guild / other guild will be notified.
         local guild = self:getGuild( netuser )
         if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
-        if( not self:hasAbility( netuser, guild, 'canwar' ) ) then rust.Notice(netuser, 'You\'re not permitted to kick a player from the guild.' ) return end
+        if( not self:hasAbility( netuser, guild, 'canwar' ) ) then rust.Notice(netuser, 'You\'re not permitted to initiate a war!' ) return end
         local targtag = '['..string.upper( tostring( args[2] ))..']'
         for k,v in pairs( self.Guild ) do
             if( v.tag == targtag )then
@@ -1424,22 +1568,25 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             local guild = self:getGuild( netuser )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
             local rank = self:getRank( netuser, guild )
-            rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-            rust.SendChatToUser(netuser,self.sysname,'█\n█')
-            rust.SendChatToUser( netuser, guild, '█ Your current rank status: ' .. tostring( rank ) .. '\n█')
-            rust.SendChatToUser( netuser, guild, '█ /g rank list shows the power of each rank.' .. '\n█')
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.sysname,'║ guild > ' .. guild .. ' > rank')
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ Your current rank status: ' .. tostring( rank ))
+            rust.SendChatToUser(netuser,self.sysname,'║ /g rank list shows the power of each rank.')
             if( self:hasAbility( netuser, guild, 'canrank' ) ) then
-                rust.SendChatToUser( netuser, guild, '█ /g rank [list][give][add][edit].' .. '\n█' )
-                rust.SendChatToUser( netuser, guild, '█ [list]  | List all the available ranks and their abilites ' .. '\n█' )
-                rust.SendChatToUser( netuser, guild, '█ [give]  | Assign a rank to a guild member. ' .. '\n█' )
-                rust.SendChatToUser( netuser, guild, '█ [Add]    | Create a new rank for the guild.' .. '\n█' )
-                rust.SendChatToUser( netuser, guild, '█ [edit]  | Change rank settings.' .. '\n█' )
-                rust.SendChatToUser( netuser, guild, '█  ' .. '\n█' )
+                rust.SendChatToUser(netuser,self.sysname,'║ /g rank [list][give][add][edit].')
+                rust.SendChatToUser(netuser,self.sysname,'║ list  | List all the available ranks and their abilites ')
+                rust.SendChatToUser(netuser,self.sysname,'║ give  | Assign a rank to a guild member. ')
+                rust.SendChatToUser(netuser,self.sysname,'║ Add    | Create a new rank for the guild.')
+                rust.SendChatToUser(netuser,self.sysname,'║ edit  | Change rank settings.')
             end
-            rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-            rust.SendChatToUser( netuser, ' ', ' ' )
-            return
-        end
+            rust.SendChatToUser(netuser,self.sysname,'║ ')
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘ list • give • add • edit ')
+            rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        return end
         if( args[2] ) then args[2] = tostring(args[2]):lower() end
         -------------------------------------
         if( args[2] == 'list' ) then                            -- /g rank list | shows list of ranks + abilities
@@ -1451,15 +1598,19 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                 while msg[ tostring(count) ] do count = count + 0.1 end
                 msg[tostring( count )] = 'Rank: ' .. k .. ' Abilities: ' .. table.returnvalues( self.Guild[guild].ranks[k] )
             end
-            rust.SendChatToUser(netuser,self.sysname,'\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-            rust.SendChatToUser(netuser,self.sysname,'█\n█')
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.sysname,'║ guild > ' .. guild .. ' > rank > list')
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
             for i = 8, 1, -.1 do
                 if msg[tostring(i)] then
-                    rust.SendChatToUser( netuser, guild,'█ ' .. msg[tostring(i)] .. '\n█' )
+            rust.SendChatToUser(netuser,self.sysname,'║ '.. msg[tostring(i)])
                 end
             end
-            rust.SendChatToUser(netuser,self.sysname,'█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-            rust.SendChatToUser( netuser, ' ', ' ' )
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘ list • give • add • edit ')
+            rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
         elseif( args[2] == 'give' ) then                        -- /g rank give 'rank' name | Add a rank to a member        [ canrank ]
             local guild = self:getGuild( netuser )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
@@ -1550,8 +1701,6 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             if( self:hasAbility( netuser, guild, 'canrank' ) ) then rust.SendChatToUser( netuser, guild, '/g rank [list][give][take][add][edit]' )
             else rust.SendChatToUser( netuser, '/g rank [list]' ) end
         end
-        -- elseif ( action == 'perks' ) then -- [ canvault ]
-
 
         -- elseif ( action == 'vault' ) then -- [ canvault ]
         -- /g vault buy                             -- Buy a vault
@@ -1571,31 +1720,31 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         end
         local action2 = tostring(args[2]:lower())
         if( action2 == 'create' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.create )
+            self:sendTXT( netuser, guild, self.txt.guild.create, 'create' )
         elseif( action2 == 'delete' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.delete )
+            self:sendTXT( netuser, guild, self.txt.guild.delete, 'delete' )
         elseif( action2 == 'info' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.info )
+            self:sendTXT( netuser, guild, self.txt.guild.info, 'info' )
         elseif( action2 == 'stats' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.stats )
+            self:sendTXT( netuser, guild, self.txt.guild.stats, 'stats' )
         elseif( action2 == 'invite' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.invite )
+            self:sendTXT( netuser, guild, self.txt.guild.invite, 'invite' )
         elseif( action2 == 'kick' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.kick )
+            self:sendTXT( netuser, guild, self.txt.guild.kick, 'kick' )
         elseif( action2 == 'war' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.war )
+            self:sendTXT( netuser, guild, self.txt.guild.war, 'war' )
         elseif( action2 == 'rank' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.rank )
+            self:sendTXT( netuser, guild, self.txt.guild.rank, 'rank' )
         elseif( action2 == 'ability' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.ability )
+            self:sendTXT( netuser, guild, self.txt.guild.ability, 'ability' )
         elseif( action2 == 'vault' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.vault )
+            self:sendTXT( netuser, guild, self.txt.guild.vault, 'vault' )
         elseif( action2 == 'calls' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.calls )
+            self:sendTXT( netuser, guild, self.txt.guild.calls, 'calls' )
         elseif( action2 == 'collection' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.collection )
+            self:sendTXT( netuser, guild, self.txt.guild.collection, 'collection' )
         elseif( action2 == 'assassin' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.assassin )
+            self:sendTXT( netuser, guild, self.txt.guild.assassin, 'assassin' )
         elseif( action2 == '' ) then
         else
             rust.SendChatToUser( netuser, self.sysname, 'Please type /g create | delete | info | stats | invite | kick | war | rank | vault' )
@@ -1658,7 +1807,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.collect = 0                                                                                               -- Collects money from members
     entry.gocollect = 0                                                                                             -- time left for next collection
     entry.interval = 0                                                                                              -- Amount of hours between each collection.
-    entry.unlockedperks = {}                                                                                        -- Perks are unlocked at certain Guild lvls ( Max: 10 )
+    entry.unlockedperks = {'rally','syg','forglory','cotw',}                                                        -- Perks are unlocked at certain Guild lvls ( Max: 10 )
     entry.activeperks = {}                                                                                          -- Perks are unlocked at certain Guild lvls ( Max: 10 )
     timer.Once( 1, function()
         rust.SendChatToUser( netuser, self.sysname, 'Creating Guild...' )
@@ -1688,20 +1837,28 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:sendTXT
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function PLUGIN:sendTXT( netuser, chatname, data )
+function PLUGIN:sendTXT( netuser, guild, data, help )
     if( not data ) then print( 'Data was not found!' ) rust.Notice( netuser, 'txt file not found! please report this to a GM!' ) return end
-    rust.SendChatToUser(netuser,' ','\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
-    rust.SendChatToUser(netuser,' ','█\n█')
-    local v = false
-    if ( data.header ) then rust.SendChatToUser( netuser, tostring( chatname ), '█  ' .. tostring( data.header ) .. '\n█' ) v = true end
-    if ( data.subheader ) then rust.SendChatToUser( netuser, tostring( chatname ), '█  ' .. tostring( data.subheader ) .. '\n█' ) v = true end
-    if ( v ) then rust.SendChatToUser( netuser, ' ', '█\n█' ) end
+
+    rust.SendChatToUser(netuser,' ',' ')
+    rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+    rust.SendChatToUser(netuser,self.sysname,'║ guild > ' .. guild .. ' > ' .. help )
+    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+    if ( data.header ) then rust.SendChatToUser( netuser,self.sysname,'║ ' .. tostring( data.header )) v = true end
+    if ( data.subheader ) then rust.SendChatToUser( netuser,self.sysname, '║ ' .. tostring( data.subheader )) v = true end
+    if ( v ) then
+        rust.SendChatToUser( netuser,self.sysname,'║ ')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+    end
     local i = 1
     while ( data.txt[tostring(i)] ) do
-        rust.SendChatToUser( netuser, chatname,'█  ' .. data.txt[tostring(i)] .. '\n█')
+        rust.SendChatToUser( netuser, chatname,'║  ' .. data.txt[tostring(i)] )
         i = i + 1
     end
-    rust.SendChatToUser(netuser,' ','█\n▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀')
+    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+    rust.SendChatToUser(netuser,self.sysname,'║ ⌘')
+    rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+    rust.SendChatToUser(netuser,' ',' ')
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1917,16 +2074,36 @@ function PLUGIN:SetDefaultConfig()
                 ['forglory']={['requirements']={['cost']=25000,['glvl']=2},['mod']=.05 },
                 ['kos']={['requirements']={['cost']=25000,['glvl']=2},['mod']=50}
             }
-        },
-        ['prof'] = {
-            ['engineer']={},
-            ['medic']={},
-            ['carpenter']={},
-            ['armorsmith']={},
-            ['weaponsmith']={}
         }
     }
     self:ConfigSave()
+end
+
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:CreateNewStatsFile
+--||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+function PLUGIN:CreateNewStatsFile()
+    self.Stats = {
+        ['econ'] = {
+            ['itemssold']= 0 ,
+            ['itemsbought'] = 0,
+            ['totalmoney'] = 0
+        },
+        ['leaderboard']={
+            ['lvl'] = "",
+            ['prof']= {
+                ['Engineer']= "",
+                ['Medic']= "",
+                ['Carpenter']="" ,
+                ['Armorsmith']="",
+                ['Weaponsmith']=""
+            },
+            ['richest']= "",
+            ['pvpkills']= "",
+            ['pvekills']= "",
+            ['pvpkd']= ""
+        }
+    }
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1954,18 +2131,28 @@ function PLUGIN:OnUserChat(netuser, name, msg)
 end
 
 function PLUGIN:AlphaTXT( netuser )
-    rust.SendChatToUser( netuser, self.sysname, tostring('The Carbon Project [ Version ' .. tostring(self.Version) .. ' ]' ))
-    rust.SendChatToUser( netuser, self.sysname, tostring('  Copyright (c) 2014 Tempus Forge. All rights reserved.' ))
-    rust.SendChatToUser( netuser, self.sysname, tostring('    -- to view this message again, type /alpha -- ' ))
-    rust.SendChatToUser( netuser, ' ', ' ' )
-    rust.SendChatToUser( netuser, self.sysname, 'Welcome to "The Carbon Project" Alpha test!' )
-    rust.SendChatToUser( netuser, self.sysname, 'Carbon RPG is a game with a dynamic leveling system, Professions, Skills, Perks, Calls,' )
-    rust.SendChatToUser( netuser, self.sysname, 'Guilds, Party( coming soon ), Random events( coming soon )and boss mobs( coming soon )!' )
-    rust.SendChatToUser( netuser, self.sysname, 'Use /c for global information. Use /g for guild commands.' )
-    rust.SendChatToUser( netuser, self.sysname, 'Take a look around, for more information visit: www.tempusforge.com' )
-    rust.SendChatToUser( netuser, ' ', ' ' )
-    rust.SendChatToUser( netuser, self.sysname, 'Disclaimer: This is an ALPHA test, there will be bugs, there will be crashes, ' )
-    rust.SendChatToUser( netuser, self.sysname, 'there will be restarts and there will be wipes.' )
+    rust.SendChatToUser(netuser,' ',' ')
+    rust.SendChatToUser(netuser,self.Chat,'╔════════════════════════')
+    rust.SendChatToUser(netuser,self.Chat,'║ login > Alpha Message')
+    rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+    rust.SendChatToUser(netuser,self.Chat,'║ The Carbon Project [ Version ' .. tostring(self.Version) .. ' ]' )
+    rust.SendChatToUser(netuser,self.Chat,'║ Copyright (c) 2014 Tempus Forge. All rights reserved.')
+    rust.SendChatToUser(netuser,self.Chat,'║ -- to view this message again, type /alpha -- ')
+    rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+    rust.SendChatToUser(netuser,self.Chat,'║ Welcome to "The Carbon Project" Alpha test!')
+    rust.SendChatToUser(netuser,self.Chat,'║ Carbon RPG is a game with a dynamic leveling system, ')
+    rust.SendChatToUser(netuser,self.Chat,'║ Professions, Skills, Perks, Calls, Guilds, Party( coming soon ), ')
+    rust.SendChatToUser(netuser,self.Chat,'║ Random events( coming soon )and boss mobs( coming soon ).')
+    rust.SendChatToUser(netuser,self.Chat,'║ Use /c for global information. Use /g for guild commands.')
+    rust.SendChatToUser(netuser,self.Chat,'║ ')
+    rust.SendChatToUser(netuser,self.Chat,'║ Take a look around, for more information visit: www.tempusforge.com')
+    rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+    rust.SendChatToUser(netuser,self.Chat,'║ Disclaimer: This is an ALPHA test, there will be bugs, there will be crashes,')
+    rust.SendChatToUser(netuser,self.Chat,'║ there will be restarts and there will be wipes.')
+    rust.SendChatToUser(netuser,self.Chat,'╟────────────────────────')
+    rust.SendChatToUser(netuser,self.Chat,'║ ⌘ Created by: Mischa & CareX ')
+    rust.SendChatToUser(netuser,self.Chat,'╚════════════════════════')
+    rust.SendChatToUser(netuser,' ',' ')
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -1993,6 +2180,9 @@ function PLUGIN:OnUserConnect( netuser )
         if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
     end
     rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
+
+    -- Reset crafting:
+    self.User[ netuserID ].crafting = false
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -2016,7 +2206,13 @@ function PLUGIN:GetUserData( netuser )
         data.buffs = {}
         data.skills = {}
         data.perks = {}
+        data.crafting = false
         data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
+        data.prof = {['Engineer']={['lvl']=1,['xp']=0},
+                     ['Medic']={['lvl']=0,['xp']=0},
+                     ['Carpenter']={['lvl']=1,['xp']=0},
+                     ['Armorsmith']={['lvl']=1,['xp']=0},
+                     ['Weaponsmith']={['lvl']=1,['xp']=0}}
         self.User[ netuserID ] = data
         self:UserSave()
     end
@@ -2127,9 +2323,9 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- GUILD DOOR ACCESS!
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- TESTING IF THIS IS A GOOD ADDITION! ( if not, wait till they fixed it )
 local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
 function PLUGIN:CanOpenDoor( netuser, door )
+
     -- Get and validate the deployable
     local deployable = door:GetComponent( "DeployableObject" )
     if (not deployable) then return end
@@ -2142,11 +2338,209 @@ function PLUGIN:CanOpenDoor( netuser, door )
     if (ownerID == userID) then rust.Notice( netuser, 'Entered your own house! ') return true end
 
     -- if not get guilds
-    local ownernetuser = rust.FindNetUsersByName( self.User[ ownerID ].name )
+    local b, ownernetuser = rust.FindNetUsersByName( self.User[ ownerID ].name )
+    if( not b ) then return end
     local ownerGuild = self:getGuild( ownernetuser )
     local userGuild = self:getGuild( netuser )
     if not ( ownerGuild and userGuild ) then return end
 
     -- Check if in same guild
     if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. self.User[ ownerID ].name .. '\'s house! ') return true end
+end
+
+local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
+    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
+    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
+    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
+    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
+
+function PLUGIN:OnStartCrafting( inv, blueprint, amount )
+    local s = tostring( inv )
+    local f = "Player"
+    local deb = string.find(s, f ) +7
+    local fin = string.find( s, "(" , deb, true) - 2
+    local s2 = string.sub(s, deb, fin)
+    local validate, netuser = rust.FindNetUsersByName( tostring(s2) )
+    if (not validate) then
+        if (netuser == 0) then
+            print( "[ OnStartCrafting ] No players found with name: " .. tostring( s2 ))
+        else
+            print( "[ OnStartCrafting ] Multiple players found with name: " .. tostring( s2 ))
+        end
+        return false
+    end
+    local inv = rust.GetInventory( netuser )
+    if not inv then rust.Notice('Inventory not found, report to a GM. Unable to craft.') return false end
+    print( tostring( blueprint.resultItem.name ))
+    if( self.craft[ blueprint.resultItem.name ] ) then
+        local netuserID = rust.GetUserID( netuser )
+        if self.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
+        self.User[ netuserID ].crafting = true
+        local data = self.craft[ blueprint.resultItem.name ]
+        if not data then rust.Notice( netuser, 'No data found...' ) self.User[ netuserID ].crafting = false return false end
+        local craftdata = self.User[ netuserID ].prof[ data.prof ]
+        if( not data.prof == 'Intelligence' ) then
+            if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') self.User[ netuserID ].crafting = false return false end
+        else
+            if( self.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) self.User[ netuserID ].crafting = false return false end
+        end
+
+        -- Crafting:
+        -- check for crit
+        -- check for failed
+
+        local Time = data.ct * amount
+        -- If crit, then Time becomes = 0. This means instant craft.
+        if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
+        local i = Time
+        timer.Repeat( 1, Time, function()
+            print( 'timer' )
+            if Time > 0 then rust.InventoryNotice( netuser, tostring(i) ) end
+            i = i - 1
+            if( i <= 0 ) then
+                -- del mats
+                for k,v in pairs( data.mats ) do
+                    if failed then v = v/2 end
+                    print ( k )
+                    local datablock = rust.GetDatablockByName( k )
+                    local isUnstackable = table.containsval(unstackable, k )
+                    local y = 0
+                    local item = inv:FindItem(datablock)
+                    if (item) then
+                        if (not isUnstackable) then
+                            while (y < v) do
+                                if (item.uses > 0) then
+                                    item:SetUses(item.uses - 1)
+                                    y = y + 1
+                                else
+                                    inv:RemoveItem(item)
+                                    item = inv:FindItem(datablock)
+                                    if (not item) then
+                                        break
+                                    end
+                                end
+                            end
+                        else
+                            while (y < v) do
+                                inv:RemoveItem(item)
+                                y = y + 1
+                                item = inv:FindItem(datablock)
+                                if (not item) then
+                                    break
+                                end
+                            end
+                        end
+                    else rust.Notice(netuser, "Item not found in inventory!") self.User[ netuserID ].crafting = false return false end
+                    if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
+                    -- check if they didn't drop the items in the mean time.
+                    if not ( y == v ) then rust.Notice( netuser, 'Dont cheat bro. You just lost your mats.' ) self.User[ netuserID ].crafting = false return false end
+                end
+
+                local item2 = rust.GetDatablockByName( blueprint.resultItem.name )
+                -- craft crit the double the amount is given.
+                if crit then amount = amount * 2 end
+
+                -- if craft failed, then no items are given.
+                if not failed then
+                    timer.Once( 1, function()
+                        inv:AddItemAmount( item2, amount )
+                        rust.InventoryNotice( netuser, amount .. 'x ' .. blueprint.resultItem.name )
+                        self.User[ netuserID ].crafting = false
+                    end)
+                end
+                -- add xp || Random xp is not random... o.O     <-- best smiley evah?
+                --                                      ___     <-- best smiley evah?
+                local xp = math.floor(( math.random( data.xp.min, data.xp.max ))*amount)
+                if failed then xp = xp / 2 end
+                if failed then rust.Notice( netuser, 'Crafting failure!' ) end
+                -- self:AddCraftXP( netuser, prof, xp )
+                if( not data.prof == 'Intelligence' ) then
+                    timer.Once(3, function()
+                        craftdata.xp = craftdata.xp + xp -- TEMPORARY!
+                        rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
+                    end)
+                else
+                    timer.Once(3, function()
+                        self.User[ netuserID ].xp = self.User[ netuserID ].xp + xp
+                        rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
+                    end)
+                end
+                self:UserSave()
+            end
+        end )
+        return false
+    else
+        print( '[ CRAFTING ] ' .. blueprint.resultItem.name .. ' is not in carbon_craft' )
+        rust.Notice( netuser, blueprint.resultItem.name .. ' is not in the carbon_craft file, please report to a GM.' )
+        return false
+    end
+end
+
+-- inspect items. Crafting and maybe Economy.
+function PLUGIN:cmdInspect( netuser, cmd, args )
+    if not args[1] then
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect > help')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ With the inspect feature you\'re able')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect any item ingame. This will show the')
+        rust.SendChatToUser(netuser,self.sysname,'║ crafting information. ')
+        rust.SendChatToUser(netuser,self.sysname,'║ ')
+        rust.SendChatToUser(netuser,self.sysname,'║ Simply type /inspect "Item Name" ')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
+    elseif args[1] and not args[2] then
+        local itemname = tostring( args[1] )
+        if( not self.craft[ itemname ] ) then -- item not found
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.sysname,'║ inspect > ' .. itemname .. ' > ϟ error')
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ '.. itemname .. ' was not found in the crafting item library!' )
+            rust.SendChatToUser(netuser,self.sysname,'║ ' )
+            rust.SendChatToUser(netuser,self.sysname,'║ Please report this on the forums!' )
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+            rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        else
+            local data = self.craft[ itemname ]
+            rust.SendChatToUser(netuser,' ',' ')
+            rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+            rust.SendChatToUser(netuser,self.sysname,'║ inspect > ' .. itemname )
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ Item                        : ' .. itemname )
+            rust.SendChatToUser(netuser,self.sysname,'║ Profession           : ' .. data.prof)
+            rust.SendChatToUser(netuser,self.sysname,'║ Required level      : ' .. data.req)
+            rust.SendChatToUser(netuser,self.sysname,'║ Difficulty               : ' .. data.dif)
+            rust.SendChatToUser(netuser,self.sysname,'║ Crafting Time       : ' .. data.ct)
+            rust.SendChatToUser(netuser,self.sysname,'║ XP                           : ' .. data.xp.min .. ' - ' .. data.xp.max )
+            rust.SendChatToUser(netuser,self.sysname,'║ ')
+            rust.SendChatToUser(netuser,self.sysname,'║ Materials: ')
+            for k, v in pairs( data.mats ) do
+                rust.SendChatToUser(netuser,self.sysname,'║ - ' .. v .. 'x ' .. k )
+            end
+            rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+            rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+            rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+            rust.SendChatToUser(netuser,' ',' ')
+        end
+    else
+        rust.SendChatToUser(netuser,' ',' ')
+        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect > help')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ With the inspect feature you\'re able')
+        rust.SendChatToUser(netuser,self.sysname,'║ inspect any item ingame. This will show the')
+        rust.SendChatToUser(netuser,self.sysname,'║ crafting information. ')
+        rust.SendChatToUser(netuser,self.sysname,'║ ')
+        rust.SendChatToUser(netuser,self.sysname,'║ Simply type /inspect "Item Name" ')
+        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,self.sysname,'║ ⌘ ')
+        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,' ',' ')
+    end
 end

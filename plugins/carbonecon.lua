@@ -288,7 +288,7 @@ end
 
 function PLUGIN:cmdBal( netuser )
     rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser,0,0,0 ))
-    rust.SendChatToUser( netuser, self.Chat, "HAI 4!" )
+    self:AddBalance( netuser, 5,0,0 )
 end
 
 -- function PLUGIN:cmdHelp( netuser, cmd, args)
@@ -438,7 +438,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
         -- buy stuff.
         local data = false
         local key = false
-        local amount = ( tonumber( args[2] ))
+        local amount = math.floor(( tonumber( args[2] )))
         if not amount then rust.Notice( netuser, 'Invalid amount! Please put a numeric amount! (ie. 8 )' ) return end
         -- Check if item exists.
         if ( not tonumber( args[1] )) then -- if args[2] is string. ( Item Name )
@@ -633,8 +633,9 @@ function PLUGIN:cmdSell( netuser, cmd, args)
         -- buy stuff.
         local data = false
         local key = false
-        local amount = ( tonumber( args[2] ))
+        local amount = math.floor(( tonumber( args[2] )))
         if not amount then rust.Notice( netuser, 'Invalid amount! Please put a numeric amount! (ie. 8 )' ) return end
+        if not amount > 0 then rust.Notice( netuser, 'Invalid amount!' ) return end
         -- Check if item exists.
         if ( not tonumber( args[1] )) then -- if args[2] is string. ( Item Name )
             for k,v in pairs( self.Item ) do
