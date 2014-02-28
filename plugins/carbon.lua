@@ -2,6 +2,10 @@ PLUGIN.Title = 'Carbon'
 PLUGIN.Description = 'experience. levels. skills. rewards.'
 PLUGIN.Version = '0.0.8.1437a'
 PLUGIN.Author = 'Mischa & CareX'
+
+-- Get some other functions
+local GetTakeNoDamage, SetTakeNoDamage = typesystem.GetField( Rust.TakeDamage, "takenodamage", bf.private_instance )
+local GetEyesOrigin, SetEyesOrigin = typesystem.GetField( Rust.Character, "eyesOrigin", bf.public_instance )
 --[[ SPECIAL NOTES
 
 --]]
@@ -204,77 +208,65 @@ end
 -- OnProcessDamageEvent()
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --[[
-local StatusIntGetter = util.GetFieldGetter( RustFirstPass.DamageEvent, "status", nil, System.Int32 )
-function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
-    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
-    dmg = self:ModifyDamage(takedamage, dmg)
-    local status = StatusIntGetter( dmg )
-    if (status == LifeStatus_WasKilled and takedamage.health <= 0 ) then
-        --print( "setting health to 0!" )
-        takedamage.health = 0
-        self:OnKilled(takedamage, dmg)
-    elseif (status == LifeStatus_IsAlive and takedamage.health > 0) then
-        --print( "reducing health!" )
-        --print( takedamage.health )
-        takedamage.health = takedamage.health - dmg.amount
-        --print( takedamage.health )
-        self:OnHurt(takedamage, dmg)
-    end
-    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
-    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
-    return dmg
-end
-
-local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
-typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
---Will print out alive or died in the server console when something takes damage.
-function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-
-    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
-    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
-
-    dmg = self:ModifyDamage(takedamage, dmg) or dmg
-    local status = dmg.status
-    rust.BroadcastChat(tostring(status))
-
-    if (status == LifeStatus.WasKilled or status == LifeStatus.IsDead) and takedamage.health > 0 then
-        dmg.status = LifeStatus.IsAlive
-        takedamage.health = takedamage.health - dmg.amount
-        self:OnKilled(takedamage, dmg)
-    end
-    if (status == LifeStatus.IsAlive) then
-        takedamage.health = takedamage.health - dmg.amount
-        self:OnHurt(takedamage, dmg)
-    end
-
-    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
-    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
-
-    return dmg
-end
-
-function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
-    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
-    dmg = self:ModifyDamage(takedamage, dmg)
-    self.BroadcastChat(tostring(takedamage.status))
-    takedamage.health = takedamage.health - dmg.amount
-    rust.BroadcastChat(tostring('damage amount: ' .. dmg.amount))
-    rust.BroadcastChat(tostring('victim health: ' .. takedamage.health))
-    return dmg
-end
-local StatusIntGetter = util.GetFieldGetter( RustFirstPass.DamageEvent, "status", nil, System.Int32 )
+local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "status", nil, System.Int32 )
 local LifeStatus_IsAlive = 0
 local LifeStatus_IsDead = 2
 local LifeStatus_WasKilled = 1
 local LifeStatus_Failed = -1
+function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+    if dmg.extraData then
+        weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
+    end
+
+    dmg = plugins.Call( "ModifyDamage", takedamage, dmg ) or dmg
+    local status = StatusIntGetter( dmg )
+    print( "==========" )
+    print( status )
+    if (status == LifeStatus_WasKilled) then
+        print( "setting health to 0!" )
+        takedamage.health = 0
+        plugins.Call( "OnKilled", takedamage, dmg )
+    elseif (status == LifeStatus_IsAlive) then
+        print( "reducing health!" )
+        print( takedamage.health )
+        if dmg.attacker.client then
+            print( '1' )
+            if dmg.victim.client then local isSamePlayer = (dmg.victim.client == dmg.attacker.client) end
+            print( '2' )
+            if not isSamePlayer then
+                print( '3' )
+                if self:GetUserData(dmg.attacker.client.netUser) then
+                    print( '4' )
+                    local netuser = dmg.attacker.client.netUser
+                    print( '5' )
+                    local netuserData = self.User[rust.GetUserID(netuser)]
+                    print('6' )
+                    print(tostring(weaponData.lvl .. ' / ' .. netuserData.lvl))
+                    if weaponData.lvl > netuserData.lvl then
+                        print('7' )
+                        local netuser = dmg.attacker.client.netUser
+                        local netuserData = self.User[rust.GetUserID(netuser)]
+                        dmg.status = LifeStatus.IsAlive
+                        dmg.amount = 0
+                        if not spamNet[weaponData.name .. netuser.displayName] then
+                            self:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
+                            spamNet[weaponData.name .. netuser.displayName] = true
+                            timer.Once(6, function() spamNet[weaponData.name .. netuser.displayName] = nil end)
+                        end
+                    else
+                        takedamage.health = takedamage.health - dmg.amount
+                        if takedamage.health > 0 then dmg.status = LifeStatus.IsAlive end
+                        plugins.Call( "OnHurt", takedamage, dmg )
+                        return dmg
+                    end
+                end
+            end
+        end
+        self.BroadcastChat(tostring(takedamage.health))
+    end
+end
 --]]
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    dmg = self:ModifyDamage(takedamage, dmg) or dmg
-    if (GetTakeNoDamage( takedamage )) then return dmg end
-    local status = StatusIntGetter( dmg )
-
     if dmg.extraData then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -298,21 +290,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
             end
         end
     end
-    if (status == LifeStatus_WasKilled) then
-        --print( "setting health to 0!" )
-        takedamage.health = 0
-        self:OnKilled(takedamage, dmg)
-    elseif (status == LifeStatus_IsAlive) then
-        --print( "reducing health!" )
-        --print( takedamage.health )
-        takedamage.health = takedamage.health - dmg.amount
-        --print( takedamage.health )
-        self:OnHurt(takedamage, dmg)
-    end
-    return dmg
 end
---]]
-
 
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
@@ -515,6 +493,7 @@ end
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:attrModify
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 function PLUGIN:attrModify(weaponData, netuserData, vicuserData, damage)
     if weaponData then
         if (weaponData.type == 'm') and (netuserData.attributes.str>0) then
@@ -1863,17 +1842,17 @@ end
 function PLUGIN:SetDefaultConfig()
     self.Config = {
         ['npc']={
-            ['ZombieNPC_SLOW']={['id']='ZombieNPC_SLOW',['ai']='ZombieController',['name']='Slow Zombie',['xp']=45,['dmg']=.25,['sta']=10,['str']=10},
-            ['ZombieNPC_FAST']={['id']='ZombieNPC_FAST',['ai']='ZombieControlller',['name']='Fast Zombie',['xp']=40,['dmg']=.25,['sta']=9,['str']=9},
-            ['ZombieNPC']={['id']='ZombieNPC',['ai']='ZombieController',['name']='Zombie',['xp']=35,['dmg']=.25,['sta']=8,['str']=8},
-            ['MutantBear']={['id']='MutantBear',['ai']='BearAI',['name']='Mutant Bear',['xp']=30,['dmg']=.25,['sta']=7,['str']=7},
-            ['MutantWolf']={['id']='MutantWolf',['ai']='WolfAI',['name']='Mutant Wolf',['xp']=25,['dmg']=.15,['sta']=6,['str']=6},
-            ['Bear']={['id']='Bear',['ai']='BearAI',['name']='Bear',['xp']=20,['dmg']=.35,['sta']=5,['str']=5},
-            ['Wolf']={['id']='Wolf',['ai']='WolfAI',['name']='Wolf',['xp']=15,['dmg']=.25,['sta']=4,['str']=4},
-            ['Stag_A']={['id']='Stag_A',['ai']='StagAI',['name']='Stag',['xp']=10,['dmg']=.50,['sta']=3,['str']=3},
-            ['Boar_A']={['id']='Boar_A',['ai']='BoarAI',['name']='Boar',['xp']=10,['dmg']=.50,['sta']=2,['str']=2},
-            ['Chicken']={['id']='Chicken',['ai']='ChickenAI',['name']='Chicken',['xp']=5,['dmg']=1,['sta']=1,['str']=1},
-            ['Rabbit']={['id']='Rabbit',['ai']='RabbitAI',['name']='Rabbit',['xp']=5,['dmg']=1,['sta']=1,['str']=1},
+            ['ZombieNPC_SLOW']={['id']='ZombieNPC_SLOW',['ai']='ZombieController',['name']='Slow Zombie',['xp']=45,['dmg']=.25,['attributes']={['sta']=10,['agi']=10,['str']=10}},
+            ['ZombieNPC_FAST']={['id']='ZombieNPC_FAST',['ai']='ZombieControlller',['name']='Fast Zombie',['xp']=40,['dmg']=.25,['attributes']={['sta']=9,['agi']=9,['str']=9}},
+            ['ZombieNPC']={['id']='ZombieNPC',['ai']='ZombieController',['name']='Zombie',['xp']=35,['dmg']=.25,['attributes']={['sta']=8,['agi']=8,['str']=8}},
+            ['MutantBear']={['id']='MutantBear',['ai']='BearAI',['name']='Mutant Bear',['xp']=30,['dmg']=.25,['attributes']={['sta']=7,['agi']=7,['str']=7}},
+            ['MutantWolf']={['id']='MutantWolf',['ai']='WolfAI',['name']='Mutant Wolf',['xp']=25,['dmg']=.15,['attributes']={['sta']=6,['agi']=6,['str']=6}},
+            ['Bear']={['id']='Bear',['ai']='BearAI',['name']='Bear',['xp']=20,['dmg']=.35,['attributes']={['sta']=5,['agi']=5,['str']=5}},
+            ['Wolf']={['id']='Wolf',['ai']='WolfAI',['name']='Wolf',['xp']=15,['dmg']=.25,['attributes']={['sta']=4,['agi']=4,['str']=4}},
+            ['Stag_A']={['id']='Stag_A',['ai']='StagAI',['name']='Stag',['xp']=10,['dmg']=.50,['attributes']={['sta']=3,['agi']=3,['str']=3}},
+            ['Boar_A']={['id']='Boar_A',['ai']='BoarAI',['name']='Boar',['xp']=10,['dmg']=.50,['attributes']={['sta']=2,['agi']=2,['str']=2}},
+            ['Chicken']={['id']='Chicken',['ai']='ChickenAI',['name']='Chicken',['xp']=5,['dmg']=1,['attributes']={['sta']=1,['agi']=1,['str']=1}},
+            ['Rabbit']={['id']='Rabbit',['ai']='RabbitAI',['name']='Rabbit',['xp']=5,['dmg']=1,['attributes']={['sta']=1,['agi']=1,['str']=1}},
         },
         ['weapon']={
             ['Unarmed']={['name']='Unarmed',['type']='m',['dmg']=1,['lvl']=1},
