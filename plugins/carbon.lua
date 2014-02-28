@@ -1,6 +1,6 @@
 PLUGIN.Title = 'Carbon'
 PLUGIN.Description = 'experience. levels. skills. rewards.'
-PLUGIN.Version = '0.0.8.1437a'
+PLUGIN.Version = '0.1.0a'
 PLUGIN.Author = 'Mischa & CareX'
 
 -- Get some other functions
@@ -201,7 +201,7 @@ end
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnKilled (takedamage, dmg)
------------------CLIENT VS CLIENT
+    -----------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
         local vicuser = dmg.victim.client.netUser
         local vicuserData = self.User[rust.GetUserID(vicuser)]
@@ -215,12 +215,12 @@ function PLUGIN:OnKilled (takedamage, dmg)
                 self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
             end
             return
------------------PVE VS CLIENT
+            -----------------PVE VS CLIENT
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
             self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
         end
     end
--------------------CLIENT VS PVE
+    -------------------CLIENT VS PVE
     local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
@@ -237,7 +237,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
             self:GiveXp( weaponData, netuser, netuserData, xp)
             return end --break out of all loops after finding controller type
     end
--------------------CLIENT VS SLEEPER
+    -------------------CLIENT VS SLEEPER
     --[[
 	if (string.find(takedamage.gameObject.Name, 'MaleSleeper(',1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
 		local actorUser = dmg.attacker.client.netUser
@@ -378,7 +378,7 @@ end
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
 --|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
---------------------CLIENT VS CLIENT
+    --------------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
         if(dmg.victim.client and dmg.attacker.client) then
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
@@ -446,7 +446,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 --SUICIDE ACTION HERE
                 return dmg
             end
-----------------------PVE VS CLIENT
+            ----------------------PVE VS CLIENT
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
             if not dmg.damageTypes then return dmg end
             if (self:GetUserData(dmg.victim.client.netUser)) then
@@ -473,7 +473,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 --STEP 9 PERK PARRY
                 dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)--PERK PARRY
 
-               --GUILD: MODIFIERS
+                --GUILD: MODIFIERS
                 local guild = self:getGuild( vicuser )
                 if (self.debugr == true) then print('Guild found: ' .. tostring( guild )  ) end
                 if ( guild ) then
@@ -489,7 +489,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             end
         end
     end
-----------------------------CLIENT VS PVE
+    ----------------------------CLIENT VS PVE
     local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI' }
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
@@ -531,7 +531,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             return dmg
         end
     end
------------------------CLIENT VS SLEEPER
+    -----------------------CLIENT VS SLEEPER
     if (string.find(tostring(takedamage.gameObject.Name), 'MaleSleeper(',1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
         if(sleepreId ~= nil) then
             --SLEEPER ACTION HERE
@@ -845,18 +845,18 @@ function PLUGIN:cmdStorm(netuser,cmd, args)
         timer.Repeat( 5, 20, function()
             local randomTime = math.random(0,10)
             timer.Once( randomTime, function()
-                --rust.RunServerCommand( 'env.daylength 0.0005')
-                --rust.RunServerCommand( 'env.nightlength 0.005' )
+            --rust.RunServerCommand( 'env.daylength 0.0005')
+            --rust.RunServerCommand( 'env.nightlength 0.005' )
                 local randomFlashCount = math.floor(math.random(0,5.9))
                 local randomInterval = math.random(0.05, 0.05)
                 timer.Repeat(randomInterval, randomFlashCount,
                     function() Rust.EnvironmentControlCenter.Singleton:SetTime(12) timer.Once(0.005, function() Rust.EnvironmentControlCenter.Singleton:SetTime(Time) end)
-                end)
+                    end)
 
                 local randomLength = math.random(0.10,0.25)
                 timer.Once( randomLength, function()
-                    --rust.RunServerCommand( 'env.daylength 45')
-                    --rust.RunServerCommand( 'env.nightlength 15' )
+                --rust.RunServerCommand( 'env.daylength 45')
+                --rust.RunServerCommand( 'env.nightlength 15' )
                     Rust.EnvironmentControlCenter.Singleton:SetTime(Time)
                 end)
             end)
@@ -1393,7 +1393,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         end
         rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
         rust.SendChatToUser(netuser,' ',' ')
-    return end
+        return end
     local action = tostring( args[1] ):lower()
     if ( action == 'create') then
         -- /g create 'Guild Name' 'Guild Tag'
@@ -1713,7 +1713,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             rust.SendChatToUser(netuser,self.sysname,'║ ⌘ list • give • add • edit ')
             rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
-        return end
+            return end
         if( args[2] ) then args[2] = tostring(args[2]):lower() end
         -------------------------------------
         if( args[2] == 'list' ) then                            -- /g rank list | shows list of ranks + abilities
@@ -1731,7 +1731,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
             for i = 8, 1, -.1 do
                 if msg[tostring(i)] then
-            rust.SendChatToUser(netuser,self.sysname,'║ '.. msg[tostring(i)])
+                    rust.SendChatToUser(netuser,self.sysname,'║ '.. msg[tostring(i)])
                 end
             end
             rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
@@ -2309,7 +2309,7 @@ function PLUGIN:OnUserConnect( netuser )
         end
         if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
     end
-    rust.BroadcastChat( self.sysname, netuser.displayName .. ' joins the carbon experience!')
+    rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
 
     -- Reset crafting:
     self.User[ netuserID ].crafting = false
@@ -2703,8 +2703,8 @@ function WordWrap(strText, intMaxLength)
                 end
             end
             if (strBuffer ~= "") then
-            table.insert(tblOutput, strBuffer)
-            strBuffer = ""
+                table.insert(tblOutput, strBuffer)
+                strBuffer = ""
             end
         end
     end
@@ -2723,7 +2723,7 @@ function Explode(strText, strDelimiter)
         end
     end
     if (strTemp ~= "") then
-    table.insert(tblOutput, strTemp)
+        table.insert(tblOutput, strTemp)
     end
     return tblOutput
 end
