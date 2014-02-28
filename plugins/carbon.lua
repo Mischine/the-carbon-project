@@ -2234,7 +2234,7 @@ function PLUGIN:CreateNewStatsFile()
 end
 
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---PLUGIN:OnUserChat | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
+--PLUGIN:OnUserChat |
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnUserChat(netuser, name, msg)
     if ( msg:sub( 1, 1 ) ~= '/' ) then
@@ -2309,7 +2309,7 @@ function PLUGIN:OnUserConnect( netuser )
         end
         if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
     end
-    rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
+    rust.BroadcastChat( self.sysname, netuser.displayName .. ' joins the carbon experience!')
 
     -- Reset crafting:
     self.User[ netuserID ].crafting = false
