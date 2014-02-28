@@ -8,7 +8,7 @@ local GetTakeNoDamage, SetTakeNoDamage = typesystem.GetField( Rust.TakeDamage, "
 local GetEyesOrigin, SetEyesOrigin = typesystem.GetField( Rust.Character, "eyesOrigin", bf.public_instance )
 
 --[[ SPECIAL NOTES
-
+ Mischa fucked up the github.
 --]]
 --||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:Init | http://wiki.rustoxide.com/index.php?title=Hooks/Init
