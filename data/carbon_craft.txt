@@ -931,7 +931,7 @@
         "ct": 5,
         "req": 1,
         "dif": 0,
-        "prof": "Intelligence",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 5
         }

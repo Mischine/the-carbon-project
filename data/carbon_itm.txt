@@ -1,1124 +1,1124 @@
 {
-    "1": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Foundation",
-        "cat": "building"
-    },
-    "2": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Wall",
-        "cat": "building"
-    },
-    "3": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Stairs",
-        "cat": "building"
-    },
-    "4": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Barricade",
-        "cat": "building"
-    },
-    "5": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Gate",
-        "cat": "building"
-    },
-    "6": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Pillar",
-        "cat": "building"
-    },
-    "7": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Window",
-        "cat": "building"
-    },
-    "8": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Door",
-        "cat": "building"
-    },
-    "9": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Spike Wall",
-        "cat": "building"
-    },
-    "10": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Gateway",
-        "cat": "building"
-    },
-    "11": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Ceiling",
-        "cat": "building"
-    },
-    "12": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Doorway",
-        "cat": "building"
-    },
-    "13": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Ramp",
-        "cat": "building"
-    },
-    "15": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Large Spike Wall",
-        "cat": "building"
-    },
-    "16": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Shelter",
-        "cat": "building"
-    },
-    "17": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Foundation",
-        "cat": "adv building"
-    },
-    "18": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Window",
-        "cat": "adv building"
-    },
-    "19": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Ramp",
-        "cat": "adv building"
-    },
-    "20": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Pillar",
-        "cat": "adv building"
-    },
-    "21": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Doorway",
-        "cat": "adv building"
-    },
-    "22": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Window Bars",
-        "cat": "adv building"
-    },
-    "23": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Ceiling",
-        "cat": "adv building"
-    },
-    "24": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Stairs",
-        "cat": "adv building"
-    },
-    "25": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Wall",
-        "cat": "adv building"
-    },
-    "26": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Door",
-        "cat": "adv building"
-    },
-    "27": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Sleeping Bag",
-        "cat": "misc"
-    },
-    "28": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Bed",
-        "cat": "misc"
-    },
-    "29": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Camp Fire",
-        "cat": "misc"
-    },
-    "30": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Workbench",
-        "cat": "misc"
-    },
-    "31": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Furnace",
-        "cat": "misc"
-    },
-    "32": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Small Stash",
-        "cat": "misc"
-    },
-    "33": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Storage Box",
-        "cat": "misc"
-    },
-    "34": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Large Wood Storage",
-        "cat": "misc"
-    },
-    "35": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Stone Hatchet",
-        "cat": "tools"
-    },
-    "36": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Hatchet",
-        "cat": "tools"
-    },
-    "37": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Pick Axe",
-        "cat": "tools"
-    },
-    "38": {
-        "amount": 500,
-        "max": 1000,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 1
-        },
-        "name": "Metal Ore",
-        "cat": "mats"
-    },
-    "39": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Sulfur Ore",
-        "cat": "mats"
-    },
-    "40": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood",
-        "cat": "mats"
-    },
-    "41": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Leather",
-        "cat": "mats"
-    },
-    "42": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Cloth",
-        "cat": "mats"
-    },
-    "43": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Animal Fat",
-        "cat": "mats"
-    },
-    "44": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Metal Fragments",
-        "cat": "mats"
-    },
-    "45": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Low Quality Metal",
-        "cat": "mats"
-    },
-    "46": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Wood Planks",
-        "cat": "mats"
-    },
-    "47": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Low Grade Fuel",
-        "cat": "mats"
-    },
-    "48": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "9mm Ammo",
-        "cat": "ammo"
-    },
-    "49": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "556 Ammo",
-        "cat": "ammo"
-    },
-    "50": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Shotgun Shells",
-        "cat": "ammo"
-    },
-    "51": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Arrow",
-        "cat": "ammo"
-    },
-    "52": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Handmade Shell",
-        "cat": "ammo"
-    },
-    "53": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Torch",
-        "cat": "misc"
-    },
-    "54": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Flare",
-        "cat": "misc"
-    },
-    "55": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Sulfur",
-        "cat": "mats"
-    },
-    "56": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Gunpowder",
-        "cat": "mats"
-    },
-    "57": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Charcoal",
-        "cat": "mats"
-    },
-    "58": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Cooked Chicken Breast",
-        "cat": "food"
-    },
-    "59": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Chocolate Bar",
-        "cat": "food"
-    },
-    "60": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Granola Bar",
-        "cat": "food"
-    },
-    "61": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Small Water Bottle",
-        "cat": "food"
-    },
-    "62": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Can of Beans",
-        "cat": "food"
-    },
-    "63": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Small Rations",
-        "cat": "misc"
-    },
-    "64": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Raw Chicken Breast",
-        "cat": "food"
-    },
-    "65": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Can of Tuna",
-        "cat": "food"
-    },
-    "66": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Hand Cannon",
-        "cat": "weapons"
-    },
-    "67": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Pipe Shotgun",
-        "cat": "weapons"
-    },
-    "68": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Revolver",
-        "cat": "weapons"
-    },
-    "69": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "9mm Pistol",
-        "cat": "weapons"
-    },
-    "70": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "P250",
-        "cat": "weapons"
-    },
-    "71": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Shotgun",
-        "cat": "weapons"
-    },
-    "72": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "MP5A4",
-        "cat": "weapons"
-    },
-    "73": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "M4",
-        "cat": "weapons"
-    },
-    "74": {
-        "amount": 50,
-        "max": 50,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 2
-        },
-        "name": "Bolt Action Rifle",
-        "cat": "weapons"
-    },
-    "75": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "F1 Grenade",
-        "cat": "weapons"
-    },
-    "76": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Explosive Charge",
-        "cat": "weapons"
-    },
-    "77": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Explosives",
-        "cat": "mats"
-    },
-    "79": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Holo sight",
-        "cat": "mods"
-    },
-    "80": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Silencer",
-        "cat": "mods"
-    },
-    "81": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Flashlight Mod",
-        "cat": "mods"
-    },
-    "82": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Laser Sight",
-        "cat": "mods"
-    },
-    "83": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Flashlight Mod",
-        "cat": "mods"
-    },
-    "84": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Cloth Helmet",
-        "cat": "armor"
-    },
-    "85": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Cloth Vest",
-        "cat": "armor"
-    },
-    "86": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Cloth Pants",
-        "cat": "armor"
-    },
-    "87": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Cloth Boots",
-        "cat": "armor"
-    },
-    "88": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 2,
-            "c": 0
-        },
-        "name": "Leather Helmet",
-        "cat": "armor"
-    },
-    "89": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 2,
-            "c": 0
-        },
-        "name": "Leather Vest",
-        "cat": "armor"
-    },
-    "90": {
-        "amount": 5,
-        "max": 100,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 2
-        },
-        "name": "Leather Pants",
-        "cat": "armor"
-    },
-    "91": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 2,
-            "c": 0
-        },
-        "name": "Leather Boots",
-        "cat": "armor"
-    },
-    "92": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Rad Suit Helmet",
-        "cat": "armor"
-    },
-    "93": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Rad Suit Vest",
-        "cat": "armor"
-    },
-    "94": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Rad Suit Pants",
-        "cat": "armor"
-    },
-    "95": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Rad Suit Boots",
-        "cat": "armor"
-    },
-    "96": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Kevlar Helmet",
-        "cat": "armor"
-    },
-    "97": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Kevlar Vest",
-        "cat": "armor"
-    },
-    "98": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Kevlar Pants",
-        "cat": "armor"
-    },
-    "99": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Kevlar Boots",
-        "cat": "armor"
-    },
-    "100": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Paper",
-        "cat": "misc"
-    },
-    "101": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Research Kit 1",
-        "cat": "misc"
-    },
-    "102": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Supply Signal",
-        "cat": "misc"
-    },
-    "103": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Blood Draw Kit",
-        "cat": "misc"
-    },
-    "104": {
-        "amount": 0,
-        "max": 0,
-        "price": {
-            "g": 0,
-            "s": 0,
-            "c": 0
-        },
-        "name": "Anti-Radiation Pills",
-        "cat": "misc"
-    }
+  "1":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Foundation"
+  },
+  "2":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Wall"
+  },
+  "34":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Large Wood Storage"
+  },
+  "44":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Fragments"
+  },
+  "28":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Bed"
+  },
+  "38":{
+    "amount":500,
+    "cat":"mats",
+    "max":1000,
+    "price":{
+      "c":1,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Ore"
+  },
+  "48":{
+    "amount":0,
+    "cat":"ammo",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"9mm Ammo"
+  },
+  "58":{
+    "amount":0,
+    "cat":"food",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Cooked Chicken Breast"
+  },
+  "9":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Spike Wall"
+  },
+  "10":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Gateway"
+  },
+  "7":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Window"
+  },
+  "30":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Workbench"
+  },
+  "40":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood"
+  },
+  "6":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Pillar"
+  },
+  "60":{
+    "amount":0,
+    "cat":"food",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Granola Bar"
+  },
+  "4":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Barricade"
+  },
+  "80":{
+    "amount":0,
+    "cat":"mods",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Silencer"
+  },
+  "90":{
+    "amount":3,
+    "cat":"armor",
+    "max":100,
+    "price":{
+      "c":2,
+      "s":0,
+      "g":0
+    },
+    "name":"Leather Pants"
+  },
+  "68":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Revolver"
+  },
+  "88":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":2,
+      "g":0
+    },
+    "name":"Leather Helmet"
+  },
+  "98":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Kevlar Pants"
+  },
+  "54":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Flare"
+  },
+  "64":{
+    "amount":0,
+    "cat":"food",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Raw Chicken Breast"
+  },
+  "74":{
+    "amount":50,
+    "cat":"weapons",
+    "max":50,
+    "price":{
+      "c":2,
+      "s":0,
+      "g":0
+    },
+    "name":"Bolt Action Rifle"
+  },
+  "84":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Cloth Helmet"
+  },
+  "19":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Ramp"
+  },
+  "35":{
+    "amount":0,
+    "cat":"tools",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Stone Hatchet"
+  },
+  "25":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Wall"
+  },
+  "15":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Large Spike Wall"
+  },
+  "59":{
+    "amount":0,
+    "cat":"food",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Chocolate Bar"
+  },
+  "49":{
+    "amount":0,
+    "cat":"ammo",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"556 Ammo"
+  },
+  "39":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Sulfur Ore"
+  },
+  "29":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Camp Fire"
+  },
+  "31":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Furnace"
+  },
+  "21":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Doorway"
+  },
+  "11":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Ceiling"
+  },
+  "71":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Shotgun"
+  },
+  "61":{
+    "amount":0,
+    "cat":"food",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Small Water Bottle"
+  },
+  "51":{
+    "amount":0,
+    "cat":"ammo",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Arrow"
+  },
+  "41":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Leather"
+  },
+  "91":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":2,
+      "g":0
+    },
+    "name":"Leather Boots"
+  },
+  "81":{
+    "amount":0,
+    "cat":"mods",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Flashlight Mod"
+  },
+  "99":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Kevlar Boots"
+  },
+  "89":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":2,
+      "g":0
+    },
+    "name":"Leather Vest"
+  },
+  "79":{
+    "amount":0,
+    "cat":"mods",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Holo sight"
+  },
+  "95":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Rad Suit Boots"
+  },
+  "85":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Cloth Vest"
+  },
+  "75":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"F1 Grenade"
+  },
+  "65":{
+    "amount":0,
+    "cat":"food",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Can of Tuna"
+  },
+  "55":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Sulfur"
+  },
+  "100":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Paper"
+  },
+  "46":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Planks"
+  },
+  "16":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Shelter"
+  },
+  "26":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Door"
+  },
+  "22":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Window Bars"
+  },
+  "32":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Small Stash"
+  },
+  "12":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Doorway"
+  },
+  "62":{
+    "amount":0,
+    "cat":"food",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Can of Beans"
+  },
+  "72":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"MP5A4"
+  },
+  "42":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Cloth"
+  },
+  "52":{
+    "amount":0,
+    "cat":"ammo",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Handmade Shell"
+  },
+  "82":{
+    "amount":0,
+    "cat":"mods",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Laser Sight"
+  },
+  "103":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Blood Draw Kit"
+  },
+  "17":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Foundation"
+  },
+  "96":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Kevlar Helmet"
+  },
+  "69":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"9mm Pistol"
+  },
+  "76":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Explosive Charge"
+  },
+  "86":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Cloth Pants"
+  },
+  "56":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Gunpowder"
+  },
+  "66":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Hand Cannon"
+  },
+  "23":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Ceiling"
+  },
+  "13":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Ramp"
+  },
+  "43":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Animal Fat"
+  },
+  "33":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Storage Box"
+  },
+  "37":{
+    "amount":0,
+    "cat":"tools",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Pick Axe"
+  },
+  "27":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Sleeping Bag"
+  },
+  "57":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Charcoal"
+  },
+  "47":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Low Grade Fuel"
+  },
+  "45":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Low Quality Metal"
+  },
+  "93":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Rad Suit Vest"
+  },
+  "50":{
+    "amount":0,
+    "cat":"ammo",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Shotgun Shells"
+  },
+  "92":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Rad Suit Helmet"
+  },
+  "94":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Rad Suit Pants"
+  },
+  "102":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Supply Signal"
+  },
+  "3":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Stairs"
+  },
+  "101":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Research Kit 1"
+  },
+  "104":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Anti-Radiation Pills"
+  },
+  "20":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Pillar"
+  },
+  "18":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Window"
+  },
+  "8":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Door"
+  },
+  "24":{
+    "amount":0,
+    "cat":"adv building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Metal Stairs"
+  },
+  "36":{
+    "amount":0,
+    "cat":"tools",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Hatchet"
+  },
+  "5":{
+    "amount":0,
+    "cat":"building",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Wood Gate"
+  },
+  "70":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"P250"
+  },
+  "77":{
+    "amount":0,
+    "cat":"mats",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Explosives"
+  },
+  "67":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Pipe Shotgun"
+  },
+  "97":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Kevlar Vest"
+  },
+  "87":{
+    "amount":0,
+    "cat":"armor",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Cloth Boots"
+  },
+  "63":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Small Rations"
+  },
+  "53":{
+    "amount":0,
+    "cat":"misc",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Torch"
+  },
+  "83":{
+    "amount":0,
+    "cat":"mods",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"Flashlight Mod"
+  },
+  "73":{
+    "amount":0,
+    "cat":"weapons",
+    "max":0,
+    "price":{
+      "c":0,
+      "s":0,
+      "g":0
+    },
+    "name":"M4"
+  }
 }
