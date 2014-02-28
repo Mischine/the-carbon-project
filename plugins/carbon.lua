@@ -1,6 +1,6 @@
-PLUGIN.Title = 'carbon'
+PLUGIN.Title = 'Carbon'
 PLUGIN.Description = 'experience. levels. skills. rewards.'
-PLUGIN.Version = '0.0.8.1437a'
+PLUGIN.Version = '0.0.9.a'
 PLUGIN.Author = 'Mischa & CareX'
 
 -- Get some other functions
