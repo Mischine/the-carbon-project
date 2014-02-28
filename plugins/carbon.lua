@@ -106,7 +106,9 @@ function PLUGIN:Init()
     self:AddChatCommand( 'mail', self.cmdMail )
     self:AddChatCommand( 'alpha', self.AlphaTXT )     -- Alpha welcome text!
     self:AddChatCommand( 'inspect', self.cmdInspect )
+    self:AddChatCommand( 'help', self.cmdHelp )
     -- self:AddChatCommand( 'debug', self.cmdDebug )
+
     -----------------------------------------------------------------------------------
     self:AddChatCommand( 'storm', self.cmdStorm )
     self:AddChatCommand( 'debug', self.cmdDebug )
@@ -438,14 +440,24 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     local vicguild = self:getGuild( vicuser )
                     if (self.debugr == true) then print( 'GUILDS: ' .. netuser.displayName .. ' : ' .. tostring( guild ) .. ' || ' .. vicuser.displayName .. ' : ' .. tostring( vicguild )  ) end
                     if ( guild ) and (vicguild ) then
-                        local isRival = self:isRival( guild, vicguild )
-                        if( isRival ) then
-                            if (self.debugr == true) then print( tostring( guild ) .. ' and ' .. tostring( vicguild ) .. ' are rivals!' ) end
-                            --Att Rally! bonus damage
-                            local dmgmod = self:hasRallyCall( guild )
-                            if( dmgmod ) then
-                                if (self.debugr == true) then print('Before Rally Bonus Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * dmgmod )) end
-                                dmg.amount = dmg.amount * dmgmod
+                        if( guild == vicguild ) then
+                            rust.Notice( netuser, vicuser.displayName .. ' is in your guild!'  )
+                        else
+                            local isRival = self:isRival( guild, vicguild )
+                            if( isRival ) then
+                                if (self.debugr == true) then print( tostring( guild ) .. ' and ' .. tostring( vicguild ) .. ' are rivals!' ) end
+                                --Att Rally! bonus damage
+                                local dmgmod = self:hasRallyCall( guild )
+                                if( dmgmod ) then
+                                    if (self.debugr == true) then print('Before Rally Bonus Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * dmgmod )) end
+                                    dmg.amount = dmg.amount * dmgmod
+                                end
+                                --Vic Stand Your Ground defense bonus
+                                local ddmgmod = self:hasSYGCall( vicguild )
+                                if( ddmgmod ) then
+                                    if (self.debugr == true) then print('Before SYG Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * ddmgmod )) end
+                                    dmg.amount = dmg.amount * ddmgmod
+                                end
                             end
                             --Vic Stand Your Ground defense bonus
                             local ddmgmod = self:hasSYGCall( vicguild )
@@ -2693,4 +2705,83 @@ function Explode(strText, strDelimiter)
         table.insert(tblOutput, strTemp)
     end
     return tblOutput
+end
+    --[[
+  local content = {
+          ['header']='',
+          ['subheader']='',
+          ['msg'] ='',
+          ['list'] = {},
+          ['cmds']={},
+          ['suffix']=''
+        }
+  self:TextBox(netuser,content,cmd,args) return
+     ]]
+function PLUGIN:cmdHelp( netuser, cmd, args)
+    if not args[1] then
+        local content = {
+            ['prefix']='The Carbon Project',
+            ['msg'] ='Welcome to The Carbon Project! \n Carbon RPG is a plugin that allows Rust to be played as a MMORPG.' ..
+                     '\n Carbon RPG has a lot of features. With the /help you\'re able to find some of the info about most of the features. \n' ..
+                     '\nAt the top of each informational screen you will see a pseudo breadcrumb trail intended to ' ..
+                     'help you with cmd navigation by displaying parent command, and the child cmds on the bottom.',
+            ['cmds']={'features','gameplay','professions','guilds','perks','calls','economy','party','events','bosses','donation','authors'},
+            ['suffix']='For more info: www.tempusforge.com'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'features' ) then
+        local content = {
+            ['msg'] ='There are a lot of features included in Carbon RPG, and a lot more to come! \nHere is a list of the current features.',
+            ['list'] = {'- guilds','- perks','- calls','- attributes','- professions','- gun progression','- mail system','- whisper system','- lighting storms','- and loads more!'},
+            ['suffix']='More information about these features are found on: www.tempusforge.com'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'gameplay' ) then
+        local content = {
+            ['msg'] ='Carbon RPG is all about progression! \n Character progression, profession progression, ' ..
+                     'weapon unlocks, crafting unlocks, managing the most vicious, helpfull or economic guild, ' ..
+                     'unlock perks, unlock calls or create a party to hunt bosses! To progress you\'ll need to craft, slay chickens ' ..
+                     'earn money, learn new recipes, slay some more chickens or maybe the occasional rabbit, ' ..
+                     'build a huge castle to protect you from the demons. Wait... what?',
+            ['suffix']='/c to check your progression'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'professions' ) then
+        local content = {
+            ['msg'] ='Professions are used to unlock new crafting recipes! Different items have different profession level requirements.' ..
+                     '\nWhen having a low Carpenter level you\'ll fail a lot trying to craft building components. The higher your Carpenter level ' ..
+                     'the more chance to trigger a critical craft. This will grant you twice the result item and will be instant! ' ..
+                     'Yea we\'re not that evil, are we? \n Here\'s a list of available professions:',
+            ['list'] = {'- Munitions Engineer','- Medic ( Post-Alpha )','- Carpenter','- Armorsmith','- Weaponsmith'},
+            ['suffix']='/c prof to check all your professions statistics'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'guilds' ) then
+        local netuserID = rust.GetUserID( netuser )
+        local req = 'CareX: "Yea dude, to bad you need a level 10 character to start a guild!"'
+        if self.User[ netuserID ].lvl >= 10 then req = 'CareX: "Yea brah, go start your own guild now! Only 25 silver! And reign the solar system with your lightsaber..."' end
+        local content = {
+            ['msg'] ='Guilds? Hell yea! Mischa: "Sooooo... w-w-what can I do... n-n-now we have guilds?" CareX: "Well good sir, you can ' ..
+                     'slay chickens together, make your own guild house, which everyone in the guild can access ofcourse. ' ..
+                     'unlock guild calls and.. " Mischa: "Sir, what are guild calls?" CareX: "This my son, are buffs for your whole guild! ' ..
+                     'Let me quickly explain; So you got your standerd buffs from your perks right?" Mischa: "y-y-eah... I guess so" ' ..
+                     'CareX: "So when we activate our, lets say, Rally call, the whole guild gets a damage buff to rival guild members." ' ..
+                     'Mischa: "n-n-noo way..." ' .. req,
+            ['list'] = {},
+            ['cmds']={},
+            ['suffix']='/g to check all the guild info'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'perks' ) then
+    elseif( args[1] == 'calls' ) then
+    elseif( args[1] == 'economy' ) then
+    elseif( args[1] == 'party' ) then
+    elseif( args[1] == 'events' ) then
+    elseif( args[1] == 'bosses' ) then
+    elseif( args[1] == 'donation' ) then
+    elseif( args[1] == 'authors' ) then
+
+    else
+
+    end
 end
