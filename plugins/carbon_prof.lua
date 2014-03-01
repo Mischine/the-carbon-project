@@ -136,7 +136,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                         rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
                     end)
                 end
-                self:UserSave()
+                char:UserSave()
             end
         end )
         return false

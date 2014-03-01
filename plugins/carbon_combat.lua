@@ -7,37 +7,7 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 
--- PLUGIN:OnProcessDamageEvent
-typesystem.LoadEnum( Rust.DamageTypeFlags, "DamageTypeFlags" )
-local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "damageTypes", nil, System.Int32 )
-local damage_generic = 1
-local damage_bullet = 2
-local damage_melee = 4
-local damage_explosion = 8
-local damage_radiation = 16
-local damage_cold = 32
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    local currentDate = OSdateTime()
-    rust.BroadcastChat(tostring(currentDate))
-    local dmgType = StatusIntGetter( dmg )
-    rust.BroadcastChat(tostring(dmgType))
-    if (dmgType == damage_generic) then
-        rust.BroadcastChat('generic')
-    elseif (dmgType == damage_bullet) then
-        rust.BroadcastChat('bullet')
-    elseif (dmgType == damage_melee) then
-        rust.BroadcastChat('melee')
-    elseif (dmgType == damage_explosion) then
-        rust.BroadcastChat('explosion')
-    elseif (dmgType == damage_radiation) then
-        rust.BroadcastChat('radiation')
-    elseif (dmgType == damage_cold) then
-        rust.BroadcastChat('cold')
-    end
-
-    --rust.BroadcastChat(tostring(dmg.victim.networkView.ViewID.id))
-    --rust.BroadcastChat(tostring(takedamage))
-
     if dmg.extraData then
         weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -62,9 +32,6 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
         end
     end
 end
-
--- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
-typesystem.LoadEnum( Rust.DamageTypeFlags, "DamageType" ) --load DamgeType enum
 function PLUGIN:ModifyDamage (takedamage, dmg)
 
     --------------------CLIENT VS CLIENT
@@ -81,7 +48,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
 
                     if (not netuserData.skills[tostring(dmg.extraData.dataBlock.name)]) then
                         netuserData.skills[tostring(dmg.extraData.dataBlock.name)] = {['name']=tostring(weaponData.name),['xp']=0,['lvl']=0}
-                        self:UserSave()
+                        char:UserSave()
                     end
 
                     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'---------------BEGIN ME VS PVP---------------') end
@@ -205,7 +172,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
 
             if (not netuserData.skills[tostring(dmg.extraData.dataBlock.name)]) then
                 netuserData.skills[weaponData.name] = {['name']=tostring(weaponData.name),['xp']=0,['lvl']=0}
-                self:UserSave()
+                char:UserSave()
             end
             if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'---------------BEGIN ME VS PVE---------------') end
             -- STEP 1 VIC MODIFIER
