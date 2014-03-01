@@ -1,5 +1,5 @@
-PLUGIN.Title = 'carbon_char'
-PLUGIN.Description = 'character module'
+PLUGIN.Title = 'carbon_stats'
+PLUGIN.Description = 'statistics module'
 PLUGIN.Version = '0.0.1'
 PLUGIN.Author = 'mischa / carex'
 

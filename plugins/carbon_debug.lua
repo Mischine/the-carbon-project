@@ -6,7 +6,7 @@ PLUGIN.Author = "Mischa & CareX"
 
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
-    self.debug = {}
+    self.list = {}
 
     self:AddChatCommand( 'debug', self.cmdDebug )
 end
