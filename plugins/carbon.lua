@@ -33,6 +33,7 @@ function PLUGIN:Init()
         print( 'Creating carbon cfg file...' )
         self:SetDefaultConfig()
     end
+
     --LOAD/CREATE RPG DATA FILE
     self.UserFile = util.GetDatafile( 'carbon_usr' )
     local dat_txt = self.UserFile:GetText()
@@ -44,6 +45,7 @@ function PLUGIN:Init()
         self.User = {}
         self:UserSave()
     end
+
     --LOAD/CREATE GUILD DATA FILE
     self.GuildFile = util.GetDatafile( 'carbon_gld' )
     local gld_txt = self.GuildFile:GetText()
@@ -66,6 +68,7 @@ function PLUGIN:Init()
     else
         print( 'carbon_txt file is missing!' )
     end
+
     --LOAD/CREATE TEXT FILE
     self.CraftFile = util.GetDatafile( 'carbon_craft' )
     local craft_txt = self.CraftFile:GetText()
@@ -75,6 +78,7 @@ function PLUGIN:Init()
     else
         print( 'carbon_txt file is missing!' )
     end
+
     --LOAD/CREATE TEXT FILE
     self.StatsFile = util.GetDatafile( 'carbon_stats' )
     local stats_txt = self.StatsFile:GetText()
@@ -107,7 +111,7 @@ function PLUGIN:Init()
     self:AddChatCommand( 'debug', self.cmdDebug )
     self:AddChatCommand( 'dump', self.dump )
     self:AddChatCommand( 'reset', self.SetDefaultConfig )
-    spamNet = {}
+    spamNet = {} --used to prevent spammed messages to a user.
     self.debugr = false
     self.rnd = 0
     timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
