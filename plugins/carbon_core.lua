@@ -7,7 +7,6 @@ local OSdateTime = util.GetStaticPropertyGetter( System.DateTime, 'Now' )
 
 function PLUGIN:Init()
     self:LoadLibrary()
-
     self.ConfigFile = util.GetDatafile( 'carbon_cfg' )
     local cfg_txt = self.ConfigFile:GetText()
     if (cfg_txt ~= '') then
@@ -23,10 +22,9 @@ function PLUGIN:Init()
     self.rnd = 0
     self.Timer = {}
     self.Timer.randomseed = timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
-
-
 end
 function PLUGIN:LoadLibrary()
+    --[[
     call = cs.findplugin("carbon_call")
     combat = cs.findplugin("carbon_combat")
     econ = cs.findplugin("carbon_econ")
@@ -38,6 +36,7 @@ function PLUGIN:LoadLibrary()
     func = cs.findplugin("carbon_func")
     mail = cs.findplugin("carbon_mail")
     debug = cs.findplugin("carbon_debug")
+    --]]
     sandbox = cs.findplugin("carbon_sandbox")
 end
 
@@ -142,10 +141,10 @@ function PLUGIN:OnUserConnect( netuser )
 
     -- Check mail
     local netuserID = rust.GetUserID( netuser )
-    if( not self.User[ netuserID ] ) then return end
-    if ( self.User[ netuserID ].mail ) then
+    if( not char.User[ netuserID ] ) then return end
+    if ( char.User[ netuserID ].mail ) then
         local i = 0
-        for k, v in pairs( self.User[ netuserID ].mail ) do
+        for k, v in pairs( char.User[ netuserID ].mail ) do
             if( not v.read ) then i = i + 1 end
         end
         if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
@@ -153,7 +152,7 @@ function PLUGIN:OnUserConnect( netuser )
     rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
 
     -- Reset crafting:
-    self.User[ netuserID ].crafting = false
+    char.User[ netuserID ].crafting = false
 end
 
 --PLUGIN:OnUserChat
@@ -187,4 +186,3 @@ function PLUGIN:ConfigSave()
     self.ConfigFile:Save()
     self:ConfigUpdate()
 end
-

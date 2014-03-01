@@ -45,14 +45,14 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         if (args[1] == 'xp') then
             local a = netuserData.lvl+1 --level +1
             local ab = netuserData.lvl --level
-            local b = self.Config.settings.lvlmodifier --level modifier
+            local b = core:Config.settings.lvlmodifier --level modifier
             local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
             local d = math.floor(((netuserData.xp/c)*100)+0.5) -- percent currently to next level.
             local e = c-netuserData.xp -- left to go until level
             local f = ((ab*ab)+ab)/b*100-(ab*100) -- amount needed for current level
             local g = math.floor(((netuserData.dp/(f*.5))*100)+0.5) -- percentage of dp
             local h = (f*.5) -- total possible dp
-            if (a == 2) and (self.Config.settings.lvlmodifier >= 2) then f = 0 end
+            if (a == 2) and (core:Config.settings.lvlmodifier >= 2) then f = 0 end
             local content = {
                 ['list']={
                     'Level:                          ' .. tostring(a-1),
@@ -93,7 +93,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             }
             for k,v in pairs(netuserData.skills) do
                 local a = v.lvl+1 --level +1
-                local b = self.Config.settings.weaponlvlmodifier --level modifier
+                local b = core:Config.settings.weaponlvlmodifier --level modifier
                 local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
                 local d = math.floor(((v.xp/c)*100)+0.5) -- percent currently to next level.
                 table.insert( content.list, tostring('   ' .. v.name .. '    •    Level: ' .. v.lvl .. '    •    ' .. 'Exp: ' .. v.xp ))
@@ -120,7 +120,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                 self:TextBox(netuser, content, cmd, args) return
             elseif args[2] == 'untrain' then
                 local content = {
-                    ['msg']='To untrain your attribute points you will have to pay a trainer. WARNING: each time you untrain the cost will increase.\n \nIf you are sure you want to untrain use the pay command.\n \ni.e. /c atr untrain pay\n \nCost: ' .. tonumber(self.Config.settings.untraincost*(1+self.Config.settings.untraincostgrowth)^netuserData.ut),
+                    ['msg']='To untrain your attribute points you will have to pay a trainer. WARNING: each time you untrain the cost will increase.\n \nIf you are sure you want to untrain use the pay command.\n \ni.e. /c atr untrain pay\n \nCost: ' .. tonumber(core:Config.settings.untraincost*(1+core:Config.settings.untraincostgrowth)^netuserData.ut),
                     ['cmds']={'pay'},
                 }
             else
@@ -131,7 +131,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             local skillData = netuserData.skills[args[2]]
             if skillData then
                 local a = skillData.lvl+1 --level +1
-                local b = self.Config.settings.weaponlvlmodifier --level modifier
+                local b = core:Config.settings.weaponlvlmodifier --level modifier
                 local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
                 local d = math.floor(((skillData.xp/c)*100)+0.5) -- percent currently to next level.
                 local e = c-skillData.xp -- left to go until level
@@ -199,7 +199,7 @@ function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
         local glory = self:hasForGlory( guild )
         if( glory ) then gxp = gxp * glory end
         --xp = xp - gxp --if we want to take from the players xp.
-        self.Guild[ guild ].xp = self.Guild[ guild ].xp + gxp
+        guild.Guild[ guild ].xp = guild.Guild[ guild ].xp + gxp
         self:GuildSave()
         rust.InventoryNotice( netuser, '+' .. gxp .. 'gxp' )
     end
@@ -248,27 +248,27 @@ end
 --PLUGIN:PlayerLvl
 function PLUGIN:PlayerLvl(netuser, netuserData, xp)
 
-    local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)
+    local calcLvl = math.floor((math.sqrt(100*((core:Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)
     if (calcLvl ~= netuserData.lvl) then
         netuserData.lvl = calcLvl
         rust.Notice( netuser, 'You are now level ' .. calcLvl .. '!', 5 )
     end
-    local calcAp = math.floor(((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/3)
+    local calcAp = math.floor(((math.sqrt(100*((core:Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/3)
     if (calcAp > netuserData.ap) then
         netuserData.ap = calcAp
-        timer.Once(2, function() rust.SendChatToUser( netuser, self.sysname, 'You have earned an attribute point!') end)
+        timer.Once(2, function() rust.SendChatToUser( netuser, core:sysname, 'You have earned an attribute point!') end)
     end
-    local calcPp = math.floor(((math.sqrt(100*((self.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/6)
+    local calcPp = math.floor(((math.sqrt(100*((core:Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/6)
     if (calcPp > netuserData.pp) then
         netuserData.pp = calcPp
-        timer.Once(3, function() rust.SendChatToUser( netuser, self.sysname, 'You have earned a perk point!') end)
+        timer.Once(3, function() rust.SendChatToUser( netuser, core:sysname, 'You have earned a perk point!') end)
     end
-    rust.SendChatToUser( netuser, self.sysname, tostring(netuserData.ap) .. ' ' .. tostring(netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
+    rust.SendChatToUser( netuser, core:sysname, tostring(netuserData.ap) .. ' ' .. tostring(netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
 end
 
 --PLUGIN:WeaponLvl
 function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
-    local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.name ].xp+xp))+25))+50)/100)
+    local calcLvl = math.floor((math.sqrt(100*((core:Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.name ].xp+xp))+25))+50)/100)
     if (calcLvl ~= netuserData.skills[ weaponData.name ].lvl) then
         netuserData.skills[ weaponData.name ].lvl = calcLvl
         timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
@@ -342,6 +342,39 @@ function PLUGIN:sidexpbar( value )
     end
     msg = msg .. '■'
     return msg
+end
+
+-- PLUGIN:GetUserData
+function PLUGIN:GetUserData( netuser )
+    print(tostring('GetUserData: ' .. tostring(netuser)))
+    local netuserID = rust.GetUserID( netuser )
+    local data = self.User[ netuserID ] -- checks if data exist
+    if (not data ) then -- if not, creates one
+        data = {}
+        data.id = netuserID
+        data.name = netuser.displayName
+        data.lvl = 1
+        data.xp = 0
+        data.pp = 0
+        data.dp = 0
+        data.ap = 0
+        data.dmg = 1
+        data.ut = 0 --the amount of times this user has untrained his/her attributes.
+        data.attributes = {['str']=0,['agi']=0,['sta']=0,['int']=0 }
+        data.buffs = {}
+        data.skills = {}
+        data.perks = {}
+        data.crafting = false
+        data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
+        data.prof = {['Engineer']={['lvl']=1,['xp']=0},
+            ['Medic']={['lvl']=0,['xp']=0},
+            ['Carpenter']={['lvl']=1,['xp']=0},
+            ['Armorsmith']={['lvl']=1,['xp']=0},
+            ['Weaponsmith']={['lvl']=1,['xp']=0}}
+        self.User[ netuserID ] = data
+        self:UserSave()
+    end
+    return data
 end
 
 

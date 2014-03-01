@@ -19,34 +19,34 @@ function PLUGIN:TextBox(netuser, content, cmd, args)
     --if content.cmds then content.cmds = WordWrap(content.cmds, 50) end
     if content.suffix then content.suffix = WordWrap(content.suffix, 50) end
     if content.prefix then
-        rust.SendChatToUser(netuser,self.sysname,' ')
-        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
-        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end
-        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,core.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
+        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     else
-        rust.SendChatToUser(netuser,self.sysname,' ')
-        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,core.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
     end
-    rust.SendChatToUser(netuser,self.sysname,'║ ' .. cmd .. ' > ' .. table.concat(args, ' > '))
-    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+    rust.SendChatToUser(netuser,core.sysname,'║ ' .. cmd .. ' > ' .. table.concat(args, ' > '))
+    rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     if content.header or content.subheader then
-        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end end
-        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end end
-        rust.SendChatToUser(netuser,self.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
+        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+        rust.SendChatToUser(netuser,core.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
     end
-    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end end
-    if content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end end
-    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
-    if content.cmds then rust.SendChatToUser(netuser,self.sysname,'║ ► ' .. table.concat(content.cmds, '     ► ')) else
-        rust.SendChatToUser(netuser,self.sysname,'║ ') end
+    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+    if content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+    rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
+    if content.cmds then rust.SendChatToUser(netuser,core.sysname,'║ ► ' .. table.concat(content.cmds, '     ► ')) else
+        rust.SendChatToUser(netuser,core.sysname,'║ ') end
     if content.suffix then
-        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
-        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end
-        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
-        rust.SendChatToUser(netuser,self.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
+        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,core.sysname,' ')
     else
-        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
-        rust.SendChatToUser(netuser,self.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,core.sysname,' ')
     end
     content = {}
 end
@@ -59,35 +59,35 @@ function PLUGIN:TextBoxError(netuser, content, cmd, args)
     --if content.cmds then content.cmds = WordWrap(content.cmds, 50) end
     if content.suffix then content.suffix = WordWrap(content.suffix, 50) end
     if content.prefix then
-        rust.SendChatToUser(netuser,self.sysname,' ')
-        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
-        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end
-        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+        rust.SendChatToUser(netuser,core.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
+        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     else
-        rust.SendChatToUser(netuser,self.sysname,' ')
-        rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
+        rust.SendChatToUser(netuser,core.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
     end
-    rust.SendChatToUser(netuser,self.sysname,'║ ' .. cmd .. ' > ' .. table.concat(args, ' > ') .. ' > ϟ error')
-    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
+    rust.SendChatToUser(netuser,core.sysname,'║ ' .. cmd .. ' > ' .. table.concat(args, ' > ') .. ' > ϟ error')
+    rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     if content.header or content.subheader then
-        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end end
-        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end end
-        rust.SendChatToUser(netuser,self.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
+        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+        rust.SendChatToUser(netuser,core.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
     end
-    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end
-    elseif content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end
-    else rust.SendChatToUser(netuser,self.sysname,'║ Sacrebleu! Something went wrong.. .') end
-    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
-    if content.cmds then rust.SendChatToUser(netuser,self.sysname,'║ ► ' .. table.concat(content.cmds, '     ► ')) else
-        rust.SendChatToUser(netuser,self.sysname,'║ ') end
+    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+    elseif content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+    else rust.SendChatToUser(netuser,core.sysname,'║ Sacrebleu! Something went wrong.. .') end
+    rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
+    if content.cmds then rust.SendChatToUser(netuser,core.sysname,'║ ► ' .. table.concat(content.cmds, '     ► ')) else
+        rust.SendChatToUser(netuser,core.sysname,'║ ') end
     if content.suffix then
-        rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
-        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,self.sysname,'║ ' .. v) end
-        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
-        rust.SendChatToUser(netuser,self.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
+        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,core.sysname,' ')
     else
-        rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
-        rust.SendChatToUser(netuser,self.sysname,' ')
+        rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
+        rust.SendChatToUser(netuser,core.sysname,' ')
     end
     rust.InventoryNotice(netuser, 'Secrebleu!')
     content = {}
@@ -163,44 +163,13 @@ end
 
 --PLUGIN:findIDByName
 function PLUGIN:findIDByName( name )
-    for k,v in pairs( self.User ) do
+    for k,v in pairs( char.User ) do
         if ( v.name == name ) then return k end
     end
     return false
 end
 
--- PLUGIN:GetUserData
-function PLUGIN:GetUserData( netuser )
-    print(tostring('GetUserData: ' .. tostring(netuser)))
-    local netuserID = rust.GetUserID( netuser )
-    local data = self.User[ netuserID ] -- checks if data exist
-    if (not data ) then -- if not, creates one
-        data = {}
-        data.id = netuserID
-        data.name = netuser.displayName
-        data.lvl = 1
-        data.xp = 0
-        data.pp = 0
-        data.dp = 0
-        data.ap = 0
-        data.dmg = 1
-        data.ut = 0 --the amount of times this user has untrained his/her attributes.
-        data.attributes = {['str']=0,['agi']=0,['sta']=0,['int']=0 }
-        data.buffs = {}
-        data.skills = {}
-        data.perks = {}
-        data.crafting = false
-        data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
-        data.prof = {['Engineer']={['lvl']=1,['xp']=0},
-            ['Medic']={['lvl']=0,['xp']=0},
-            ['Carpenter']={['lvl']=1,['xp']=0},
-            ['Armorsmith']={['lvl']=1,['xp']=0},
-            ['Weaponsmith']={['lvl']=1,['xp']=0}}
-        self.User[ netuserID ] = data
-        self:UserSave()
-    end
-    return data
-end
+
 
 function PLUGIN:xpbar( value, size )
     local msg = ''

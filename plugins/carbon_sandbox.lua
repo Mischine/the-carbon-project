@@ -4,17 +4,22 @@ PLUGIN.Version = '0.0.1'
 PLUGIN.Author = 'Mischa & CareX'
 
 function PLUGIN:Init()
+
     core = cs.findplugin("carbon_core") core:LoadLibrary()
-
+    --[[
     self:AddChatCommand('x', self.x)
-
     self:AddChatCommand( 'alpha', self.AlphaTXT )
-
     self:AddChatCommand( 'help', self.cmdHelp )
-
     self:AddChatCommand( 'storm', self.cmdStorm )
-end
+    --]]
+    self:AddChatCommand( 'test', self.test )
 
+end
+function PLUGIN:test()
+    rust.BroadcastChat(tostring(core:sysname), 'Hai' )
+
+end
+--[[
 --PLUGIN:cmdStorm
 function PLUGIN:cmdStorm(netuser,cmd, args)
     --rust.RunServerCommand( 'env.daylength 45')
@@ -87,7 +92,7 @@ function PLUGIN:cmdHelp( netuser, cmd, args)
     elseif( args[1] == 'guilds' ) then
         local netuserID = rust.GetUserID( netuser )
         local req = 'CareX: "Yea dude, to bad you need a level 10 character to start a guild!"'
-        if self.User[ netuserID ].lvl >= 10 then req = 'CareX: "Yea brah, go start your own guild now! Only 25 silver! And reign the solar system with your lightsaber..."' end
+        if char.User[ netuserID ].lvl >= 10 then req = 'CareX: "Yea brah, go start your own guild now! Only 25 silver! And reign the solar system with your lightsaber..."' end
         local content = {
             ['msg'] ='Guilds? Hell yea! Mischa: "Sooooo... w-w-what can I do... n-n-now we have guilds?" CareX: "Well good sir, you can ' ..
                     'slay chickens together, make your own guild house, which everyone in the guild can access ofcourse. ' ..
@@ -153,3 +158,4 @@ function PLUGIN:AlphaTXT( netuser )
     rust.SendChatToUser(netuser,self.Chat,'╚════════════════════════')
     rust.SendChatToUser(netuser,' ',' ')
 end
+--]]

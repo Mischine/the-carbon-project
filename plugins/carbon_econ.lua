@@ -24,12 +24,12 @@ function PLUGIN:Init()
     self.CfgFile = util.GetDatafile( "carbon_econ_cfg" )
     local cfg_txt = self.CfgFile:GetText()
     if ( cfg_txt ~= "" ) then
-        self.Config = json.decode( cfg_txt )
+        core.Config = json.decode( cfg_txt )
         print( "carbon_cfg file loaded" )
     else
         self:LoadDefaultConfig()
         print( "carbon_cfg file created" )
-        self.CfgFile:SetText( json.encode( self.Config, { indent = true } ) )
+        self.CfgFile:SetText( json.encode( core.Config, { indent = true } ) )
         self.CfgFile:Save()
     end
     -- Gets item File
@@ -49,7 +49,7 @@ function PLUGIN:Init()
     print("Carbon: A total of " .. tostring(count) .. " users has been found.")
 
     -- Sets CurrencySymbol, Chat name
-    self.Chat = self.Config.Chat
+    self.Chat = core.Config.Chat
 
 
     -- Initializing chat commands
@@ -122,7 +122,7 @@ function PLUGIN:OnKilled ( takedamage, dmg )
     local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
     for _, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
-            local npcData = self.Config.Rewards[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
+            local npcData = core.Config.Rewards[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
             local netuser = dmg.attacker.client.netUser
             local data = self:Convert( math.floor( math.random( npcData.min, npcData.max )))
             self:AddBalance( netuser, data.g, data.s, data.c )
@@ -184,8 +184,8 @@ function PLUGIN:Percentage( g, s, c )
     local gg, gs, tg, ts = 0,0,0,0
     local bal = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
 
-    local getbal = math.floor(( bal * ( math.floor( math.random( self.Config.Rewards.PlayerKill.min, self.Config.Rewards.PlayerKill.max )) / 100 )))
-    local take = math.floor((getbal ) + ( bal * ( math.floor( math.random( self.Config.Rewards.OnKilled.min, self.Config.Rewards.OnKilled.max )) / 100 )))
+    local getbal = math.floor(( bal * ( math.floor( math.random( core.Config.Rewards.PlayerKill.min, core.Config.Rewards.PlayerKill.max )) / 100 )))
+    local take = math.floor((getbal ) + ( bal * ( math.floor( math.random( core.Config.Rewards.OnKilled.min, core.Config.Rewards.OnKilled.max )) / 100 )))
     while getbal >= 10000 do
         gg = gg + 1
         getbal = getbal - 10000
@@ -744,23 +744,23 @@ function PLUGIN:cmdSell( netuser, cmd, args)
 end
 
 function PLUGIN:LoadDefaultConfig()
-    self.Config = {}
-    self.Config[ "TransferFee" ] = 5                                            -- Fee that will be deducted when transfering money to friends ( In percent ( $ ))
-    self.Config[ "Chat" ] = "₠"                                                 -- Chat name
-    self.Config[ "Rewards" ] = {}
-    self.Config.Rewards[ "PlayerKill" ] = {['max']=15,['min']=8}                -- Reward for killing a Player ( In percent ( % ))
-    self.Config.Rewards[ "OnKilled" ] = {['max']=10,['min']=6}                  -- Penalty for being killed ( In percent ( % ))
-    self.Config.Rewards[ "ZombieNPC_SLOW" ] = {['max']=25,['min']=18}           -- Reward for killing a ZombieNPC_SLOW
-    self.Config.Rewards[ "ZombieNPC_FAST" ] = {['max']=30,['min']=20}           -- Reward for killing a ZombieNPC_FAST
-    self.Config.Rewards[ "ZombieNPC" ] = {['max']=25,['min']=10}                -- Reward for killing a ZombieNPC
-    self.Config.Rewards[ "MutantBear" ] = {['max']=30,['min']=15}               -- Reward for killing a MutantBear
-    self.Config.Rewards[ "MutantWolf" ] = {['max']=20,['min']=10}               -- Reward for killing a MutantWolf
-    self.Config.Rewards[ "Bear" ] = {['max']=25,['min']=10}                     -- Reward for killing a Bear
-    self.Config.Rewards[ "Wolf" ] = {['max']=20,['min']=8}                      -- Reward for killing a Wolf
-    self.Config.Rewards[ "Stag_A" ] = {['max']=15,['min']=8}                    -- Reward for killing a Stag
-    self.Config.Rewards[ "Boar_A" ] = {['max']=15,['min']=8}                    -- Reward for killing a Boar
-    self.Config.Rewards[ "Chicken" ] = {['max']=15,['min']=8}                   -- Reward for killing a Chicken
-    self.Config.Rewards[ "Rabbit" ] = {['max']=15,['min']=8}                    -- Reward for killing a Rabbit
+    core.Config = {}
+    core.Config[ "TransferFee" ] = 5                                            -- Fee that will be deducted when transfering money to friends ( In percent ( $ ))
+    core.Config[ "Chat" ] = "₠"                                                 -- Chat name
+    core.Config[ "Rewards" ] = {}
+    core.Config.Rewards[ "PlayerKill" ] = {['max']=15,['min']=8}                -- Reward for killing a Player ( In percent ( % ))
+    core.Config.Rewards[ "OnKilled" ] = {['max']=10,['min']=6}                  -- Penalty for being killed ( In percent ( % ))
+    core.Config.Rewards[ "ZombieNPC_SLOW" ] = {['max']=25,['min']=18}           -- Reward for killing a ZombieNPC_SLOW
+    core.Config.Rewards[ "ZombieNPC_FAST" ] = {['max']=30,['min']=20}           -- Reward for killing a ZombieNPC_FAST
+    core.Config.Rewards[ "ZombieNPC" ] = {['max']=25,['min']=10}                -- Reward for killing a ZombieNPC
+    core.Config.Rewards[ "MutantBear" ] = {['max']=30,['min']=15}               -- Reward for killing a MutantBear
+    core.Config.Rewards[ "MutantWolf" ] = {['max']=20,['min']=10}               -- Reward for killing a MutantWolf
+    core.Config.Rewards[ "Bear" ] = {['max']=25,['min']=10}                     -- Reward for killing a Bear
+    core.Config.Rewards[ "Wolf" ] = {['max']=20,['min']=8}                      -- Reward for killing a Wolf
+    core.Config.Rewards[ "Stag_A" ] = {['max']=15,['min']=8}                    -- Reward for killing a Stag
+    core.Config.Rewards[ "Boar_A" ] = {['max']=15,['min']=8}                    -- Reward for killing a Boar
+    core.Config.Rewards[ "Chicken" ] = {['max']=15,['min']=8}                   -- Reward for killing a Chicken
+    core.Config.Rewards[ "Rabbit" ] = {['max']=15,['min']=8}                    -- Reward for killing a Rabbit
 end
 
 function PLUGIN:Save()

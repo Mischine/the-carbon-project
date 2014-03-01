@@ -45,15 +45,15 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
     print( tostring( blueprint.resultItem.name ))
     if( self.craft[ blueprint.resultItem.name ] ) then
         local netuserID = rust.GetUserID( netuser )
-        if self.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
-        self.User[ netuserID ].crafting = true
+        if char.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
+        char.User[ netuserID ].crafting = true
         local data = self.craft[ blueprint.resultItem.name ]
-        if not data then rust.Notice( netuser, 'No data found...' ) self.User[ netuserID ].crafting = false return false end
-        local craftdata = self.User[ netuserID ].prof[ data.prof ]
+        if not data then rust.Notice( netuser, 'No data found...' ) char.User[ netuserID ].crafting = false return false end
+        local craftdata = char.User[ netuserID ].prof[ data.prof ]
         if( not data.prof == 'Intelligence' ) then
-            if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') self.User[ netuserID ].crafting = false return false end
+            if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char.User[ netuserID ].crafting = false return false end
         else
-            if( self.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) self.User[ netuserID ].crafting = false return false end
+            if( char.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) char.User[ netuserID ].crafting = false return false end
         end
 
         -- Crafting:
@@ -101,10 +101,10 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                                 end
                             end
                         end
-                    else rust.Notice(netuser, "Item not found in inventory!") self.User[ netuserID ].crafting = false return false end
+                    else rust.Notice(netuser, "Item not found in inventory!") char.User[ netuserID ].crafting = false return false end
                     if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
                     -- check if they didn't drop the items in the mean time.
-                    if not ( y == v ) then rust.Notice( netuser, 'Dont cheat bro. You just lost your mats.' ) self.User[ netuserID ].crafting = false return false end
+                    if not ( y == v ) then rust.Notice( netuser, 'Dont cheat bro. You just lost your mats.' ) char.User[ netuserID ].crafting = false return false end
                 end
 
                 local item2 = rust.GetDatablockByName( blueprint.resultItem.name )
@@ -116,7 +116,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                     timer.Once( 1, function()
                         inv:AddItemAmount( item2, amount )
                         rust.InventoryNotice( netuser, amount .. 'x ' .. blueprint.resultItem.name )
-                        self.User[ netuserID ].crafting = false
+                        char.User[ netuserID ].crafting = false
                     end)
                 end
                 -- add xp || Random xp is not random... o.O     <-- best smiley evah?
@@ -132,7 +132,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                     end)
                 else
                     timer.Once(3, function()
-                        self.User[ netuserID ].xp = self.User[ netuserID ].xp + xp
+                        char.User[ netuserID ].xp = char.User[ netuserID ].xp + xp
                         rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
                     end)
                 end

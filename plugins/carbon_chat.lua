@@ -14,7 +14,7 @@ end
 --PLUGIN:cmdWhisper
 function PLUGIN:cmdWhisper( netuser, cmd, args )
     -- Syntax check
-    if(( not args[1] ) or ( not args[2] )) then rust.SendChatToUser( netuser, self.sysname, '/w \'name\' message ' ) return end
+    if(( not args[1] ) or ( not args[2] )) then rust.SendChatToUser( netuser, core.sysname, '/w \'name\' message ' ) return end
     -- Player check
     local targname = tostring( args[1] )
     if( netuser.displayName == targname ) then rust.Notice( netuser, 'You cannot whisper to yourself!' ) return end
@@ -39,7 +39,7 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
     end
     -- Checking msg for language
     local tempstring = string.lower( msg )
-    for k, v in ipairs( self.Config.settings.censor.chat ) do
+    for k, v in ipairs( core.Config.settings.censor.chat ) do
         local found = string.find( tempstring, v )
         if ( found ) then
             rust.Notice( netuser, 'Dont swear!' )
