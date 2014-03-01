@@ -7,13 +7,6 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 
---PLUGIN:addcotw
-function PLUGIN:addcotw( netuser, cmd , args )
-    local guild = guild:getGuild( netuser )
-    table.insert( guild.Guild[ guild ].activeperks, 'cotw')
-    rust.SendChatToUser( netuser, 'cotw added' )
-end
-
 --PLUGIN:hasRallyCall
 function PLUGIN:hasRallyCall( guild )
     local Rally = func:containsval( guild.Guild[ guild ].activecalls, 'rally' )

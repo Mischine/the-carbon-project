@@ -182,5 +182,4 @@ end
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
     self.ConfigFile:Save()
-    self:ConfigUpdate()
 end
