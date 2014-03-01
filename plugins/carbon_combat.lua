@@ -6,7 +6,7 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
-
+--[[
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
     if dmg.extraData then
         weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
@@ -266,9 +266,8 @@ function PLUGIN:OnKilled (takedamage, dmg)
         end
 	end
     return
-    --]]
 end
-
+--]]
 --PLUGIN:staModify
 function PLUGIN:staModify(netuserData, vicuserData, npcData, damage)
     if (vicuserData) then
