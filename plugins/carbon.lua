@@ -3,12 +3,7 @@ PLUGIN.Description = 'experience. levels. skills. rewards.'
 PLUGIN.Version = '0.1.1a'
 PLUGIN.Author = 'Mischa & CareX'
 
--- Get some other functions
-local GetTakeNoDamage, SetTakeNoDamage = typesystem.GetField( Rust.TakeDamage, "takenodamage", bf.private_instance )
-local GetEyesOrigin, SetEyesOrigin = typesystem.GetField( Rust.Character, "eyesOrigin", bf.public_instance )
-
 --[[ SPECIAL NOTES
-
 local content = {
   ['prefix']='',
   ['header']='',
@@ -21,11 +16,9 @@ local content = {
 self:TextBox(netuser, content, cmd, args) return
 
 self:TextBoxError(netuser, content, cmd, args) return
-
 --]]
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 -- PLUGIN:Init | http://wiki.rustoxide.com/index.php?title=Hooks/Init
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:Init()
     if( not api.Exists( 'ce' ) ) then print( '[CARBON] Carbon needs carbon-econ to function.' ) return end
 
@@ -123,27 +116,26 @@ function PLUGIN:Init()
     print( 'Carbon Loaded!' )
 end
 
-function PLUGIN:dump( netuser, cmd, args )
-    local msg = s
-    elf:xpbar(tonumber(args[1]))
-    rust.BroadcastChat( msg )
-end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- Loads after all the other plugins are loaded!
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PostInit()
 
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 -- GameUpdate() -- Updates Guildcollectionsystem.
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GameUpdate()
 
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- TURN DEBUG ON OR OFF! DEVELOPERTOOL! DISABLE ON ALPHA!
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN: cmdDebug TURN DEBUG ON OR OFF! DEVELOPERTOOL! DISABLE ON ALPHA!
+function PLUGIN:cmdDebug( netuser, cmd , args )
+    if( self.debugr ) then
+        self.debugr = false
+        rust.SendChatToUser( netuser, self.sysname, 'debug: off' )
+    else
+        self.debugr = true
+        rust.SendChatToUser( netuser, self.sysname, 'debug: on' )
+    end
+end
 --[[
 function PLUGIN:cmdDebug( netuser, cmd , args )
     if( not netuser:CanAdmin()) then rust.Notice( netuser, 'You cannot debug!' ) return end
@@ -170,36 +162,14 @@ end
 
 --]]
 
-function PLUGIN:cmdDebug( netuser, cmd , args )
-    if( self.debugr ) then
-        self.debugr = false
-        rust.SendChatToUser( netuser, self.sysname, 'debug: off' )
-    else
-        self.debugr = true
-        rust.SendChatToUser( netuser, self.sysname, 'debug: on' )
-    end
-end
-
+--PLUGIN:addcotw
 function PLUGIN:addcotw( netuser, cmd , args )
     local guild = self:getGuild( netuser )
     table.insert( self.Guild[ guild ].activeperks, 'cotw')
     rust.SendChatToUser( netuser, 'cotw added' )
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- table.containsval - check if the value is in the table [ table.containtsval( table, value ) ]
--- self:count( counts a table )
--- self:sayTable( lists the values of that table , sep is the seperator, so like , or ; )
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-function table.containsval(t,cv) for _, v in ipairs(t) do  if v == cv then return true  end  end return nil end
-function PLUGIN:count( table ) local i = 0 for k, v in pairs( table ) do i = i + 1 end return i end
-function PLUGIN:sayTable( table, sep ) local msg = '' local count = #table if( count <= 0 ) then return 'N/A' end local i = true
-for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. '.' return msg end
-function table.returnvalues( table ) if( not table ) then return false end local msg = '' for k,v in pairs( table ) do msg = msg .. '[ ' .. v .. ' ]' end return msg end
-
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---TEMPORARY PLUGIN FOR INVISIBILITY GEAR
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-- TEMPORARY PLUGIN FOR INVISIBILITY GEAR
 function PLUGIN:x( netuser, cmd, args )
     local helmet = rust.GetDatablockByName( 'Invisible Helmet' )
     local vest = rust.GetDatablockByName( 'Invisible Vest' )
@@ -212,9 +182,8 @@ function PLUGIN:x( netuser, cmd, args )
     local invitem3 = inv:AddItemAmount( pants, 1, pref )
     local invitem4 = inv:AddItemAmount( boots, 1, pref )
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnKilled (takedamage, dmg)
     -----------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
@@ -267,75 +236,9 @@ function PLUGIN:OnKilled (takedamage, dmg)
     return
     --]]
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- OnProcessDamageEvent()
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---[[
-local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "status", nil, System.Int32 )
-local LifeStatus_IsAlive = 0
-local LifeStatus_IsDead = 2
-local LifeStatus_WasKilled = 1
-local LifeStatus_Failed = -1
-function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    if dmg.extraData then
-        weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
-    end
 
-    dmg = plugins.Call( "ModifyDamage", takedamage, dmg ) or dmg
-    local status = StatusIntGetter( dmg )
-    print( "==========" )
-    print( status )
-    if (status == LifeStatus_WasKilled) then
-        print( "setting health to 0!" )
-        takedamage.health = 0
-        plugins.Call( "OnKilled", takedamage, dmg )
-    elseif (status == LifeStatus_IsAlive) then
-        print( "reducing health!" )
-        print( takedamage.health )
-        if dmg.attacker.client then
-            print( '1' )
-            if dmg.victim.client then local isSamePlayer = (dmg.victim.client == dmg.attacker.client) end
-            print( '2' )
-            if not isSamePlayer then
-                print( '3' )
-                if self:GetUserData(dmg.attacker.client.netUser) then
-                    print( '4' )
-                    local netuser = dmg.attacker.client.netUser
-                    print( '5' )
-                    local netuserData = self.User[rust.GetUserID(netuser)]
-                    print('6' )
-                    print(tostring(weaponData.lvl .. ' / ' .. netuserData.lvl))
-                    if weaponData.lvl > netuserData.lvl then
-                        print('7' )
-                        local netuser = dmg.attacker.client.netUser
-                        local netuserData = self.User[rust.GetUserID(netuser)]
-                        dmg.status = LifeStatus.IsAlive
-                        dmg.amount = 0
-                        if not spamNet[weaponData.name .. netuser.displayName] then
-                            self:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
-                            spamNet[weaponData.name .. netuser.displayName] = true
-                            timer.Once(6, function() spamNet[weaponData.name .. netuser.displayName] = nil end)
-                        end
-                    else
-                        takedamage.health = takedamage.health - dmg.amount
-                        if takedamage.health > 0 then dmg.status = LifeStatus.IsAlive end
-                        plugins.Call( "OnHurt", takedamage, dmg )
-                        return dmg
-                    end
-                end
-            end
-        end
-        self.BroadcastChat(tostring(takedamage.health))
-    end
-end
---]]
-
---typesystem.LoadEnum( Rust.DamageTypeIndex, "DamageTypeIndex" )
---local DamageTypeFlags = cs.gettype( "DamageTypeFlags, Assembly-CSharp-firstpass" )
---typesystem.LoadEnum( DamageTypeFlags, "DamageTypeFlags" )
--- in some damage hook or the other
+-- PLUGIN:OnProcessDamageEvent
 typesystem.LoadEnum( Rust.DamageTypeFlags, "DamageTypeFlags" )
-
 local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "damageTypes", nil, System.Int32 )
 local damage_generic = 1
 local damage_bullet = 2
@@ -362,8 +265,8 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
     end
 
     --rust.BroadcastChat(tostring(dmg.victim.networkView.ViewID.id))
-
     --rust.BroadcastChat(tostring(takedamage))
+
     if dmg.extraData then
         weaponData = self.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
     end
@@ -389,9 +292,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
     end
 end
 
---|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
---|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ModifyDamage (takedamage, dmg)
     --------------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
@@ -573,9 +474,8 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         end
     end
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 --PLUGIN:staModify
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:staModify(netuserData, vicuserData, npcData, damage)
     if (vicuserData) then
         if (vicuserData.attributes.sta>0) then
@@ -591,10 +491,8 @@ function PLUGIN:staModify(netuserData, vicuserData, npcData, damage)
     end
     return damage
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 --PLUGIN:modifyDP
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---Adjust damage per death penalty
 function PLUGIN:modifyDP(netuserData, damage)
     if (netuserData.dp > 0) then
         local dppercentage = netuserData.dp/netuserData.xp
@@ -605,10 +503,7 @@ function PLUGIN:modifyDP(netuserData, damage)
     return damage
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:attrModify
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
 function PLUGIN:attrModify(weaponData, netuserData, vicuserData, damage)
     if weaponData then
         if (weaponData.type == 'm') and (netuserData.attributes.str>0) then
@@ -628,9 +523,8 @@ function PLUGIN:attrModify(weaponData, netuserData, vicuserData, damage)
     return damage
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 --PLUGIN:critCheck
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:critCheck(weaponData, netuser, netuserData, damage)
     if( self.User[ netuserData.id ].buffs[ 'ParryCrit' ]) then
         damage = damage * 2
@@ -656,9 +550,7 @@ function PLUGIN:critCheck(weaponData, netuser, netuserData, damage)
     return damage
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:perkStoneskin
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage)
     if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perks.Stoneskin)) then
         if (vicuserData.perk.Stoneskin.lvl > 0) then
@@ -683,9 +575,7 @@ function PLUGIN:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage
     return damage
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:perkParry
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:perkParry(vicuser, vicuserData, damage)
     if ((vicuser) and (vicuserData.perks.Parry)) then
         if (vicuserData.perks.Parry.lvl > 0) then
@@ -715,9 +605,8 @@ function PLUGIN:perkParry(vicuser, vicuserData, damage)
     end
     return damage
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 --PLUGIN:GiveTimedBuff
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GiveTimedBuff( vicuserID, time, buff )
     if not self.User[ vicuserID ].buffs['ParryCrit'] then
         self.User[ vicuserID ].buffs['ParryCrit']=true
@@ -726,9 +615,8 @@ function PLUGIN:GiveTimedBuff( vicuserID, time, buff )
         end )
     end
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 --PLUGIN:GiveXp
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
 
     local guild = self:getGuild( netuser )
@@ -764,18 +652,14 @@ function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
     self:UserSave()
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getLvl
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getLvl( netuser )
     local netuserID = rust.GetUserID( netuser )
     local lvl = self.User[ netuserID ].lvl
     return lvl
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:GiveDp
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GiveDp(vicuser, vicuserData, dp)
     if ((vicuserData.dp+dp/vicuserData.xp) >= .5) then
         vicuserData.dp = vicuserData.xp*.5
@@ -786,9 +670,8 @@ function PLUGIN:GiveDp(vicuser, vicuserData, dp)
     end
     self:UserSave()
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 --PLUGIN:PlayerLvl
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:PlayerLvl(netuser, netuserData, xp)
 
 
@@ -810,10 +693,7 @@ function PLUGIN:PlayerLvl(netuser, netuserData, xp)
     rust.SendChatToUser( netuser, self.sysname, tostring(netuserData.ap) .. ' ' .. tostring(netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
 end
 
---|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:WeaponLvl
---|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
 function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
     local calcLvl = math.floor((math.sqrt(100*((self.Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.name ].xp+xp))+25))+50)/100)
     if (calcLvl ~= netuserData.skills[ weaponData.name ].lvl) then
@@ -822,9 +702,7 @@ function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SetDpPercent
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SetDpPercent(netuser, percent)
     self:SetDpPercentById(rust.GetUserID( netuser ) ,percent )
     if (percent >= 0 and percent <= 100) then
@@ -832,9 +710,7 @@ function PLUGIN:SetDpPercent(netuser, percent)
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SetDpPercentById
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SetDpPercentById(netuserID, percent)
     if (percent >= 0 and percent <= 100) then
         if (percent == 0) then
@@ -846,9 +722,7 @@ function PLUGIN:SetDpPercentById(netuserID, percent)
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SleeperPos
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SleeperPos(point)
     for key,value in pairs(self.Config.sleepers.pos) do
         if (self:SleeperRadius(value,point,tonumber(self.Config.settings.sleeperradius))) then
@@ -857,19 +731,14 @@ function PLUGIN:SleeperPos(point)
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SleeperRadius
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SleeperRadius(pos, point, rad)
     return (pos.x < point.x + rad and pos.x > point.x - rad)
             and (pos.y < point.y + rad and pos.y > point.y - rad)
             and (pos.z < point.z + rad and pos.z > point.z - rad)
 end
 
-
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdStorm
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdStorm(netuser,cmd, args)
     --rust.RunServerCommand( 'env.daylength 45')
     --rust.RunServerCommand( 'env.nightlength 15' )
@@ -897,16 +766,13 @@ function PLUGIN:cmdStorm(netuser,cmd, args)
         end )
     end
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 -- CARBON POPUP
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:Notice(netuser,prefix,text,duration)
     Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ", text .. '      ', duration or 4.0 )
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- CARBON CHAT COMMANDS
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdCarbon(netuser,cmd,args)
     local netuserID = rust.GetUserID( netuser )
     local netuserData = self.User[netuserID]
@@ -1073,30 +939,8 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
     end
 
 end
---[[
-function PLUGIN:cmdError(netuser, breadcrumbs, cmds, msg)
-    rust.SendChatToUser(netuser,self.sysname,' ')
-    rust.SendChatToUser(netuser,self.sysname,'╔════════════════════════')
-    rust.SendChatToUser(netuser,self.sysname,'║ c > ' .. breadcrumbs .. ' > ϟ error')
-    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
-    if msg then
-        for _,v in ipairs(msg) do
-            rust.SendChatToUser(netuser,self.sysname,'║ ' .. v)
-        end
-    else
-        rust.SendChatToUser(netuser,self.sysname,'║ Invalid command! See the following')
-        rust.SendChatToUser(netuser,self.sysname,'║ commands below for available commands.')
-    end
-    rust.SendChatToUser(netuser,self.sysname,'╟────────────────────────')
-    rust.SendChatToUser(netuser,self.sysname,'║ ⌘  ' .. cmds)
-    rust.SendChatToUser(netuser,self.sysname,'╚════════════════════════')
-    rust.SendChatToUser(netuser,self.sysname,' ')
-    self:Notice(netuser, 'ϟ', 'invalid command', 2)
-end
---]]
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 --PLUGIN:cmdWhisper
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdWhisper( netuser, cmd, args )
     -- Syntax check
     if(( not args[1] ) or ( not args[2] )) then rust.SendChatToUser( netuser, self.sysname, '/w \'name\' message ' ) return end
@@ -1136,9 +980,7 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
     rust.Notice( netuser, 'Message send!' )
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:findIDByName
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:findIDByName( name )
     for k,v in pairs( self.User ) do
         if ( v.name == name ) then return k end
@@ -1146,9 +988,7 @@ function PLUGIN:findIDByName( name )
     return false
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:cmdMail
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdMail( netuser, cmd ,args )
     if( not args[1] ) then                              -- /mail        to check your inbox
         local netuserID = rust.GetUserID( netuser )
@@ -1245,9 +1085,7 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:sendMail
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:sendMail( toplayerID, fromplayername, date, msg, guild )
     local mail = {}
     mail.from = util.QuoteSafe( fromplayername )
@@ -1270,9 +1108,7 @@ function PLUGIN:sendMail( toplayerID, fromplayername, date, msg, guild )
     self:UserSave()
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getGuildTag
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuildTag( netuser )
     local guild = self:getGuild( netuser )
     if ( guild ) then
@@ -1283,9 +1119,7 @@ function PLUGIN:getGuildTag( netuser )
     return false
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:Guilds commands
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:cmdGuilds( netuser, cmd, args )
     if( not args[1] ) then
         rust.SendChatToUser(netuser,' ',' ')
@@ -1804,9 +1638,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:engageWar
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:engageWar( guild, guild2, netuser )
     if( (guild) and (guild2) ) then
         table.insert( self.Guild[ guild ].war, guild2 )
@@ -1818,9 +1650,7 @@ function PLUGIN:engageWar( guild, guild2, netuser )
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:CreateGuild
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:CreateGuild( netuser, name, tag )
     if( self.Guild[ name ] ) then rust.Notice( netuser, 'This guild name is already used.' ) return end
     for k, v in pairs( self.Guild ) do
@@ -1873,7 +1703,6 @@ function PLUGIN:CreateGuild( netuser, name, tag )
             self:GuildSave() end)
     end )
 end
-
 --[[
     entry.vault = {}                                                                                                -- Vault
     entry.vault[ 'money' ][ 'gp' ] = 0                                                                              -- Gold in vault
@@ -1884,9 +1713,7 @@ end
     entry.vault[ 'materials' ] = {}                                                                                 -- Metarials in vault
 ]]--
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:sendTXT
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:sendTXT( netuser, guild, data, help )
     if( not data ) then print( 'Data was not found!' ) rust.Notice( netuser, 'txt file not found! please report this to a GM!' ) return end
 
@@ -1911,17 +1738,13 @@ function PLUGIN:sendTXT( netuser, guild, data, help )
     rust.SendChatToUser(netuser,' ',' ')
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getGuildMembers
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuildMembers( guild )
     local members = self.Guild[ guild ].members
     return members
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:sendGuildMsg
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:sendGuildMsg( guild, name, msg )
     local guilddata = self:getGuildData( guild )
     for k,v in pairs( self.Guild[ guild ].members ) do
@@ -1930,9 +1753,7 @@ function PLUGIN:sendGuildMsg( guild, name, msg )
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:delGuild
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:delGuild( guild )
     -- Delete guild from userdata.
     for k, v in pairs( self.Guild[ guild ].members ) do
@@ -1944,9 +1765,7 @@ function PLUGIN:delGuild( guild )
     self:GuildSave()
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getGuild
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuild( netuser )
     local userID = rust.GetUserID( netuser )
     local guild = false
@@ -1954,18 +1773,14 @@ function PLUGIN:getGuild( netuser )
     return guild
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getGuildData
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuildData( guild )
     local data = self.Guild[ guild ]
     if( not data ) then return false end
     return data
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getGuildLeader
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getGuildLeader( guild )
     local data = self:getGuildData( guild )
     for k ,v in pairs( data.members ) do
@@ -1975,9 +1790,7 @@ function PLUGIN:getGuildLeader( guild )
     end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:hasAbility
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:hasAbility( netuser, guild, ability )
     local rank = self:getRank( netuser, guild )
     local userID = rust.GetUserID( netuser )
@@ -1985,67 +1798,51 @@ function PLUGIN:hasAbility( netuser, guild, ability )
     return val
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:hasRank
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:hasRank( netuser, guild, rank )
     local userID = rust.GetUserID( netuser )
     local grank = self.Guild[ guild ].members[ userID ].rank
     if ( grank == rank ) then return true else return false end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:getRank
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:getRank( netuser, guild )
     local userID = rust.GetUserID( netuser )
     local rank = self.Guild[ guild ].members[ userID ].rank
     return rank
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:isRival
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:isRival( guild1, guild2 )
     local war = table.containsval( self.Guild[ guild1 ].war, guild2)
     return war
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:hasRallyCall
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:hasRallyCall( guild )
     local Rally = table.containsval( self.Guild[ guild ].activecalls, 'rally' )
     if ( Rally ) then Rally = ( self.Config.guild.calls.rally.mod * ( self.Guild[ guild ].glvl - self.Config.guild.calls.rally.requirements.glvl )) return ( Rally + 1 ) else return false end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:hasSYGCall
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:hasSYGCall( guild )
     local syg = table.containsval( self.Guild[ guild ].activecalls, 'syg' )
     if ( syg ) then syg = ( self.Config.guild.calls.rally.mod * ( self.Guild[ guild ].glvl - self.Config.guild.calls.syg.requirements.glvl )) return ( 1 - syg ) else return false end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:hasCOTWCall
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:hasCOTWCall ( guild )
     local cotw = table.containsval( self.Guild[ guild ].activecalls, 'cotw' )
     if ( cotw ) then cotw = ( self.Config.guild.calls.cotw.mod * ( self.Guild[ guild ].glvl - self.Config.guild.calls.cotw.requirements.glvl + 1 )) return ( cotw + 1 ) else return false end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:hasForGloryCall
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:hasForGloryCall ( guild )
     local forglory = table.containsval( self.Guild[ guild ].activecalls, 'forglory' )
     if ( forglory ) then forglory = ( self.Config.guild.calls.forglory.mod * ( self.Guild[ guild ].glvl - self.Config.guild.calls.forglory.requirements.glvl + 1 )) return ( forglory + 1 ) else return false end
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:SetDefaultConfig
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:SetDefaultConfig()
     self.Config = {
         ['npc']={
@@ -2129,9 +1926,7 @@ function PLUGIN:SetDefaultConfig()
     self:ConfigSave()
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:CreateNewStatsFile
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:CreateNewStatsFile()
     self.Stats = {
         ['econ'] = {
@@ -2156,9 +1951,7 @@ function PLUGIN:CreateNewStatsFile()
     }
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
---PLUGIN:OnUserChat |
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+--PLUGIN:OnUserChat
 function PLUGIN:OnUserChat(netuser, name, msg)
     if ( msg:sub( 1, 1 ) ~= '/' ) then
         local tempstring = string.lower( msg )
@@ -2180,6 +1973,7 @@ function PLUGIN:OnUserChat(netuser, name, msg)
     end
 end
 
+--PLUGIN:OnUserChat
 function PLUGIN:AlphaTXT( netuser )
     rust.SendChatToUser(netuser,' ',' ')
     rust.SendChatToUser(netuser,self.Chat,'╔════════════════════════')
@@ -2205,9 +1999,7 @@ function PLUGIN:AlphaTXT( netuser )
     rust.SendChatToUser(netuser,' ',' ')
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:OnUserConnect( netuser )
     print(tostring(netuser.displayName .. ' has connected.'))
     --[[
@@ -2238,9 +2030,7 @@ function PLUGIN:OnUserConnect( netuser )
     self.User[ netuserID ].crafting = false
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- PLUGIN:GetUserData
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GetUserData( netuser )
     print(tostring('GetUserData: ' .. tostring(netuser)))
     local netuserID = rust.GetUserID( netuser )
@@ -2272,9 +2062,8 @@ function PLUGIN:GetUserData( netuser )
     end
     return data
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 -- CONFIG UPDATE AND SAVE
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
     self.ConfigFile:Save()
@@ -2285,9 +2074,8 @@ function PLUGIN:ConfigUpdate()
     local txt = self.ConfigFile:GetText()
     self.Config = json.decode ( txt )
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 -- DATA UPDATE AND SAVE
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:UserSave()
     print('Saving user data.')
     self.UserFile:SetText( json.encode( self.User, { indent = true } ) )
@@ -2300,9 +2088,8 @@ function PLUGIN:UserUpdate()
     local txt = self.UserFile:GetText()
     self.User = json.decode ( txt )
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
 -- GUILD UPDATE AND SAVE
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 function PLUGIN:GuildSave()
     self.GuildFile:SetText( json.encode( self.Guild, { indent = true } ) )
     self.GuildFile:Save()
@@ -2327,6 +2114,8 @@ function PLUGIN:xpbar( value )
     return msg
 end
 --]]
+
+--PLUGIN: XP Bars
 function PLUGIN:medxpbar( value )
     local msg = ''
     for i=1, 20 do
@@ -2362,7 +2151,6 @@ function PLUGIN:minixpbar( value )
     msg = msg .. '▪'
     return msg
 end
-
 function PLUGIN:sidexpbar( value )
     local msg = '■'
     for i=1, 10 do
@@ -2376,9 +2164,7 @@ function PLUGIN:sidexpbar( value )
     return msg
 end
 
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 -- GUILD DOOR ACCESS!
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
 function PLUGIN:CanOpenDoor( netuser, door )
 
@@ -2404,12 +2190,12 @@ function PLUGIN:CanOpenDoor( netuser, door )
     if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. self.User[ ownerID ].name .. '\'s house! ') return true end
 end
 
+--PLUGIN:OnStartCrafting
 local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
     "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
     "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
     "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
-
 function PLUGIN:OnStartCrafting( inv, blueprint, amount )
     local s = tostring( inv )
     local f = "Player"
@@ -2562,9 +2348,78 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
         end
     end
 end
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--- CARBON FRAMEWORK
---||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+--PLUGIN: cmdHelp
+function PLUGIN:cmdHelp( netuser, cmd, args)
+    if not args[1] then
+        local content = {
+            ['prefix']='The Carbon Project',
+            ['msg'] ='Welcome to The Carbon Project! \n Carbon RPG is a plugin that allows Rust to be played as a MMORPG.' ..
+                    '\n Carbon RPG has a lot of features. With the /help you\'re able to find some of the info about most of the features. \n' ..
+                    '\nAt the top of each informational screen you will see a pseudo breadcrumb trail intended to ' ..
+                    'help you with cmd navigation by displaying parent command, and the child cmds on the bottom.',
+            ['cmds']={'features','gameplay','professions','guilds','perks','calls','economy','party','events','bosses','donation','authors'},
+            ['suffix']='For more info: www.tempusforge.com'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'features' ) then
+        local content = {
+            ['msg'] ='There are a lot of features included in Carbon RPG, and a lot more to come! \nHere is a list of the current features.',
+            ['list'] = {'- guilds','- perks','- calls','- attributes','- professions','- gun progression','- mail system','- whisper system','- lighting storms','- and loads more!'},
+            ['suffix']='More information about these features are found on: www.tempusforge.com'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'gameplay' ) then
+        local content = {
+            ['msg'] ='Carbon RPG is all about progression! \n Character progression, profession progression, ' ..
+                    'weapon unlocks, crafting unlocks, managing the most vicious, helpfull or economic guild, ' ..
+                    'unlock perks, unlock calls or create a party to hunt bosses! To progress you\'ll need to craft, slay chickens ' ..
+                    'earn money, learn new recipes, slay some more chickens or maybe the occasional rabbit, ' ..
+                    'build a huge castle to protect you from the demons. Wait... what?',
+            ['suffix']='/c to check your progression'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'professions' ) then
+        local content = {
+            ['msg'] ='Professions are used to unlock new crafting recipes! Different items have different profession level requirements.' ..
+                    '\nWhen having a low Carpenter level you\'ll fail a lot trying to craft building components. The higher your Carpenter level ' ..
+                    'the more chance to trigger a critical craft. This will grant you twice the result item and will be instant! ' ..
+                    'Yea we\'re not that evil, are we? \n Here\'s a list of available professions:',
+            ['list'] = {'- Munitions Engineer','- Medic ( Post-Alpha )','- Carpenter','- Armorsmith','- Weaponsmith'},
+            ['suffix']='/c prof to check all your professions statistics'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'guilds' ) then
+        local netuserID = rust.GetUserID( netuser )
+        local req = 'CareX: "Yea dude, to bad you need a level 10 character to start a guild!"'
+        if self.User[ netuserID ].lvl >= 10 then req = 'CareX: "Yea brah, go start your own guild now! Only 25 silver! And reign the solar system with your lightsaber..."' end
+        local content = {
+            ['msg'] ='Guilds? Hell yea! Mischa: "Sooooo... w-w-what can I do... n-n-now we have guilds?" CareX: "Well good sir, you can ' ..
+                    'slay chickens together, make your own guild house, which everyone in the guild can access ofcourse. ' ..
+                    'unlock guild calls and.. " Mischa: "Sir, what are guild calls?" CareX: "This my son, are buffs for your whole guild! ' ..
+                    'Let me quickly explain; So you got your standerd buffs from your perks right?" Mischa: "y-y-eah... I guess so" ' ..
+                    'CareX: "So when we activate our, lets say, Rally call, the whole guild gets a damage buff to rival guild members." ' ..
+                    'Mischa: "n-n-noo way..." ' .. req,
+            ['list'] = {},
+            ['cmds']={},
+            ['suffix']='/g to check all the guild info'
+        }
+        self:TextBox(netuser,content,cmd,args) return
+    elseif( args[1] == 'perks' ) then
+    elseif( args[1] == 'calls' ) then
+    elseif( args[1] == 'economy' ) then
+    elseif( args[1] == 'party' ) then
+    elseif( args[1] == 'events' ) then
+    elseif( args[1] == 'bosses' ) then
+    elseif( args[1] == 'donation' ) then
+    elseif( args[1] == 'authors' ) then
+
+    else
+
+    end
+end
+
+--Util
 --------------------------------------------------------------------------------------------------
 function PLUGIN:TextBox(netuser, content, cmd, args)
     if content.prefix then content.prefix = WordWrap(content.prefix, 50) end
@@ -2648,9 +2503,7 @@ function PLUGIN:TextBoxError(netuser, content, cmd, args)
     rust.InventoryNotice(netuser, 'Secrebleu!')
     content = {}
 end
-
-
-
+--WordWrap(str, int)
 function WordWrap(strText, intMaxLength)
     local tblOutput = {}
     local intIndex
@@ -2689,7 +2542,6 @@ function WordWrap(strText, intMaxLength)
     end
     return tblOutput
 end
-
 function Explode(strText, strDelimiter)
     local strTemp = ""
     local tblOutput = {}
@@ -2706,82 +2558,12 @@ function Explode(strText, strDelimiter)
     end
     return tblOutput
 end
-    --[[
-  local content = {
-          ['header']='',
-          ['subheader']='',
-          ['msg'] ='',
-          ['list'] = {},
-          ['cmds']={},
-          ['suffix']=''
-        }
-  self:TextBox(netuser,content,cmd,args) return
-     ]]
-function PLUGIN:cmdHelp( netuser, cmd, args)
-    if not args[1] then
-        local content = {
-            ['prefix']='The Carbon Project',
-            ['msg'] ='Welcome to The Carbon Project! \n Carbon RPG is a plugin that allows Rust to be played as a MMORPG.' ..
-                     '\n Carbon RPG has a lot of features. With the /help you\'re able to find some of the info about most of the features. \n' ..
-                     '\nAt the top of each informational screen you will see a pseudo breadcrumb trail intended to ' ..
-                     'help you with cmd navigation by displaying parent command, and the child cmds on the bottom.',
-            ['cmds']={'features','gameplay','professions','guilds','perks','calls','economy','party','events','bosses','donation','authors'},
-            ['suffix']='For more info: www.tempusforge.com'
-        }
-        self:TextBox(netuser,content,cmd,args) return
-    elseif( args[1] == 'features' ) then
-        local content = {
-            ['msg'] ='There are a lot of features included in Carbon RPG, and a lot more to come! \nHere is a list of the current features.',
-            ['list'] = {'- guilds','- perks','- calls','- attributes','- professions','- gun progression','- mail system','- whisper system','- lighting storms','- and loads more!'},
-            ['suffix']='More information about these features are found on: www.tempusforge.com'
-        }
-        self:TextBox(netuser,content,cmd,args) return
-    elseif( args[1] == 'gameplay' ) then
-        local content = {
-            ['msg'] ='Carbon RPG is all about progression! \n Character progression, profession progression, ' ..
-                     'weapon unlocks, crafting unlocks, managing the most vicious, helpfull or economic guild, ' ..
-                     'unlock perks, unlock calls or create a party to hunt bosses! To progress you\'ll need to craft, slay chickens ' ..
-                     'earn money, learn new recipes, slay some more chickens or maybe the occasional rabbit, ' ..
-                     'build a huge castle to protect you from the demons. Wait... what?',
-            ['suffix']='/c to check your progression'
-        }
-        self:TextBox(netuser,content,cmd,args) return
-    elseif( args[1] == 'professions' ) then
-        local content = {
-            ['msg'] ='Professions are used to unlock new crafting recipes! Different items have different profession level requirements.' ..
-                     '\nWhen having a low Carpenter level you\'ll fail a lot trying to craft building components. The higher your Carpenter level ' ..
-                     'the more chance to trigger a critical craft. This will grant you twice the result item and will be instant! ' ..
-                     'Yea we\'re not that evil, are we? \n Here\'s a list of available professions:',
-            ['list'] = {'- Munitions Engineer','- Medic ( Post-Alpha )','- Carpenter','- Armorsmith','- Weaponsmith'},
-            ['suffix']='/c prof to check all your professions statistics'
-        }
-        self:TextBox(netuser,content,cmd,args) return
-    elseif( args[1] == 'guilds' ) then
-        local netuserID = rust.GetUserID( netuser )
-        local req = 'CareX: "Yea dude, to bad you need a level 10 character to start a guild!"'
-        if self.User[ netuserID ].lvl >= 10 then req = 'CareX: "Yea brah, go start your own guild now! Only 25 silver! And reign the solar system with your lightsaber..."' end
-        local content = {
-            ['msg'] ='Guilds? Hell yea! Mischa: "Sooooo... w-w-what can I do... n-n-now we have guilds?" CareX: "Well good sir, you can ' ..
-                     'slay chickens together, make your own guild house, which everyone in the guild can access ofcourse. ' ..
-                     'unlock guild calls and.. " Mischa: "Sir, what are guild calls?" CareX: "This my son, are buffs for your whole guild! ' ..
-                     'Let me quickly explain; So you got your standerd buffs from your perks right?" Mischa: "y-y-eah... I guess so" ' ..
-                     'CareX: "So when we activate our, lets say, Rally call, the whole guild gets a damage buff to rival guild members." ' ..
-                     'Mischa: "n-n-noo way..." ' .. req,
-            ['list'] = {},
-            ['cmds']={},
-            ['suffix']='/g to check all the guild info'
-        }
-        self:TextBox(netuser,content,cmd,args) return
-    elseif( args[1] == 'perks' ) then
-    elseif( args[1] == 'calls' ) then
-    elseif( args[1] == 'economy' ) then
-    elseif( args[1] == 'party' ) then
-    elseif( args[1] == 'events' ) then
-    elseif( args[1] == 'bosses' ) then
-    elseif( args[1] == 'donation' ) then
-    elseif( args[1] == 'authors' ) then
+-- table.containsval - check if the value is in the table [ table.containtsval( table, value ) ]
+function table.containsval(t,cv) for _, v in ipairs(t) do  if v == cv then return true  end  end return nil end
+-- self:count( counts a table )
+function PLUGIN:count( table ) local i = 0 for k, v in pairs( table ) do i = i + 1 end return i end
+-- self:sayTable( lists the values of that table , sep is the seperator, so like , or ; )
+function PLUGIN:sayTable( table, sep ) local msg = '' local count = #table if( count <= 0 ) then return 'N/A' end local i = true
 
-    else
-
-    end
-end
+for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. '.' return msg end
+function table.returnvalues( table ) if( not table ) then return false end local msg = '' for k,v in pairs( table ) do msg = msg .. '[ ' .. v .. ' ]' end return msg end
