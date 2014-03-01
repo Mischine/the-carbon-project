@@ -20,12 +20,14 @@ function PLUGIN:Init()
     end
 
     self:AddChatCommand( 'g', self.cmdGuilds )
+    self:AddChatCommand( 'gc', self.cmdGuildChat )
 
 end
 
 --PLUGIN:Guilds commands
 function PLUGIN:cmdGuilds( netuser, cmd, args )
     if( not args[1] ) then
+        local guild = self:getGuild( netuser )
         rust.SendChatToUser(netuser,' ',' ')
         rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
         rust.SendChatToUser(netuser,core.sysname,'║ guild > ')
@@ -455,7 +457,12 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
             if( not self:hasAbility( netuser, guild, 'canrank' ) ) then rust.Notice(netuser, 'You\'re not permitted to edit ranks.' ) return end
             if( not args[3] and not args[4] and not args[5] ) then
-                self:sendTXT( netuser, guild, self.txt.guild.rankinfo )
+
+                local content = {
+                    ['msg'] ='Ranks can be configured however you want! \n To configure a rank: /g rank edit "rankname" [ID] true/false',
+                    ['list'] ={'[1] candelete : Is able to delete the guild.','[2] caninvite : Is able to invite new players to the guild.','[3] cankick   : Is able to kick guildmembers.','[4] canvault  : Coming soon!','[5] canwar    : Is able to start wars with other guilds.','[6] canrank   : Is able to give/add/edit ranks.',}
+                }
+                func:TextBox(netuser,content,cmd,args)
             elseif( args[3] and args[4] and args[5] ) then
                 if ( args[3] == "Assasin" ) then rust.Notice( netuser, 'You cannot edit rank Assasin!' ) return end
                 if ( not self.Guild[guild].ranks[tostring(args[3])] ) then rust.Notice( netuser, 'Rank: ' .. tostring(args[3]).. ' doesn\'t exist!' ) return end
@@ -480,7 +487,11 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                     end
                     self:GuildSave()
                 else
-                    self:sendTXT( netuser, guild, self.txt.guild.rankinfo )
+                    local content = {
+                        ['msg'] ='Ranks can be configured however you want! \n To configure a rank: /g rank edit "rankname" [ID] true/false',
+                        ['list'] ={'[1] candelete : Is able to delete the guild.','[2] caninvite : Is able to invite new players to the guild.','[3] cankick   : Is able to kick guildmembers.','[4] canvault  : Coming soon!','[5] canwar    : Is able to start wars with other guilds.','[6] canrank   : Is able to give/add/edit ranks.',}
+                    }
+                    func:TextBox(netuser,content,cmd,args)
                 end
             else
                 rust.SendChatToUser( netuser, '/g rank edit "rankname" [ID] true/false || /g rank ;For more information')
@@ -503,37 +514,96 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         local guild = self:getGuild( netuser )
         if( not guild ) then guild = core.sysname end
         if not args[2] then
-            self:sendTXT( netuser, guild, self.txt.guild.help )
+            local content = {
+                ['msg'] ='Learn more about guilds in Carbon!',
+                ['cmds'] ={'create','delete','info','stats','invite','kick','war','rank','rank','ability','vault','calls','collection','assassin'}
+            }
+            func:TextBox(netuser,content,cmd,args)
             return
         end
+
+        --[[
+        local content = {
+            ['header'] ='',
+            ['msg'] ='',
+            ['cmds'] ={'',}
+        }
+        func:TextBox(netuser,content,cmd,args)
+         ]]
+
         local action2 = tostring(args[2]:lower())
         if( action2 == 'create' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.create, 'create' )
+            local content = {
+                ['header'] ='Syntax: /g create "guildname" "TAG"',
+                ['msg'] ='Create a guild by typing /g create "GuildName" "TAG". \n There are disabled tags. There is a fee to creating a guild. To create a guild it will cost you 25 silver and you must be atleast level 10.',
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'delete' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.delete, 'delete' )
+            local content = {
+            ['header'] ='It is required to have the ability: "candelete"',
+            ['msg'] ='The leader is the only person who can dissemble a guild. \n This is adjustable by editing rank permissions. We do not recommend changing this setting!',
+        }
+        func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'info' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.info, 'info' )
+            local content = {
+                ['header'] ='',
+                ['msg'] ='/g info displays information about a guild. \n Information regarding guildname, guild tag, guild level, current guild xp, number of members, the collection interval/amount, available calls, active calls, and the tags of enemey guilds.',
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'stats' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.stats, 'stats' )
+            local content = {
+                ['msg'] ='/g stats displays statistical information about a guild. \n Information regarding player with the most contributed xp and money, ...',
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'invite' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.invite, 'invite' )
+            local content = {
+            ['header'] ='It is required to have the ability: caninvite',
+            ['msg'] ='/g invite "PlayerName" to initiate someone into your guild. /n The person to be initiated must be online and name correctly spelled and the initiated person will recieve a join message and they can choose to accept. However, the initiated person can deny the invitation to the guild. The initiated member will need to type /g accept. The entire guild will be notified! The guild should welcome the new member and guide him throughout.',
+        }
+        func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'kick' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.kick, 'kick' )
+            local content = {
+                ['header'] ='It is required to have the ability: cankick',
+                ['msg'] ='/g kick "PlayerName" to remove a player from your guild entirely. \n If someone is about to be kicked, the target user does not have to be online and will recieve mail regarding their status being removed from the guild. Due to limitations, reasons for status being remove is not available You can always send them a message using the mail system or /w when they are online.',
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'war' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.war, 'war' )
+            local content = {
+                ['header'] ='It is required to have the ability: canwar',
+                ['msg'] ='/g war "GuildTag" signals a war with another guild of your choice. \n When a guild is in war then all the guild calls will be activated. Guild calls will only work on the enemy guilds.',
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'rank' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.rank, 'rank' )
+            local content = {
+            ['header'] ='It is required to have the ability: canrank',
+            ['msg'] ='Ranks in guilds are mainly to assign permissions and figurative status. There are 6 default ranks: Leader, Co-Leader, Quartermaster, War-Leader, Assassin ( coming soon! ) and member. Quartermasters are able to add/take from the guildvault also they are able to edit the rate and collection amount.'
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'ability' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.ability, 'ability' )
+            local content = {
+                ['msg'] ='Abilities are required for certain actions. These abilities are given per rank. For example, a member of a guild must have the \"caninvite\" to invite other players to the guild. Guild members with the ability \"canrank\" can edit these ranks and add new ranks as well.'
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'vault' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.vault, 'vault' )
+            local content = {
+                ['msg'] ='COMING SOON!'
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'calls' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.calls, 'calls' )
+            local content = {
+                ['msg'] ='COMING SOON!'
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'collection' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.collection, 'collection' )
+            local content = {
+                ['msg'] ='COMING SOON!'
+            }
+            func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'assassin' ) then
-            self:sendTXT( netuser, guild, self.txt.guild.assassin, 'assassin' )
-        elseif( action2 == '' ) then
+            local content = {
+                ['msg'] ='COMING SOON!'
+            }
+            func:TextBox(netuser,content,cmd,args)
         else
             rust.SendChatToUser( netuser, core.sysname, 'Please type /g create | delete | info | stats | invite | kick | war | rank | vault' )
         end
@@ -634,12 +704,32 @@ function PLUGIN:getGuildMembers( guild )
     return members
 end
 
+function PLUGIN:cmdGuildChat( netuser, cmd, args )
+    local guild = self:getGuild( netuser )
+    if not guild then rust.Notice( netuser, 'you\'re not in a guild!' ) return end
+    local i = 1
+    local msg = ''
+    while ( i <= #args ) do
+        msg = msg .. ' ' .. args[i]
+        i = i + 1
+    end
+    local tempstring = string.lower( msg )
+    for k, v in ipairs( core.Config.settings.censor.chat ) do
+        local found = string.find( tempstring, v )
+        if ( found ) then
+            rust.Notice( netuser, 'Dont swear!' )
+            return
+        end
+    end
+    self:sendGuildMsg(guild, netuser.displayName, msg )
+end
+
 --PLUGIN:sendGuildMsg
 function PLUGIN:sendGuildMsg( guild, name, msg )
     local guilddata = self:getGuildData( guild )
     for k,v in pairs( self.Guild[ guild ].members ) do
         local b, targuser = rust.FindNetUsersByName( v.name )
-        if( b ) then rust.SendChatToUser( targuser, guilddata.tag .. ' ' ..v.name, msg ) end
+        if( b ) then rust.SendChatToUser( targuser, v.name .. '  [G]' , msg ) end
     end
 end
 

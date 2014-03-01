@@ -159,18 +159,16 @@ end
 function PLUGIN:OnUserChat(netuser, name, msg)
     if ( msg:sub( 1, 1 ) ~= '/' ) then
         local tempstring = string.lower( msg )
-        for k, v in ipairs( self.Config.settings.censor.chat ) do
+        for _, v in ipairs( self.Config.settings.censor.chat ) do
             local found = string.find( tempstring, v )
             if ( found ) then
                 rust.Notice( netuser, 'Dont swear!' )
                 return false
             end
         end
-        local userID = rust.GetUserID( netuser )
-        local guild = guild:getGuild( netuser )
-        if( guild ) then
-            local data = guild:getGuildData( guild )
-            name = data.tag .. ' ' .. name
+        local tag = guild:getGuildTag( netuser )
+        if tag then
+            name = tag .. ' ' .. name
             rust.BroadcastChat( name, msg )
             return false
         end
