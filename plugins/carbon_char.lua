@@ -4,7 +4,7 @@ PLUGIN.Version = '0.0.1'
 PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
-    core = cs.findplugin("carbon_core") core.LoadLibrary()
+    core = cs.findplugin("carbon_core") core:LoadLibrary()
 
     --LOAD/CREATE CHAR FILE
     self.UserFile = util.GetDatafile( 'carbon_char' )
@@ -45,7 +45,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         if (args[1] == 'xp') then
             local a = netuserData.lvl+1 --level +1
             local ab = netuserData.lvl --level
-            local b = core.Config.settings.lvlmodifier --level modifier
+            local b = core.Config.settings.lvlmodifier
             local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
             local d = math.floor(((netuserData.xp/c)*100)+0.5) -- percent currently to next level.
             local e = c-netuserData.xp -- left to go until level
