@@ -42,7 +42,6 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
     end
     local inv = rust.GetInventory( netuser )
     if not inv then rust.Notice('Inventory not found, report to a GM. Unable to craft.') return false end
-    print( tostring( blueprint.resultItem.name ))
     if( self.craft[ blueprint.resultItem.name ] ) then
         local netuserID = rust.GetUserID( netuser )
         if char.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
@@ -50,7 +49,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         local data = self.craft[ blueprint.resultItem.name ]
         if not data then rust.Notice( netuser, 'No data found...' ) char.User[ netuserID ].crafting = false return false end
         local craftdata = char.User[ netuserID ].prof[ data.prof ]
-        if( not data.prof == 'Intelligence' ) then
+        if( data.prof ~= 'Intelligence' ) then
             if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char.User[ netuserID ].crafting = false return false end
         else
             if( char.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) char.User[ netuserID ].crafting = false return false end
@@ -59,20 +58,19 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         -- Crafting:
         -- check for crit
         -- check for failed
-
         local Time = data.ct * amount
         -- If crit, then Time becomes = 0. This means instant craft.
         if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
         local i = Time
-        timer.Repeat( 1, Time, function()
-            print( 'timer' )
+        if Time == 0 then Time = 1 end
+        timer.Repeat(1, Time , function()
             if Time > 0 then rust.InventoryNotice( netuser, tostring(i) ) end
             i = i - 1
             if( i <= 0 ) then
                 -- del mats
                 for k,v in pairs( data.mats ) do
-                    if failed then v = v/2 end
-                    print ( k )
+                    if failed then v = (v*amouunt) / 2 end
+                    v = v * amount
                     local datablock = rust.GetDatablockByName( k )
                     local isUnstackable = func:containsval(unstackable, k )
                     local y = 0
@@ -101,10 +99,8 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                                 end
                             end
                         end
-                    else rust.Notice(netuser, "Item not found in inventory!") char.User[ netuserID ].crafting = false return false end
+                    else rust.Notice(netuser, "Dont cheat bro. You just lost your mats.") char.User[ netuserID ].crafting = false return false end
                     if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
-                    -- check if they didn't drop the items in the mean time.
-                    if not ( y == v ) then rust.Notice( netuser, 'Dont cheat bro. You just lost your mats.' ) char.User[ netuserID ].crafting = false return false end
                 end
 
                 local item2 = rust.GetDatablockByName( blueprint.resultItem.name )
@@ -122,8 +118,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                 -- add xp || Random xp is not random... o.O     <-- best smiley evah?
                 --                                      ___     <-- best smiley evah?
                 local xp = math.floor(( math.random( data.xp.min, data.xp.max ))*amount)
-                if failed then xp = xp / 2 end
-                if failed then rust.Notice( netuser, 'Crafting failure!' ) end
+                if failed then xp = xp / 2 rust.Notice( netuser, 'Crafting failure!' ) end
                 -- self:AddCraftXP( netuser, prof, xp )
                 if( not data.prof == 'Intelligence' ) then
                     timer.Once(3, function()
@@ -146,6 +141,8 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         return false
     end
 end
+
+
 -- inspect items. Crafting and maybe Economy.
 function PLUGIN:cmdInspect( netuser, cmd, args )
     if not args[1] then

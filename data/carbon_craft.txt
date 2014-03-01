@@ -7,7 +7,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Cloth": 5
         }
@@ -20,7 +20,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Cloth": 10
         }
@@ -33,7 +33,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Cloth": 8
         }
@@ -46,7 +46,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Cloth": 3
         }
@@ -59,7 +59,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 5,
             "Leather": 3
@@ -73,7 +73,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 6,
             "Leather": 6
@@ -87,7 +87,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 4,
             "Leather": 4
@@ -101,7 +101,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 4,
             "Leather": 3
@@ -115,7 +115,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Leather": 7
         }
@@ -128,7 +128,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Leather": 15
         }
@@ -141,7 +141,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Leather": 12
         }
@@ -154,7 +154,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Leather": 4
         }
@@ -167,7 +167,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Stones": 5,
             "Wood": 10
@@ -181,7 +181,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Metal Fragments": 20,
             "Wood": 10
@@ -195,7 +195,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Metal Fragments": 10,
             "Wood": 40
@@ -209,7 +209,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 60,
             "Cloth": 10,
@@ -224,7 +224,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 10
         }
@@ -237,7 +237,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 12
         }
@@ -250,7 +250,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 20
         }
@@ -263,7 +263,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 30
         }
@@ -276,7 +276,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             " Low Quality Metal": 10
         }
@@ -289,7 +289,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 20,
             "Metal Fragments": 20
@@ -303,7 +303,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 50,
             "Metal Fragments": 50
@@ -317,7 +317,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 35,
             "Cloth": 5
@@ -331,7 +331,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 30,
             "Wood": 50,
@@ -346,7 +346,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Explosives": 15,
             "Flare": 1,
@@ -361,7 +361,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Gunpowder": 80,
             "Metal Fragments": 40
@@ -375,7 +375,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Gunpowder": 5,
             "Stones": 1
@@ -389,7 +389,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Gunpowder": 3,
             "Metal Fragments": 1
@@ -403,7 +403,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Gunpowder": 5,
             "Metal Fragments": 1
@@ -417,7 +417,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Gunpowder": 5,
             "Metal Fragments": 2
@@ -431,7 +431,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Stones": 1,
             "Wood": 4
@@ -445,7 +445,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 5
         }
@@ -458,7 +458,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 5
         }
@@ -471,7 +471,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 5
         }
@@ -484,7 +484,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 5
         }
@@ -497,7 +497,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Cloth": 2
         }
@@ -510,7 +510,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "cloth": 2,
             "Blood Bag": 1
@@ -524,7 +524,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "cloth": 3,
             "Blood Bag": 3
@@ -538,7 +538,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 50
         }
@@ -551,7 +551,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 8
         }
@@ -564,7 +564,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 2
         }
@@ -577,7 +577,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 4
         }
@@ -590,7 +590,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 4
         }
@@ -603,7 +603,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 4
         }
@@ -616,7 +616,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 5
         }
@@ -629,7 +629,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 5
         }
@@ -642,7 +642,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 6
         }
@@ -655,7 +655,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 30
         }
@@ -668,7 +668,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 400
         }
@@ -681,7 +681,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood Planks": 120
         }
@@ -694,7 +694,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 8
         }
@@ -707,7 +707,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 2
         }
@@ -720,7 +720,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 4
         }
@@ -733,7 +733,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 4
         }
@@ -746,7 +746,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 4
         }
@@ -759,7 +759,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 5
         }
@@ -772,7 +772,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 5
         }
@@ -785,7 +785,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Low Quality Metal": 6
         }
@@ -798,7 +798,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Metal Fragments": 200
         }
@@ -811,7 +811,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 30
         }
@@ -824,7 +824,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 100
         }
@@ -837,7 +837,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 200
         }
@@ -850,7 +850,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 30
         }
@@ -863,7 +863,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 60
         }
@@ -876,7 +876,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Metal Fragments": 100
         }
@@ -889,7 +889,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Leather": 10
         }
@@ -902,7 +902,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Stones": 15,
             "Wood": 20,
@@ -914,13 +914,13 @@
             "min": 0,
             "max": 0
         },
-        "ct": 0,
+        "ct": 10,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Stones": 8,
-            "wood": 50
+            "Wood": 50
         }
     },
     "Camp Fire": {
@@ -928,12 +928,12 @@
             "min": 0,
             "max": 0
         },
-        "ct": 0,
+        "ct": 5,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
-            "wood": 5
+            "Wood": 5
         }
     },
     "Sleeping Bag": {
@@ -944,7 +944,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Cloth": 15
         }
@@ -957,7 +957,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Metal Fragments": 100,
             "Cloth": 40
@@ -971,7 +971,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Metal Fragments": 8,
             "Gunpowder": 8
@@ -985,7 +985,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Gunpowder": 20,
             "Low Grade Fuel": 2,
@@ -1001,7 +1001,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Sulfur": 2,
             "Gunpowder": 2
@@ -1015,7 +1015,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Animal Fat": 2,
             "Cloth": 1
@@ -1029,7 +1029,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Metal Fragments": 15
         }
@@ -1042,7 +1042,7 @@
         "ct": 0,
         "req": 1,
         "dif": 0,
-        "prof": "armorsmith",
+        "prof": "Armorsmith",
         "mats": {
             "Wood": 10
         }

@@ -30,7 +30,7 @@ end
 
 function PLUGIN:cmdReload( netuser, cmd, args )
     if not reloadtoken then
-        local b, str = reloadCarbon(args[1])
+        local b, str = reloadCarbon('carbon_' .. args[1])
         Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ϟ", str .. '      ', duration or 4.0 )
         rust.RunServerCommand( 'wildlife.forceupdate' )
     end
