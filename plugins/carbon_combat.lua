@@ -1,6 +1,6 @@
 PLUGIN.Title = 'carbon_core'
 PLUGIN.Description = 'combat module'
-PLUGIN.Version = '0.0.1'
+PLUGIN.Version = '0.0.11'
 PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
