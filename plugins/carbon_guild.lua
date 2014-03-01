@@ -278,7 +278,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             char.User[ netuserID ][ 'guild' ] = guild
             self:sendGuildMsg( guild, char.User[ netuserID ].name , 'has joined the guild! =)' )
             self.Guild.temp[ netuserID ] = nil
-            self:UserSave()
+            char:UserSave()
             self:GuildSave()
         end
     elseif ( action == 'leave') then
@@ -294,7 +294,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         local count = func:count( self.Guild[ guild ].members )
         if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. ' has been disbanned!' ) end
         self:GuildSave()
-        self:UserSave()
+        char:UserSave()
     elseif ( action == 'kick') then                 --                                                  [ cankick ]
         -- /g kick name                             -- Kick a player from the guild
         if( not args[2] ) then rust.Notice( netuser, '/g kick "name" ' )return end
@@ -312,7 +312,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         mail:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
         self.Guild[ guild ].members[ targuserID ] = nil
         char.User[ targuserID ].guild = nil
-        self:UserSave()
+        char:UserSave()
         self:GuildSave()
         --[[   elseif ( action == 'calls') then                --                                                  [ canwar ]
                local guild = self:getGuild( netuser )
@@ -603,7 +603,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         timer.Once( 19, function()
             self.Guild[ name ] = entry                                                                                  -- Add complete table to Guilds file
             char.User[ netuserID ][ 'guild' ] = name                                                                    -- Add guild to userdata.
-            self:UserSave()
+            char:UserSave()
             self:GuildSave() end)
     end )
 end
@@ -649,7 +649,7 @@ function PLUGIN:delGuild( guild )
     for k, v in pairs( self.Guild[ guild ].members ) do
         char.User[ k ].guild = nil
     end
-    self:UserSave()
+    char:UserSave()
     -- Delete guild from self.Guild
     self.Guild[ guild ] = nil
     self:GuildSave()

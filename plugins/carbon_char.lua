@@ -382,6 +382,5 @@ function PLUGIN:UserSave()
     print('Saving user data.')
     self.UserFile:SetText( json.encode( self.User, { indent = true } ) )
     self.UserFile:Save()
-    self:UserUpdate()
     spamNet = {}
 end

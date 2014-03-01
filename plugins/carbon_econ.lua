@@ -66,7 +66,6 @@ function PLUGIN:Init()
 
 end
 
-function func:containsval(t,cv) for _, v in pairs(t) do  if v == cv then return true  end  end return nil end
 local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
     "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
     "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
@@ -146,7 +145,7 @@ function PLUGIN:Convert( value )
 end
 
 function PLUGIN:OnUserConnect( netuser )
-    local data = char:GetUserData( netuser )
+    local data = self:getUserData( netuser )
     rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser,0,0,0 ) )
 end
 
