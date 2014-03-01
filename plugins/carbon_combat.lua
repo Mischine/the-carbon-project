@@ -32,6 +32,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
         end
     end
 end
+--]]
 function PLUGIN:ModifyDamage (takedamage, dmg)
 
     --------------------CLIENT VS CLIENT
@@ -254,7 +255,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
             return end --break out of all loops after finding controller type
     end
     -------------------CLIENT VS SLEEPER
-    --[[
+
 	if (string.find(takedamage.gameObject.Name, 'MaleSleeper(',1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and core.Config.settings.sleeperdppercent > 0) then
 		local actorUser = dmg.attacker.client.netUser
 		local coord = actorUser.playerClient.lastKnownPosition
@@ -267,7 +268,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
 	end
     return
 end
---]]
+
 --PLUGIN:staModify
 function PLUGIN:staModify(netuserData, vicuserData, npcData, damage)
     if (vicuserData) then

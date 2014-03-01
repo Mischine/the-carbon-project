@@ -13,9 +13,9 @@ end
 
 function PLUGIN:cmdDebug( netuser, cmd , args )
     if( not netuser:CanAdmin()) then rust.Notice( netuser, 'You cannot debug!' ) return end
-    if( args[1] == 'termall' ) then self.debug = {} rust.Notice( netuser, 'All debugs have been terminated!') return end
+    if( args[1] == 'termall' ) then self.list = {} rust.Notice( netuser, 'All debugs have been terminated!') return end
     if not args[1] then rust.Notice( netuser, '/debug "name" ' ) return end
-    if self.debug[ targname ] then rust.Notice( netuser, util.QuoteSafe(targname) '\'s debug is terminated') self.debug[ targname ] = nil return end
+    if self.list[ targname ] then rust.Notice( netuser, util.QuoteSafe(targname) '\'s debug is terminated') self.list[ targname ] = nil return end
     local targname = util.QuoteSafe(args[1])
     local validate, netuser = rust.FindNetUsersByName( targname )
     if (not validate) then
@@ -28,8 +28,8 @@ function PLUGIN:cmdDebug( netuser, cmd , args )
 
     local data = {}
     data.targnetuser = netuser
-    self.debug[ targname ] = data
-    rust.Notice( netuser, util.QuoteSafe(targname) '\'s debug is activated')
+    self.list[ targname ] = data
+    rust.Notice( netuser, util.QuoteSafe(targname), '\'s debug is activated')
 end
 
--- if self.debug[ netuser.displayName ] then rust.SendChatToUser(, self.debug[ netuser.displayName ].targnetuser, 'actual debug.' ) end
+-- if self.list[ netuser.displayName ] then rust.SendChatToUser(, self.list[ netuser.displayName ].targnetuser, 'actual debug.' ) end

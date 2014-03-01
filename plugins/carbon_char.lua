@@ -297,7 +297,6 @@ end
 
 -- PLUGIN:GetUserData
 function PLUGIN:GetUserData( netuser )
-    print(tostring('GetUserData: ' .. tostring(netuser)))
     local netuserID = rust.GetUserID( netuser )
     local data = self.User[ netuserID ] -- checks if data exist
     if (not data ) then -- if not, creates one
@@ -330,7 +329,6 @@ end
 
 
 function PLUGIN:UserSave()
-    print('Saving user data.')
     self.UserFile:SetText( json.encode( self.User, { indent = true } ) )
     self.UserFile:Save()
     spamNet = {}
