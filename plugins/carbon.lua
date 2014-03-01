@@ -2426,7 +2426,7 @@ function PLUGIN:cmdHelp( netuser, cmd, args)
 
     end
 end
-
+--[[
 --Util
 --------------------------------------------------------------------------------------------------
 function PLUGIN:TextBox(netuser, content, cmd, args)
@@ -2575,3 +2575,4 @@ function PLUGIN:sayTable( table, sep ) local msg = '' local count = #table if( c
 
 for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. '.' return msg end
 function table.returnvalues( table ) if( not table ) then return false end local msg = '' for k,v in pairs( table ) do msg = msg .. '[ ' .. v .. ' ]' end return msg end
+--]]
