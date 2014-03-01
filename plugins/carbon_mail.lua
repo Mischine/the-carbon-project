@@ -31,7 +31,7 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
             return end
         -- Player check
         -- if( netuser.displayName == tostring( args[2] ) ) then rust.Notice( netuser, 'You cannot send mail to yourself!' ) return end
-        local targid = self:findIDByName( tostring( args[2] ))
+        local targid = func:findIDByName( tostring( args[2] ))
         if( not targid ) then rust.Notice( netuser, 'No player with the name: ' .. tostring( args[2]) .. ' found in the database.' ) return end
         -- Get guild
 
@@ -39,7 +39,7 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
         if( not canbuy ) then rust.Notice( netuser, ' Not enough copper! 5 copper required! ') return end
         api.Call( 'ce', 'RemoveBalance', netuser, 0,0,5 )
 
-        local guild = self:getGuild( netuser )
+        local guild = guild:getGuild( netuser )
         -- Generating msg
         local i = 3
         local msg = ''
@@ -59,7 +59,7 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
         -- get date and time / convert to datetime
         local date = System.DateTime.Now:ToString(core.Config.dateformat)
         -- send mail
-        if( guild ) then self:sendMail( targid, netuser.displayName, date, msg, guild ) else self:sendMail( targid, netuser.displayName, datetime, msg ) end
+        if( guild ) then guild:sendMail( targid, netuser.displayName, date, msg, guild ) else guild:sendMail( targid, netuser.displayName, datetime, msg ) end
         rust.Notice( netuser, 'Mail send to ' .. tostring( args[2] ))
     elseif( action == 'read' ) then                             -- /mail read [id]          Read a mail
         if( not args[2] ) then rust.SendChatToUser( netuser, 'Mail', '/mail read [id]' ) return end
@@ -79,7 +79,7 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
         local netuserID = rust.GetUserID( netuser )
         if(( not char.User[ netuserID ].mail ) or ( not char.User[ netuserID ].mail[ ID ] )) then rust.Notice( netuser, 'Mail ID not found! ID: ' .. ID ) return end
         char.User[ netuserID ].mail[ID] = nil
-        local count = self:count( char.User[ netuserID ].mail )
+        local count = func:count( char.User[ netuserID ].mail )
         if ( count <= 0 ) then char.User[ netuserID ].mail = nil end
         rust.Notice( netuser, 'Mail ID ' .. ID .. ' succesfully deleted!' )
         self:UserSave()

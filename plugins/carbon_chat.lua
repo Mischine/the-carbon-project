@@ -27,7 +27,7 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
         end
         return end
     -- Get guildtag
-    local tag = self:getGuildTag( netuser )
+    local tag = guild:getGuildTag( netuser )
     local displayname = netuser.displayName .. ' [whispers]'
     if ( tag ) then displayname = tag .. displayname end
     -- Generating msg

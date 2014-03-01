@@ -32,7 +32,7 @@ function PLUGIN:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage
 end
 
 --PLUGIN:perkParry
-function PLUGIN:perkParry(vicuser, vicuserData, damage)
+function PLUGIN:Parry(vicuser, vicuserData, damage)
     if ((vicuser) and (vicuserData.perks.Parry)) then
         if (vicuserData.perks.Parry.lvl > 0) then
             local roll = self.rnd

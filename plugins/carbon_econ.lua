@@ -66,7 +66,7 @@ function PLUGIN:Init()
 
 end
 
-function table.containsval(t,cv) for _, v in pairs(t) do  if v == cv then return true  end  end return nil end
+function func:containsval(t,cv) for _, v in pairs(t) do  if v == cv then return true  end  end return nil end
 local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
     "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
     "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
@@ -146,7 +146,7 @@ function PLUGIN:Convert( value )
 end
 
 function PLUGIN:OnUserConnect( netuser )
-    local data = self:getUserData( netuser )
+    local data = char:GetUserData( netuser )
     rust.SendChatToUser( netuser, self.Chat, self:printBalance( netuser,0,0,0 ) )
 end
 
@@ -323,7 +323,7 @@ function PLUGIN:cmdStore( netuser, cmd, args )
         rust.SendChatToUser(netuser,' ',' ')
     elseif( args[1] ) and ( not args[2] ) then
         local cat = args[1]:lower()
-        local b = table.containsval(self.cat, cat )
+        local b = func:containsval(self.cat, cat )
         if( b) then
             rust.SendChatToUser(netuser,self.Chat,'╔════════════════════════')
             rust.SendChatToUser(netuser,self.Chat,'║ store > ' .. cat )
@@ -470,7 +470,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
             if( canbuy ) then -- Has enough money datablock found.
                 local inv = rust.GetInventory( netuser )
                 if not inv then rust.Notice( netuser, 'Inventory not found! Please report this to a GM' ) return end
-                local isUnstackable = table.containsval( unstackable, data.name )
+                local isUnstackable = func:containsval( unstackable, data.name )
                 local invamount = amount
                 if( isUnstackable ) then invamount = amount * 250 end
                 local i = 0
@@ -664,7 +664,7 @@ function PLUGIN:cmdSell( netuser, cmd, args)
             if not datablock then rust.Notice( netuser, ' Datablock not found, report this to a GM please. ') return end
             local inv = rust.GetInventory( netuser )
             if not inv then rust.Notice( netuser, 'Inventory not found, please report this to a GM.' ) return end
-            local isUnstackable = table.containsval(unstackable,data.name)
+            local isUnstackable = func:containsval(unstackable,data.name)
             local i = 0
             local item = inv:FindItem(datablock)
             if (item) then
