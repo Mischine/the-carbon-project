@@ -6,11 +6,37 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
+
+function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+    --[[
+    if dmg.attacker.client.netUser then
+        if weaponData then
+            local weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] or nil
+            local netuser = dmg.attacker.client.netUser
+            local netuserData = char.User[rust.GetUserID(netuser)]
+            if weaponData.lvl > netuserData.lvl then
+                dmg.amount = 0
+                if not spam[weaponData.name .. netuserData.id] then
+                    func:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
+                    spam[weaponData.name .. netuserData.id] = weaponData.name .. netuserData.id
+                end
+                timer.Once(6, function() spam[weaponData.name .. netuserData.id] = nil end)
+                return dmg
+            end
+        end
+    end
+    --]]
+end
 --[[
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
+    rust.BroadcastChat('OnProcessDamageEvent')
+
     if dmg.extraData then
         weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
+        rust.BroadcastChat(weaponData.name)
     end
+    return dmg
+
     if dmg.attacker.client then
         local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
         if not isSamePlayer then
@@ -31,45 +57,67 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
             end
         end
     end
+
 end
 --]]
-function PLUGIN:ModifyDamage (takedamage, dmg)
 
-    --------------------CLIENT VS CLIENT
-    if (takedamage:GetComponent( 'HumanController' )) then
-        if(dmg.victim.client and dmg.attacker.client) then
-            local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
-            if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
-                if (char:GetUserData(dmg.attacker.client.netUser) and char:GetUserData(dmg.victim.client.netUser)) then
-                    if not dmg.damageTypes then return dmg end -- security measure to ensure bleeding or radiation does not fail.
+function PLUGIN:ModifyDamage (takedamage, dmg)
+    --CLIENT VS CLIENT
+    if dmg.victim.controllable then
+        if dmg.attacker.controllable and dmg.victim.controllable then
+            if dmg.attacker.controllable ~= dmg.victim.controllable then
+                if dmg.extraData then
+                    rust.BroadcastChat('attacking player.. .')
+                    local weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
                     local netuser = dmg.attacker.client.netUser
                     local netuserData = char.User[rust.GetUserID(netuser)]
                     local vicuser = dmg.victim.client.netUser
                     local vicuserData = char.User[rust.GetUserID(vicuser)]
-
-                    if (not netuserData.skills[tostring(dmg.extraData.dataBlock.name)]) then
-                        netuserData.skills[tostring(dmg.extraData.dataBlock.name)] = {['name']=tostring(weaponData.name),['xp']=0,['lvl']=0}
+                    if weaponData and not netuserData.skills[weaponData.name] then
+                        netuserData.skills[weaponData.name] = {['name']=weaponData.name,['xp']=0,['lvl']=0}
                         char:UserSave()
                     end
+                end
+            else
+                rust.BroadcastChat('suicide.. .')
+                --SUICIDE
+            end
 
-                    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'---------------BEGIN ME VS PVP---------------') end
+        elseif dmg.victim.controllable and not dmg.attacker.controllable then
+            rust.BroadcastChat('npc attacking.. .')
+        end
+    elseif dmg.attacker.controllable and not dmg.victim.controllable then
+        if dmg.extraData then
+            local weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
+            local v = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI' }
+            for _,v in pairs(v) do
+                if (takedamage:GetComponent(v)) then
+                    rust.BroadcastChat('attacking ' .. v .. '.. .')
+                end
+            end
+        end
+    end
+    return dmg
+end
+            --[[
+                    if debugr == true then rust.BroadcastChat('---------------BEGIN ME VS PVP---------------') end
                     -- STEP 1 VIC MODIFIER
-                    if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
+                    if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if debugr == true then rust.BroadcastChat('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
                     -- STEP 2 WPN DMG MODIFIER
-                    if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
+                    if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if debugr == true then rust.BroadcastChat('WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
 
 
                     -- STEP 3 DAMAGE ROLL
-                    dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+                    dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if debugr == true then rust.BroadcastChat('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
                     -- STEP 4 DP MODIFIER
                     dmg.amount = self:modifyDP(netuserData, dmg.amount)
                     -- STEP 5 WPN MODIFIER
-                    dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+                    dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if debugr == true then rust.BroadcastChat('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
 
                     --STEP 6 ATR MODIFIER
-                    dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)  if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+                    dmg.amount = self:attrModify(weaponData, netuserData, vicuserData, dmg.amount)  if debugr == true then rust.BroadcastChat('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
                     --STEP 7 CRIT CHECK
-                    dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'CRIT CHANCE: ' .. tostring(dmg.amount)) end
+                    dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)    if debugr == true then rust.BroadcastChat('CRIT CHANCE: ' .. tostring(dmg.amount)) end
                     --STEP 8 VIC STA MOD
                     dmg.amount = self:staModify(netuserData, vicuserData, nil, dmg.amount)
                     --STEP 9 PERK STONE
@@ -80,39 +128,37 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     --GUILD: MODIFIERS
                     local guild = guild:getGuild( netuser )
                     local vicguild = guild:getGuild( vicuser )
-                    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser, 'GUILDS: ' .. netuser.displayName .. ' : ' .. tostring( guild ) .. ' || ' .. vicuser.displayName .. ' : ' .. tostring( vicguild )  ) end
+                    if debugr == true then rust.BroadcastChat( 'GUILDS: ' .. netuser.displayName .. ' : ' .. tostring( guild ) .. ' || ' .. vicuser.displayName .. ' : ' .. tostring( vicguild )  ) end
                     if ( guild ) and (vicguild ) then
                         if( guild == vicguild ) then
                             rust.Notice( netuser, vicuser.displayName .. ' is in your guild!'  )
                         else
                             local isRival = guild:isRival( guild, vicguild )
                             if( isRival ) then
-                                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser, tostring( guild ) .. ' and ' .. tostring( vicguild ) .. ' are rivals!' ) end
+                                if debugr == true then rust.BroadcastChat( tostring( guild ) .. ' and ' .. tostring( vicguild ) .. ' are rivals!' ) end
                                 --Att Rally! bonus damage
                                 local dmgmod = call:HasRallyCall( guild )
                                 if( dmgmod ) then
-                                    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Before Rally Bonus Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * dmgmod )) end
+                                    if debugr == true then rust.BroadcastChat('Before Rally Bonus Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * dmgmod )) end
                                     dmg.amount = dmg.amount * dmgmod
                                 end
                                 --Vic Stand Your Ground defense bonus
                                 local ddmgmod = call:hasSYGCall( vicguild )
                                 if( ddmgmod ) then
-                                    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Before SYG Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * ddmgmod )) end
+                                    if debugr == true then rust.BroadcastChat('Before SYG Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * ddmgmod )) end
                                     dmg.amount = dmg.amount * ddmgmod
                                 end
                             end
                             --Vic Stand Your Ground defense bonus
                             local ddmgmod = call:hasSYGCall( vicguild )
                             if( ddmgmod ) then
-                                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Before SYG Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * ddmgmod )) end
+                                if debugr == true then rust.BroadcastChat('Before SYG Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * ddmgmod )) end
                                 dmg.amount = dmg.amount * ddmgmod
                             end
                         end
                     end
 
-                    return dmg
 
-                end
             end
             if(isSamePlayer and core.Config.suicide) then
                 --SUICIDE ACTION HERE
@@ -125,35 +171,36 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 local vicuser = dmg.victim.client.netUser
                 local vicuserData = char.User[rust.GetUserID(vicuser)]
                 local npcData = core.Config.npc[string.gsub(tostring(dmg.attacker.networkView.name), '%(Clone%)', '')]
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'---------------BEGIN PVE VS ME---------------') end
+
+                if debugr == true then rust.BroadcastChat('---------------BEGIN PVE VS ME---------------') end
                 --STEP 1 VIC MODIFIER
-                if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
+                if vicuserData.dmg ~= 1 then dmg.amount = dmg.amount*vicuserData.dmg if debugr == true then rust.BroadcastChat('vicuser dmg modifier: ' .. tostring(dmg.amount)) end end
                 -- STEP 2 WPN DMG MODIFIER
-                if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
+                if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if debugr == true then rust.BroadcastChat('WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
                 --STEP 3 DAMAGE ROLL
-                dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+                dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if debugr == true then rust.BroadcastChat('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
                 --STEP 4 DP MODIFIER
                 --dmg.amount = self:modifyDP(netuserData, dmg.amount) NEEDS WORK FOR DEFENSE CHANGES
                 -- STEP 5 WPN SKILL MODIFIER
-                dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+                --dmg.amount = dmg.amount+netuserData.skills[weaponData.name].lvl*.3   if debugr == true then rust.BroadcastChat('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
                 -- STEP 6 ATR MODIFIER
-                --dmg.amount = self:attrModify(weaponData, npcData, vicuserData, dmg.amount)  if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+                --dmg.amount = self:attrModify(weaponData, npcData, vicuserData, dmg.amount)  if debugr == true then rust.BroadcastChat('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
                 -- STEP 7 CRIT CHECK
-                dmg.amount = self:critCheck(weaponData, npcData, vicuserData, dmg.amount)    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'CRIT CHANCE: ' .. tostring(dmg.amount)) end
+                dmg.amount = self:critCheck(weaponData, npcData, vicuserData, dmg.amount)    if debugr == true then rust.BroadcastChat('CRIT CHANCE: ' .. tostring(dmg.amount)) end
                 -- STEP 8 VIC STA MOD
-                dmg.amount = self:staModify(nil, vicuserData, nil, dmg.amount)if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'STAMINA MODIFIER:' .. tostring(dmg.amount)) end
+                --dmg.amount = self:staModify(nil, vicuserData, nil, dmg.amount)if debugr == true then rust.BroadcastChat('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
                 --STEP 9 PERK STONE
-                dmg.amount = perk:Stoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount) if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'STONESKIN PERK: ' .. tostring(dmg.amount)) end
+                dmg.amount = perk:Stoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount) if debugr == true then rust.BroadcastChat('STONESKIN PERK: ' .. tostring(dmg.amount)) end
                 --STEP 10 PERK PARRY
-                dmg.amount = perk:Parry(vicuser, vicuserData, dmg.amount)--PERK PARRY
+                dmg.amount = perk:Parry(vicuser, vicuserData, dmg.amount) if debugr == true then rust.BroadcastChat('PARRY PERK: ' .. tostring(dmg.amount)) end
 
                 --GUILD: MODIFIERS
                 local guild = guild:getGuild( vicuser )
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Guild found: ' .. tostring( guild )  ) end
+                if debugr == true then rust.BroadcastChat('Guild found: ' .. tostring( guild )  ) end
                 if ( guild ) then
                     local cotw = calls:hasCOTWCall( guild )
                     if( cotw ) then
-                        if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'COTW Perk dmg from: ' .. dmg.amount .. ' to: ' .. dmg.amount * cotw .. ' || cotwmod: ' .. cotw ) end
+                        if debugr == true then rust.BroadcastChat('COTW Perk dmg from: ' .. dmg.amount .. ' to: ' .. dmg.amount * cotw .. ' || cotwmod: ' .. cotw ) end
                         dmg.amount = dmg.amount * cotw
                     end
                 end
@@ -172,34 +219,35 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             local npcData = core.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
 
             if (not netuserData.skills[tostring(dmg.extraData.dataBlock.name)]) then
-                netuserData.skills[weaponData.name] = {['name']=tostring(weaponData.name),['xp']=0,['lvl']=0}
+                netuserData.skills[weaponData.name] = {['name']=tostring(weaponData.name),['xp']=0,['lvl']=0 }
                 char:UserSave()
             end
-            if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'---------------BEGIN ME VS PVE---------------') end
+
+            if debugr == true then rust.BroadcastChat('---------------BEGIN ME VS PVE---------------') end
             -- STEP 1 VIC MODIFIER
-            dmg.amount = dmg.amount*npcData.dmg     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'VICUSER DMG MODIFIER: ' .. tostring(dmg.amount)) end
-            -- STEP 1 WPN DMG MODIFIER
-            if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
-            --STEP 2 DAMAGE ROLL
-            dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
-            --STEP 3 DP MODIFIER
+            dmg.amount = dmg.amount*npcData.dmg     if debugr == true then rust.BroadcastChat('VICUSER DMG MODIFIER: ' .. tostring(dmg.amount)) end
+            -- STEP 2 WPN DMG MODIFIER
+            if weaponData then dmg.amount = dmg.amount*weaponData.dmg     if debugr == true then rust.BroadcastChat('WEAPON DMG MODIFIER: ' .. tostring(dmg.amount)) end end
+            --STEP 3 DAMAGE ROLL
+            dmg.amount = math.random(dmg.amount*0.5,tonumber(dmg.amount))   if debugr == true then rust.BroadcastChat('RANDOM DAMAGE: ' .. tostring(dmg.amount)) end
+            --STEP 4 DP MODIFIER
             dmg.amount = self:modifyDP(netuserData, dmg.amount)
-            --STEP 4 WPN SKILL MODIFIER
-            dmg.amount = dmg.amount+netuserData.skills[ weaponData.name ].lvl*0.3      if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
-            -- STEP 5 ATR MODIFIER
-            dmg.amount = self:attrModify(weaponData, netuserData, npcData, dmg.amount)      if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
-            -- STEP 6 CRIT CHECK
-            dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)       if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'CRIT CHANCE: ' .. tostring(dmg.amount)) end
-            --STEP 7 VIC STA MOD
-            dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'STAMINA MODIFIER:' .. tostring(dmg.amount)) end
+            --STEP 5 WPN SKILL MODIFIER
+            dmg.amount = dmg.amount+netuserData.skills[ weaponData.name ].lvl*0.3      if debugr == true then rust.BroadcastChat('WEAPON SKILL BONUS: ' .. tostring(netuserData.skills[weaponData.name].lvl*.3)) end
+            -- STEP 6 ATR MODIFIER
+            dmg.amount = self:attrModify(weaponData, netuserData, npcData, dmg.amount)      if debugr == true then rust.BroadcastChat('ATTRIBUTE DMG MODIFIER: ' .. tostring(dmg.amount)) end
+            -- STEP 7 CRIT CHECK
+            dmg.amount = self:critCheck(weaponData, netuser, netuserData, dmg.amount)       if debugr == true then rust.BroadcastChat('CRIT CHANCE: ' .. tostring(dmg.amount)) end
+            --STEP 8 VIC STA MOD
+            dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)    if debugr == true then rust.BroadcastChat('STAMINA MODIFIER:' .. tostring(dmg.amount)) end
 
             --GUILD STUFF
             local guild = guild:getGuild( netuser )
-            if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Guild found: ' .. tostring( guild )  ) end
+            if debugr == true then rust.BroadcastChat('Guild found: ' .. tostring( guild )  ) end
             if ( guild ) then
                 local cotw = calls:hasCOTWCall( guild )
                 if( cotw ) then
-                    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'COTW Perk dmg from: ' .. dmg.amount .. ' to: ' .. dmg.amount * cotw .. ' || cotwmod: ' .. cotw ) end
+                    if debugr == true then rust.BroadcastChat('COTW Perk dmg from: ' .. dmg.amount .. ' to: ' .. dmg.amount * cotw .. ' || cotwmod: ' .. cotw ) end
                     dmg.amount = dmg.amount * cotw
                 end
             end
@@ -274,13 +322,13 @@ function PLUGIN:staModify(netuserData, vicuserData, npcData, damage)
     if (vicuserData) then
         if (vicuserData.attributes.sta>0) then
             damage = damage-((vicuserData.attributes.sta+vicuserData.lvl)*0.1)
-            if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:staModify (vicuser) :' .. tostring(dmg.amount)) end
+            if debugr == true then rust.BroadcastChat('PLUGIN:staModify (vicuser) :' .. tostring(dmg.amount)) end
         end
     end
     if (npcData) then
         if (npcData.attributes.sta>0) then
             damage = damage-((npcData.attributes.sta+math.random(netuserData.lvl-1,netuserData.lvl+1))*0.1)
-            if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGINS:staModify (npc):' .. tostring(damage)) end
+            if debugr == true then rust.BroadcastChat('PLUGINS:staModify (npc):' .. tostring(damage)) end
         end
     end
     return damage
@@ -292,7 +340,7 @@ function PLUGIN:modifyDP(netuserData, damage)
         local dppercentage = netuserData.dp/netuserData.xp
         local dmgdp = damage*dppercentage
         damage = math.ceil(tonumber(damage-dmgdp))
-        if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:modifyDP: ' .. tostring(damage)) end
+        if debugr == true then rust.BroadcastChat('PLUGIN:modifyDP: ' .. tostring(damage)) end
     end
     return damage
 end
@@ -302,16 +350,16 @@ function PLUGIN:attrModify(weaponData, netuserData, vicuserData, damage)
     if weaponData then
         if (weaponData.type == 'm') and (netuserData.attributes.str>0) then
             damage = damage + ((netuserData.attributes.str+netuserData.lvl)*.3)
-            if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:attrModify (str) :' .. tostring(damage)) end
+            if debugr == true then rust.BroadcastChat('PLUGIN:attrModify (str) :' .. tostring(damage)) end
         elseif (weaponData.type == 'l' or weaponData.type == 'c') and (netuserData.attributes.agi>0) then
             damage = damage + ((netuserData.attributes.agi+netuserData.lvl)*.3)
-            if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:attrModify (agi) :' .. tostring(damage)) end
+            if debugr == true then rust.BroadcastChat('PLUGIN:attrModify (agi) :' .. tostring(damage)) end
         end
     end
     if not weaponData then
         if (netuserData.str>0) then
             damage = damage + ((netuserData.str+(math.random(vicuserData.lvl-1,vicuserData.lvl+1)))*.3)
-            if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:attrModify (no weaponData) :' .. tostring(damage)) end
+            if debugr == true then rust.BroadcastChat('PLUGIN:attrModify (no weaponData) :' .. tostring(damage)) end
         end
     end
     return damage
@@ -320,26 +368,28 @@ end
 
 --PLUGIN:critCheck
 function PLUGIN:critCheck(weaponData, netuser, netuserData, damage)
+
     if( char.User[ netuserData.id ].buffs[ 'ParryCrit' ]) then
         damage = damage * 2
         char.User[ netuserData.id ].buffs[ 'ParryCrit' ] = nil
         return damage
     end
     if (netuserData.attributes.agi>0) then
-        local roll = self.rnd
+        local roll = core.rnd
         if (weaponData.type == 'm') then
             if ((netuserData.attributes.agi+netuserData.lvl)*.002 >= roll) then
                 damage = damage * 2
                 rust.InventoryNotice( netuser, 'Critical Hit!' )
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:critCheck (m): ' .. tostring(damage)) end
+                if debugr == true then rust.BroadcastChat('PLUGIN:critCheck (m): ' .. tostring(damage)) end
             end
         elseif (weaponData.type == 'l' or weaponData.type == 'c') then
             if ((netuserData.attributes.agi+netuserData.lvl)*.001 >= roll) then
                 damage = damage * 2
                 rust.InventoryNotice( netuser, 'Critical Hit!' )
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:critCheck (l/c)' .. tostring(damage)) end
+                if debugr == true then rust.BroadcastChat('PLUGIN:critCheck (l/c)' .. tostring(damage)) end
             end
         end
     end
     return damage
 end
+            --]]

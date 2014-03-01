@@ -35,7 +35,7 @@ end
 function PLUGIN:Parry(vicuser, vicuserData, damage)
     if ((vicuser) and (vicuserData.perks.Parry)) then
         if (vicuserData.perks.Parry.lvl > 0) then
-            local roll = self.rnd
+            local roll = core.rnd
             if ((vicuserData.perks.Parry.lvl == 1) and (roll <= 3)) then
                 damage = 0
                 self:GiveTimedBuff( vicuserData.id, 5 ,'ParryCrit' )

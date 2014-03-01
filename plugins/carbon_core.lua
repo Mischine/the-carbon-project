@@ -20,8 +20,7 @@ function PLUGIN:Init()
     self.sysname = self.Config.settings.sysname
 
     self.rnd = 0
-    self.Timer = {}
-    self.Timer.randomseed = timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
+    timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
 end
 function PLUGIN:LoadLibrary()
     call = cs.findplugin("carbon_call")
@@ -68,9 +67,9 @@ function PLUGIN:SetDefaultConfig()
             ['Hand Cannon']={['name']='Hand Cannon',['type']='c',['dmg']=1,['lvl']=1},
             ['Pipe Shotgun'] ={['name']='Pipe Shotgun',['type']='c',['dmg']=1,['lvl']=1},
             ['Revolver']={['name']='Revolver',['type']='c',['dmg']=1,['lvl']=1},
-            ['9mm Pistol']={['name']='9mm Pistol',['type']='c',['dmg']=1,['lvl']=3},
-            ['M4']={['name']='M4',['type']='l',['dmg']=1,['lvl']=5},
-            ['Bolt Action Rifle']={['name']='Bolt Action Rifle',['type']='l',['dmg']=5,['lvl']=1},
+            ['9mm Pistol']={['name']='9mm Pistol',['type']='c',['dmg']=1,['lvl']=1},
+            ['M4']={['name']='M4',['type']='l',['dmg']=1,['lvl']=1},
+            ['Bolt Action Rifle']={['name']='Bolt Action Rifle',['type']='l',['dmg']=1,['lvl']=10},
             ['Explosive Charge']={['name']='Explosive Charge',['type']='e',['dmg']=1,['lvl']=1},
             ['F1 Grenade']={['name']='F1 Grenade',['type']='e',['dmg']=1,['lvl']=1},
 
@@ -182,4 +181,10 @@ end
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
     self.ConfigFile:Save()
+    self:ConfigUpdate()
+end
+function PLUGIN:ConfigUpdate()
+    self.ConfigFile = util.GetDatafile( 'carbon_cfg' )
+    local txt = self.ConfigFile:GetText()
+    self.Config = json.decode ( txt )
 end

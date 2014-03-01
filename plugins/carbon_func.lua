@@ -5,7 +5,6 @@ PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
-
     self.spamNet = {} --used to prevent spammed messages to a user.
 end
 --Util

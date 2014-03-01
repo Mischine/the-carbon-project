@@ -328,8 +328,16 @@ function PLUGIN:GetUserData( netuser )
 end
 
 
+-- DATA UPDATE AND SAVE
 function PLUGIN:UserSave()
+    print('Saving user data.')
     self.UserFile:SetText( json.encode( self.User, { indent = true } ) )
     self.UserFile:Save()
-    spamNet = {}
+    self:UserUpdate()
+    func.spamNet = {}
+end
+function PLUGIN:UserUpdate()
+    self.UserFile = util.GetDatafile( 'carbon_char' )
+    local txt = self.UserFile:GetText()
+    self.User = json.decode ( txt )
 end
