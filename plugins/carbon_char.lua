@@ -295,55 +295,6 @@ function PLUGIN:SetDpPercentById(netuserID, percent)
     end
 end
 
---PLUGIN: XP Bars
-function PLUGIN:medxpbar( value )
-    local msg = ''
-    for i=1, 20 do
-        if( (value / 5) >= i ) then
-            msg = msg .. '■'
-        else
-            msg = msg .. '□'
-        end
-    end
-    msg = msg
-    return msg
-end
-function PLUGIN:xpbar( value, size )
-    local msg = ''
-    for i=1, size do
-        if(value / (100/size) >= i ) then
-            msg = msg .. '■'
-        else
-            msg = msg .. '□'
-        end
-    end
-    return msg
-end
-function PLUGIN:minixpbar( value )
-    local msg = '▪'
-    for i=1, 100 do
-        if( (value / 1) >= i ) then
-            msg = msg .. '▪'
-        else
-            msg = msg .. '▫'
-        end
-    end
-    msg = msg .. '▪'
-    return msg
-end
-function PLUGIN:sidexpbar( value )
-    local msg = '■'
-    for i=1, 10 do
-        if( (value / 10) >= i ) then
-            msg = msg .. '■'
-        else
-            msg = msg .. '□'
-        end
-    end
-    msg = msg .. '■'
-    return msg
-end
-
 -- PLUGIN:GetUserData
 function PLUGIN:GetUserData( netuser )
     print(tostring('GetUserData: ' .. tostring(netuser)))

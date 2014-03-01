@@ -179,9 +179,6 @@ function PLUGIN:OnUserChat(netuser, name, msg)
     end
 end
 
-
-
-
 -- CONFIG UPDATE AND SAVE
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
