@@ -61,14 +61,14 @@ function PLUGIN:cmdHelp( netuser, cmd, args)
             ['cmds']={'features','gameplay','professions','guilds','perks','calls','economy','party','events','bosses','donation','authors'},
             ['suffix']='For more info: www.tempusforge.com'
         }
-        self:TextBox(netuser,content,cmd,args) return
+        func:TextBox(netuser,content,cmd,args) return
     elseif( args[1] == 'features' ) then
         local content = {
             ['msg'] ='There are a lot of features included in Carbon RPG, and a lot more to come! \nHere is a list of the current features.',
             ['list'] = {'- guilds','- perks','- calls','- attributes','- professions','- gun progression','- mail system','- whisper system','- lighting storms','- and loads more!'},
             ['suffix']='More information about these features are found on: www.tempusforge.com'
         }
-        self:TextBox(netuser,content,cmd,args) return
+        func:TextBox(netuser,content,cmd,args) return
     elseif( args[1] == 'gameplay' ) then
         local content = {
             ['msg'] ='Carbon RPG is all about progression! \n Character progression, profession progression, ' ..
@@ -78,7 +78,7 @@ function PLUGIN:cmdHelp( netuser, cmd, args)
                     'build a huge castle to protect you from the demons. Wait... what?',
             ['suffix']='/c to check your progression'
         }
-        self:TextBox(netuser,content,cmd,args) return
+        func:TextBox(netuser,content,cmd,args) return
     elseif( args[1] == 'professions' ) then
         local content = {
             ['msg'] ='Professions are used to unlock new crafting recipes! Different items have different profession level requirements.' ..
@@ -88,7 +88,7 @@ function PLUGIN:cmdHelp( netuser, cmd, args)
             ['list'] = {'- Munitions Engineer','- Medic ( Post-Alpha )','- Carpenter','- Armorsmith','- Weaponsmith'},
             ['suffix']='/c prof to check all your professions statistics'
         }
-        self:TextBox(netuser,content,cmd,args) return
+        func:TextBox(netuser,content,cmd,args) return
     elseif( args[1] == 'guilds' ) then
         local netuserID = rust.GetUserID( netuser )
         local req = 'CareX: "Yea dude, to bad you need a level 10 character to start a guild!"'
@@ -104,7 +104,7 @@ function PLUGIN:cmdHelp( netuser, cmd, args)
             ['cmds']={},
             ['suffix']='/g to check all the guild info'
         }
-        self:TextBox(netuser,content,cmd,args) return
+        func:TextBox(netuser,content,cmd,args) return
     elseif( args[1] == 'perks' ) then
     elseif( args[1] == 'calls' ) then
     elseif( args[1] == 'economy' ) then

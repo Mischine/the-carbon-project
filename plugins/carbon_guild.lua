@@ -59,7 +59,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
     if ( action == 'create') then
         -- /g create 'Guild Name' 'Guild Tag'
         if(( args[2] ) and ( args[3] )) then
-            local lvl = tonumber( self:getLvl( netuser ) )
+            local lvl = tonumber( char:getLvl( netuser ) )
             -- if( not ( lvl >= 10 )) then rust.Notice( netuser, 'level 10 required to create your own guild!' ) return end
             local userID = rust.GetUserID( netuser )
             if( char.User[ userID ].guild ) then rust.Notice( netuser, 'You\'re already in a guild!' ) return end
@@ -67,7 +67,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             local tag = tostring( args[3] )
             tag = string.upper( tag )
             -- Tag/name language check.
-            if( table.containsval( core.Config.settings.censor.tag, tag ) ) then rust.Notice( netuser, 'Can not compute. Error code number B' ) return end
+            if( func:containsval( core.Config.settings.censor.tag, tag ) ) then rust.Notice( netuser, 'Can not compute. Error code number B' ) return end
             for k, v in ipairs( core.Config.settings.censor.chat ) do
                 local found = string.find( name, v )
                 if ( found ) then
@@ -127,15 +127,15 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')')
         rust.SendChatToUser(netuser,core.sysname,'║ ')
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Leader   : ' .. self:getGuildLeader( guild ))
-        rust.SendChatToUser(netuser,core.sysname,'║ Members        : ' .. self:count( data.members ))
+        rust.SendChatToUser(netuser,core.sysname,'║ Members        : ' .. func:count( data.members ))
         if( data.interval >= 10 ) then
             rust.SendChatToUser(netuser,core.sysname,'║ Collect/' .. data.interval .. 'h     : ' .. data.collect)
         else
             rust.SendChatToUser(netuser,core.sysname,'║ Collect/' .. data.interval .. 'h      : ' .. data.collect)
         end
-        rust.SendChatToUser(netuser,core.sysname,'║ Perks               : ' .. self:sayTable( data.unlockedperks, ', ' ))
-        rust.SendChatToUser(netuser,core.sysname,'║ Active Perks : ' .. self:sayTable( data.activeperks, ', ' ))
-        rust.SendChatToUser(netuser,core.sysname,'║ War                   : ' .. self:sayTable( data.war, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ Perks               : ' .. func:sayTable( data.unlockedperks, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ Active Perks : ' .. func:sayTable( data.activeperks, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ War                   : ' .. func:sayTable( data.war, ', ' ))
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
         rust.SendChatToUser(netuser,core.sysname,'║ ⌘')
         rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
@@ -199,7 +199,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         if( not args[2] ) then -- get list of all guild members
             local i = 0
             local msg = ""
-            local count = self:count( data.members )
+            local count = func:count( data.members )
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ ' .. guild .. ' > members' )
@@ -291,7 +291,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         self.Guild[ guild ].members[ netuserID ] = nil
         char.User[ netuserID ].guild = nil
         self:sendGuildMsg( guild, netuser.displayName, 'has left the guild! =(' )
-        local count = self:count( self.Guild[ guild ].members )
+        local count = func:count( self.Guild[ guild ].members )
         if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. ' has been disbanned!' ) end
         self:GuildSave()
         self:UserSave()
@@ -309,7 +309,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         end
         if( not targuserID ) then rust.Notice( netuser, 'player ' .. targname .. ' is not a member of ' .. guild .. '.') return end
         local date = System.DateTime.Now:ToString(core.Config.dateformat)
-        self:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
+        mail:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
         self.Guild[ guild ].members[ targuserID ] = nil
         char.User[ targuserID ].guild = nil
         self:UserSave()
@@ -382,9 +382,9 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
             local msg = {}
             for k, v in pairs( self.Guild[guild].ranks) do
-                local count = self:count( self.Guild[guild].ranks[k]) +1
+                local count = func:count( self.Guild[guild].ranks[k]) +1
                 while msg[ tostring(count) ] do count = count + 0.1 end
-                msg[tostring( count )] = 'Rank: ' .. k .. ' Abilities: ' .. table.returnvalues( self.Guild[guild].ranks[k] )
+                msg[tostring( count )] = 'Rank: ' .. k .. ' Abilities: ' .. func:returnvalues( self.Guild[guild].ranks[k] )
             end
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
@@ -464,12 +464,12 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                     local tbl = {'candelete','caninvite','cankick','canvault','canwar','canrank' }
                     local ability = tbl[ tonumber( args[4] )]
                     if( args[5] == 'true' ) then
-                        local contains = table.containsval( self.Guild[ guild ].ranks[tostring(args[3])])
+                        local contains = func:containsval( self.Guild[ guild ].ranks[tostring(args[3])])
                         if( contains ) then rust.Notice( netuser, tostring(args[3]) .. ' already has ' .. ability ) return end
                         table.insert( self.Guild[ guild ].ranks[tostring(args[3])], ability )
                         rust.Notice( netuser, ability .. ' has been added to ' .. tostring( args[3] ))
                     elseif( args[5] == 'false' ) then
-                        local contains = table.containsval( self.Guild[ guild ].ranks[tostring(args[3])], ability )
+                        local contains = func:containsval( self.Guild[ guild ].ranks[tostring(args[3])], ability )
                         if( not contains ) then rust.Notice( netuser, tostring(args[3]) .. ' doesn\'t have ' .. ability ) return end
                         for i,v in pairs( self.Guild[ guild ].ranks[tostring(args[3])] ) do
                             if( v == ability ) then
@@ -684,7 +684,7 @@ end
 function PLUGIN:hasAbility( netuser, guild, ability )
     local rank = self:getRank( netuser, guild )
     local userID = rust.GetUserID( netuser )
-    local val = table.containsval( self.Guild[ guild ].ranks[rank], ability )
+    local val = func:containsval( self.Guild[ guild ].ranks[rank], ability )
     return val
 end
 
@@ -704,7 +704,7 @@ end
 
 --PLUGIN:isRival
 function PLUGIN:isRival( guild1, guild2 )
-    local war = table.containsval( self.Guild[ guild1 ].war, guild2)
+    local war = func:containsval( self.Guild[ guild1 ].war, guild2)
     return war
 end
 

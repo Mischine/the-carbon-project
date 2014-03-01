@@ -44,7 +44,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
     if dmg.attacker.client then
         local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
         if not isSamePlayer then
-            if self:GetUserData(dmg.attacker.client.netUser) then
+            if char:GetUserData(dmg.attacker.client.netUser) then
                 local netuser = dmg.attacker.client.netUser
                 local netuserData = char.User[rust.GetUserID(netuser)]
                 if weaponData.lvl > netuserData.lvl then
@@ -53,7 +53,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
                     dmg.status = LifeStatus.IsAlive
                     dmg.amount = 0
                     if not spamNet[weaponData.name .. netuser.displayName] then
-                        self:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
+                        func:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
                         spamNet[weaponData.name .. netuser.displayName] = true
                         timer.Once(6, function() spamNet[weaponData.name .. netuser.displayName] = nil end)
                     end
@@ -72,7 +72,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         if(dmg.victim.client and dmg.attacker.client) then
             local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
             if (dmg.victim.client.netUser.displayName and not isSamePlayer) then
-                if (self:GetUserData(dmg.attacker.client.netUser) and self:GetUserData(dmg.victim.client.netUser)) then
+                if (char:GetUserData(dmg.attacker.client.netUser) and char:GetUserData(dmg.victim.client.netUser)) then
                     if not dmg.damageTypes then return dmg end -- security measure to ensure bleeding or radiation does not fail.
                     local netuser = dmg.attacker.client.netUser
                     local netuserData = char.User[rust.GetUserID(netuser)]
@@ -105,36 +105,36 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                     --STEP 8 VIC STA MOD
                     dmg.amount = self:staModify(netuserData, vicuserData, nil, dmg.amount)
                     --STEP 9 PERK STONE
-                    dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount)
+                    dmg.amount = perk:Stoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount)
                     -- STEP 10 PERK PARRY
-                    dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)
+                    dmg.amount = perk:Parry(vicuser, vicuserData, dmg.amount)
 
                     --GUILD: MODIFIERS
-                    local guild = self:getGuild( netuser )
-                    local vicguild = self:getGuild( vicuser )
+                    local guild = guild:getGuild( netuser )
+                    local vicguild = guild:getGuild( vicuser )
                     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser, 'GUILDS: ' .. netuser.displayName .. ' : ' .. tostring( guild ) .. ' || ' .. vicuser.displayName .. ' : ' .. tostring( vicguild )  ) end
                     if ( guild ) and (vicguild ) then
                         if( guild == vicguild ) then
                             rust.Notice( netuser, vicuser.displayName .. ' is in your guild!'  )
                         else
-                            local isRival = self:isRival( guild, vicguild )
+                            local isRival = guild:isRival( guild, vicguild )
                             if( isRival ) then
                                 if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser, tostring( guild ) .. ' and ' .. tostring( vicguild ) .. ' are rivals!' ) end
                                 --Att Rally! bonus damage
-                                local dmgmod = self:hasRallyCall( guild )
+                                local dmgmod = call:HasRallyCall( guild )
                                 if( dmgmod ) then
                                     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Before Rally Bonus Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * dmgmod )) end
                                     dmg.amount = dmg.amount * dmgmod
                                 end
                                 --Vic Stand Your Ground defense bonus
-                                local ddmgmod = self:hasSYGCall( vicguild )
+                                local ddmgmod = call:hasSYGCall( vicguild )
                                 if( ddmgmod ) then
                                     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Before SYG Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * ddmgmod )) end
                                     dmg.amount = dmg.amount * ddmgmod
                                 end
                             end
                             --Vic Stand Your Ground defense bonus
-                            local ddmgmod = self:hasSYGCall( vicguild )
+                            local ddmgmod = call:hasSYGCall( vicguild )
                             if( ddmgmod ) then
                                 if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Before SYG Damage : ' .. tostring(dmg.amount) .. ' || After: ' .. tostring( dmg.amount * ddmgmod )) end
                                 dmg.amount = dmg.amount * ddmgmod
@@ -153,7 +153,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             ----------------------PVE VS CLIENT
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
             if not dmg.damageTypes then return dmg end
-            if (self:GetUserData(dmg.victim.client.netUser)) then
+            if (char:GetUserData(dmg.victim.client.netUser)) then
                 local vicuser = dmg.victim.client.netUser
                 local vicuserData = char.User[rust.GetUserID(vicuser)]
                 local npcData = core.Config.npc[string.gsub(tostring(dmg.attacker.networkView.name), '%(Clone%)', '')]
@@ -175,15 +175,15 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
                 -- STEP 8 VIC STA MOD
                 dmg.amount = self:staModify(nil, vicuserData, nil, dmg.amount)if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'STAMINA MODIFIER:' .. tostring(dmg.amount)) end
                 --STEP 9 PERK STONE
-                dmg.amount = self:perkStoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount) if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'STONESKIN PERK: ' .. tostring(dmg.amount)) end
+                dmg.amount = perk:Stoneskin(netuser, netuserData, vicuser, vicuserData, dmg.amount) if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'STONESKIN PERK: ' .. tostring(dmg.amount)) end
                 --STEP 10 PERK PARRY
-                dmg.amount = self:perkParry(vicuser, vicuserData, dmg.amount)--PERK PARRY
+                dmg.amount = perk:Parry(vicuser, vicuserData, dmg.amount)--PERK PARRY
 
                 --GUILD: MODIFIERS
-                local guild = self:getGuild( vicuser )
+                local guild = guild:getGuild( vicuser )
                 if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Guild found: ' .. tostring( guild )  ) end
                 if ( guild ) then
-                    local cotw = self:hasCOTWCall( guild )
+                    local cotw = calls:hasCOTWCall( guild )
                     if( cotw ) then
                         if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'COTW Perk dmg from: ' .. dmg.amount .. ' to: ' .. dmg.amount * cotw .. ' || cotwmod: ' .. cotw ) end
                         dmg.amount = dmg.amount * cotw
@@ -226,10 +226,10 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             dmg.amount = self:staModify(netuserData, nil, npcData, dmg.amount)    if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'STAMINA MODIFIER:' .. tostring(dmg.amount)) end
 
             --GUILD STUFF
-            local guild = self:getGuild( netuser )
+            local guild = guild:getGuild( netuser )
             if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'Guild found: ' .. tostring( guild )  ) end
             if ( guild ) then
-                local cotw = self:hasCOTWCall( guild )
+                local cotw = calls:hasCOTWCall( guild )
                 if( cotw ) then
                     if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'COTW Perk dmg from: ' .. dmg.amount .. ' to: ' .. dmg.amount * cotw .. ' || cotwmod: ' .. cotw ) end
                     dmg.amount = dmg.amount * cotw
@@ -259,14 +259,14 @@ function PLUGIN:OnKilled (takedamage, dmg)
             local netuserData = char.User[rust.GetUserID(netuser)]
             if (netuser ~= vicuser) then
                 netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
-                self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*core.Config.settings.dppercent/100))
+                char:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*core.Config.settings.dppercent/100))
             elseif(netuser == vicuser) then
-                self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*core.Config.settings.dppercent/100))
+                char:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*core.Config.settings.dppercent/100))
             end
             return
             -----------------PVE VS CLIENT
         elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
-            self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*core.Config.settings.dppercent/100))
+            char:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*core.Config.settings.dppercent/100))
         end
     end
     -------------------CLIENT VS PVE
@@ -283,7 +283,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
                 netuserData.stats.kills.pve[npcData.name] = netuserData.stats.kills.pve[npcData.name]+1
             end
             netuserData.stats.kills.pve.total = netuserData.stats.kills.pve.total+1
-            self:GiveXp( weaponData, netuser, netuserData, xp)
+            char.GiveXp( weaponData, netuser, netuserData, xp)
             return end --break out of all loops after finding controller type
     end
     -------------------CLIENT VS SLEEPER
@@ -294,7 +294,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
 		local sleepreId = self:SleeperPos(coord)
         if(sleepreId ~= nil) then
             core.Config.sleepers.pos[sleepreId] = nil
-            self:GiveXp( actorUser, tonumber(math.floor(char.User[sleepreId].xp*core.Config.settings.sleeperxppercent/100)))
+            char.GiveXp( actorUser, tonumber(math.floor(char.User[sleepreId].xp*core.Config.settings.sleeperxppercent/100)))
             self:setXpPercentById(sleepreId, tonumber(100-core.Config.settings.sleeperxppercent-core.Config.settings.dppercent))
         end
 	end

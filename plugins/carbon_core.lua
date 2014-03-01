@@ -24,7 +24,6 @@ function PLUGIN:Init()
     self.Timer.randomseed = timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
 end
 function PLUGIN:LoadLibrary()
-    --[[
     call = cs.findplugin("carbon_call")
     combat = cs.findplugin("carbon_combat")
     econ = cs.findplugin("carbon_econ")
@@ -36,7 +35,6 @@ function PLUGIN:LoadLibrary()
     func = cs.findplugin("carbon_func")
     mail = cs.findplugin("carbon_mail")
     debug = cs.findplugin("carbon_debug")
-    --]]
     sandbox = cs.findplugin("carbon_sandbox")
 end
 
@@ -136,7 +134,7 @@ function PLUGIN:OnUserConnect( netuser )
         return
     end
     --]]
-    local data = self:GetUserData( netuser ) -- asks for dat.
+    local data = char:GetUserData( netuser ) -- asks for dat.
     data.name = netuser.displayName
 
     -- Check mail
@@ -167,9 +165,9 @@ function PLUGIN:OnUserChat(netuser, name, msg)
             end
         end
         local userID = rust.GetUserID( netuser )
-        local guild = self:getGuild( netuser )
+        local guild = guild:getGuild( netuser )
         if( guild ) then
-            local data = self:getGuildData( guild )
+            local data = guild:getGuildData( guild )
             name = data.tag .. ' ' .. name
             rust.BroadcastChat( name, msg )
             return false

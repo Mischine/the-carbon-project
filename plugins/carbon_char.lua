@@ -38,7 +38,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             ['cmds']={'xp','atr','skills','perks','help'}
         }
 
-        self:TextBox(netuser, content, cmd, args) return
+        func:TextBox(netuser, content, cmd, args) return
     end
 
     if #args==1 then
@@ -58,28 +58,28 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                     'Level:                          ' .. tostring(a-1),
                     ' ',
                     'Experience:              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')',
-                    tostring(self:xpbar( d, 32 )),
+                    tostring(func:xpbar( d, 32 )),
                     ' ',
                     'Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(h) .. ')   [' .. tostring(g) .. '%]',
-                    tostring(self:xpbar( g, 32 )),
+                    tostring(func:xpbar( g, 32 )),
                 }
             }
-            self:TextBox(netuser, content, cmd, args) return
+            func:TextBox(netuser, content, cmd, args) return
         elseif args[1]=='atr' then
             local content = {
                 ['list']={
                     'Strength:     ' .. netuserData.attributes.str,
-                    self:xpbar(netuserData.attributes.str*10,10),
+                    func:xpbar(netuserData.attributes.str*10,10),
                     'Agility:      ' .. netuserData.attributes.agi,
-                    self:xpbar(netuserData.attributes.agi*10,10),
+                    func:xpbar(netuserData.attributes.agi*10,10),
                     'Stamina:      ' .. netuserData.attributes.sta,
-                    self:xpbar(netuserData.attributes.sta*10,10),
+                    func:xpbar(netuserData.attributes.sta*10,10),
                     'Intellect:    ' .. netuserData.attributes.int,
-                    self:xpbar(netuserData.attributes.int*10,10),
+                    func:xpbar(netuserData.attributes.int*10,10),
                 },
                 ['cmds']={'train','untrain'}
             }
-            self:TextBox(netuser, content, cmd, args) return
+            func:TextBox(netuser, content, cmd, args) return
         elseif args[1] == 'skills' then
             local content = {
                 --['prefix']='This is any prefix you would like to enter.',
@@ -97,15 +97,15 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                 local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
                 local d = math.floor(((v.xp/c)*100)+0.5) -- percent currently to next level.
                 table.insert( content.list, tostring('   ' .. v.name .. '    •    Level: ' .. v.lvl .. '    •    ' .. 'Exp: ' .. v.xp ))
-                table.insert( content.list, tostring(self:xpbar( d, 32 )))
+                table.insert( content.list, tostring(func:xpbar( d, 32 )))
             end
-            self:TextBox(netuser, content, cmd, args) return
+            func:TextBox(netuser, content, cmd, args) return
         elseif (args[1] == 'perks') then
             local msg = {'perks info here'}
-            self:TextBox(netuser, 'perks', msg, '•  list  •  active  •') return
+            func:TextBox(netuser, 'perks', msg, '•  list  •  active  •') return
         else
             local content={['cmds']={'xp','atr','skills','perks'}}
-            self:TextBoxError(netuser, content, cmd, args) return
+            func:TextBoxError(netuser, content, cmd, args) return
             --self:cmdError(netuser, ' ', '•  xp  •  atr  •  skills  •  perks  •  help  •') return
         end
     end
@@ -117,7 +117,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
 
                     ['cmds']={'str #','agi #','sta #','int #'},
                 }
-                self:TextBox(netuser, content, cmd, args) return
+                func:TextBox(netuser, content, cmd, args) return
             elseif args[2] == 'untrain' then
                 local content = {
                     ['msg']='To untrain your attribute points you will have to pay a trainer. WARNING: each time you untrain the cost will increase.\n \nIf you are sure you want to untrain use the pay command.\n \ni.e. /c atr untrain pay\n \nCost: ' .. tonumber(core:Config.settings.untraincost*(1+core:Config.settings.untraincostgrowth)^netuserData.ut),
@@ -125,7 +125,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                 }
             else
                 local content = {['cmds']={'train','untrain'}}
-                self:TextBoxError(netuser, content, cmd, args) return
+                func:TextBoxError(netuser, content, cmd, args) return
             end
         elseif args[1] == 'skills'then
             local skillData = netuserData.skills[args[2]]
@@ -136,19 +136,19 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                 local d = math.floor(((skillData.xp/c)*100)+0.5) -- percent currently to next level.
                 local e = c-skillData.xp -- left to go until level
                 local content = {
-                    ['list'] = {'Skill:  ' .. skillData.name,'Level:  ' .. skillData.lvl,'Experience:  (' .. skillData.xp .. '/' .. c .. ')  [' .. d .. '%]  (' .. e .. ')', self:xpbar( d, 32 ) }
+                    ['list'] = {'Skill:  ' .. skillData.name,'Level:  ' .. skillData.lvl,'Experience:  (' .. skillData.xp .. '/' .. c .. ')  [' .. d .. '%]  (' .. e .. ')', func:xpbar( d, 32 ) }
                 }
 
-                self:TextBox(netuser, content, cmd, args) return
+                func:TextBox(netuser, content, cmd, args) return
             else
                 local content = {['cmds']={'"skill name"'}}
-                self:TextBoxError(netuser, content, cmd, args) return
+                func:TextBoxError(netuser, content, cmd, args) return
             end
         else
             local content={
                 ['cmds']={'xp', 'atr','skills','perks'}
             }
-            self:TextBoxError(netuser, content, cmd, args) return
+            func:TextBoxError(netuser, content, cmd, args) return
         end
     end
     if #args>=3 then
@@ -163,7 +163,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                         ['msg']='You can\'t train above 10!',
                         ['cmds']={'str #','agi #','sta #','int #'},
                     }
-                    self:TextBoxError(netuser, content, cmd, args) return
+                    func:TextBoxError(netuser, content, cmd, args) return
                 end
             else
                 local content = {
@@ -173,7 +173,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             end
 
         elseif args[1] == 'atr' and args[2] == 'untrain' and args[3] == 'pay' then
-            self:Notice(netuser, ' ', 'You have untrained all attributes!', 4)
+            func:Notice(netuser, ' ', 'You have untrained all attributes!', 4)
             netuserData.attributes.str=0
             netuserData.attributes.agi=0
             netuserData.attributes.sta=0
@@ -183,7 +183,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             local content = {
                 ['cmds']={'str #','agi #','sta #','int #'},
             }
-            self:TextBoxError(netuser, content, cmd, args) return
+            func:TextBoxError(netuser, content, cmd, args) return
         end
     end
 
@@ -193,7 +193,7 @@ end
 
 function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
 
-    local guild = self:getGuild( netuser )
+    local guild = guild:getGuild( netuser )
     if( guild ) then
         local gxp = math.floor( xp * .1 )
         local glory = self:hasForGlory( guild )

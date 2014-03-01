@@ -74,7 +74,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                     if failed then v = v/2 end
                     print ( k )
                     local datablock = rust.GetDatablockByName( k )
-                    local isUnstackable = table.containsval(unstackable, k )
+                    local isUnstackable = func:containsval(unstackable, k )
                     local y = 0
                     local item = inv:FindItem(datablock)
                     if (item) then
@@ -150,12 +150,12 @@ end
 function PLUGIN:cmdInspect( netuser, cmd, args )
     if not args[1] then
         if not args[1]then local content={['msg']=' With the inspect feature you\'re able inspect any item ingame. This will show the crafting information. \n \n Simply type /inspect "Item Name"' }
-        self:TextBox(netuser,content,cmd,args)return end
+        func:TextBox(netuser,content,cmd,args)return end
     elseif args[1] then
         local itemname = tostring( args[1] )
         if( not self.craft[ itemname ] ) then -- item not found
             local content={['msg']=''.. itemname .. ' is not craftable!' }
-            self:TextBoxError(netuser,content,cmd,args) return
+            func:TextBoxError(netuser,content,cmd,args) return
         else
             local data = self.craft[ itemname ]
 
@@ -173,7 +173,7 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
                 }
             }
             for k, v in pairs( data.mats ) do table.insert( content.list, '- ' .. v .. 'x ' .. k ) end
-            self:TextBox(netuser,content,cmd,args) return
+            func:TextBox(netuser,content,cmd,args) return
         end
     end
 end
