@@ -2,7 +2,7 @@ PLUGIN.Title = 'Carbon'
 PLUGIN.Description = 'experience. levels. skills. rewards.'
 PLUGIN.Version = '0.1.1a'
 PLUGIN.Author = 'Mischa & CareX'
-
+local OSdateTime = util.GetStaticPropertyGetter( System.DateTime, 'Now' )
 --[[ SPECIAL NOTES
 local content = {
   ['prefix']='',
@@ -114,7 +114,8 @@ function PLUGIN:Init()
     spamNet = {} --used to prevent spammed messages to a user.
     self.debugr = false
     self.rnd = 0
-    timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
+    self.Timer = {}
+    self.Timer.randomseed = timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
     -- timer.Repeat( 1, function() self.rnd = math.random( 0, 100 ) end )
     -- timer.Repeat( 60, function() self:GameUpdate() end ) -- This controls everything. guilds/random events etc. 1 minute timer.
     print( 'Carbon Loaded!' )
@@ -187,60 +188,6 @@ function PLUGIN:x( netuser, cmd, args )
     local invitem4 = inv:AddItemAmount( boots, 1, pref )
 end
 
--- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
-function PLUGIN:OnKilled (takedamage, dmg)
-    -----------------CLIENT VS CLIENT
-    if (takedamage:GetComponent( 'HumanController' )) then
-        local vicuser = dmg.victim.client.netUser
-        local vicuserData = self.User[rust.GetUserID(vicuser)]
-        if(dmg.victim.client and dmg.attacker.client) then
-            local netuser = dmg.attacker.client.netUser
-            local netuserData = self.User[rust.GetUserID(netuser)]
-            if (netuser ~= vicuser) then
-                netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
-                self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
-            elseif(netuser == vicuser) then
-                self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
-            end
-            return
-            -----------------PVE VS CLIENT
-        elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
-            self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
-        end
-    end
-    -------------------CLIENT VS PVE
-    local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
-    for i, npcController in ipairs(npcController) do
-        if (takedamage:GetComponent( npcController )) then
-            local npcData = self.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
-            local netuser = dmg.attacker.client.netUser
-            local netuserData = self.User[rust.GetUserID(netuser)]
-            local xp = math.floor(npcData.xp*self.Config.settings.xpmodifier)
-            if (not netuserData.stats.kills.pve[npcData.name]) then
-                netuserData.stats.kills.pve[npcData.name] = 1
-            else
-                netuserData.stats.kills.pve[npcData.name] = netuserData.stats.kills.pve[npcData.name]+1
-            end
-            netuserData.stats.kills.pve.total = netuserData.stats.kills.pve.total+1
-            self:GiveXp( weaponData, netuser, netuserData, xp)
-            return end --break out of all loops after finding controller type
-    end
-    -------------------CLIENT VS SLEEPER
-    --[[
-	if (string.find(takedamage.gameObject.Name, 'MaleSleeper(',1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
-		local actorUser = dmg.attacker.client.netUser
-		local coord = actorUser.playerClient.lastKnownPosition
-		local sleepreId = self:SleeperPos(coord)
-        if(sleepreId ~= nil) then
-            self.Config.sleepers.pos[sleepreId] = nil
-            self:GiveXp( actorUser, tonumber(math.floor(self.User[sleepreId].xp*self.Config.settings.sleeperxppercent/100)))
-            self:setXpPercentById(sleepreId, tonumber(100-self.Config.settings.sleeperxppercent-self.Config.settings.dppercent))
-        end
-	end
-    return
-    --]]
-end
-
 -- PLUGIN:OnProcessDamageEvent
 typesystem.LoadEnum( Rust.DamageTypeFlags, "DamageTypeFlags" )
 local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "damageTypes", nil, System.Int32 )
@@ -251,7 +198,8 @@ local damage_explosion = 8
 local damage_radiation = 16
 local damage_cold = 32
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-
+    local currentDate = OSdateTime()
+    rust.BroadcastChat(tostring(currentDate))
     local dmgType = StatusIntGetter( dmg )
     rust.BroadcastChat(tostring(dmgType))
     if (dmgType == damage_generic) then
@@ -297,7 +245,9 @@ function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
 end
 
 -- PLUGIN:ModifyDamage | http://wiki.rustoxide.com/index.php?title=Hooks/ModifyDamage
+typesystem.LoadEnum( Rust.DamageTypeFlags, "DamageType" ) --load DamgeType enum
 function PLUGIN:ModifyDamage (takedamage, dmg)
+
     --------------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
         if(dmg.victim.client and dmg.attacker.client) then
@@ -477,6 +427,60 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
             return dmg
         end
     end
+end
+
+-- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
+function PLUGIN:OnKilled (takedamage, dmg)
+    -----------------CLIENT VS CLIENT
+    if (takedamage:GetComponent( 'HumanController' )) then
+        local vicuser = dmg.victim.client.netUser
+        local vicuserData = self.User[rust.GetUserID(vicuser)]
+        if(dmg.victim.client and dmg.attacker.client) then
+            local netuser = dmg.attacker.client.netUser
+            local netuserData = self.User[rust.GetUserID(netuser)]
+            if (netuser ~= vicuser) then
+                netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
+                self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
+            elseif(netuser == vicuser) then
+                self:GiveDp( netuser, vicuserData, math.floor(netuserData.xp*self.Config.settings.dppercent/100))
+            end
+            return
+            -----------------PVE VS CLIENT
+        elseif ((dmg.victim.client) and (not dmg.attacker.client)) then
+            self:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*self.Config.settings.dppercent/100))
+        end
+    end
+    -------------------CLIENT VS PVE
+    local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
+    for i, npcController in ipairs(npcController) do
+        if (takedamage:GetComponent( npcController )) then
+            local npcData = self.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
+            local netuser = dmg.attacker.client.netUser
+            local netuserData = self.User[rust.GetUserID(netuser)]
+            local xp = math.floor(npcData.xp*self.Config.settings.xpmodifier)
+            if (not netuserData.stats.kills.pve[npcData.name]) then
+                netuserData.stats.kills.pve[npcData.name] = 1
+            else
+                netuserData.stats.kills.pve[npcData.name] = netuserData.stats.kills.pve[npcData.name]+1
+            end
+            netuserData.stats.kills.pve.total = netuserData.stats.kills.pve.total+1
+            self:GiveXp( weaponData, netuser, netuserData, xp)
+            return end --break out of all loops after finding controller type
+    end
+    -------------------CLIENT VS SLEEPER
+    --[[
+	if (string.find(takedamage.gameObject.Name, 'MaleSleeper(',1 ,true) and (dmg.attacker.client) and (dmg.attacker.client.netUser) and self.Config.settings.sleeperdppercent > 0) then
+		local actorUser = dmg.attacker.client.netUser
+		local coord = actorUser.playerClient.lastKnownPosition
+		local sleepreId = self:SleeperPos(coord)
+        if(sleepreId ~= nil) then
+            self.Config.sleepers.pos[sleepreId] = nil
+            self:GiveXp( actorUser, tonumber(math.floor(self.User[sleepreId].xp*self.Config.settings.sleeperxppercent/100)))
+            self:setXpPercentById(sleepreId, tonumber(100-self.Config.settings.sleeperxppercent-self.Config.settings.dppercent))
+        end
+	end
+    return
+    --]]
 end
 
 --PLUGIN:staModify

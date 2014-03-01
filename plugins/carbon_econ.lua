@@ -1,10 +1,11 @@
-PLUGIN.Title = "Carbon Ecnomy"
-PLUGIN.Description = ""
+PLUGIN.Title = "carbon_econ"
+PLUGIN.Description = "econ module"
 PLUGIN.Version = "0.0.1 alpha"
 PLUGIN.Author = "Mischa & CareX"
 
 
 function PLUGIN:Init()
+    core = cs.findplugin("carbon_core") core:LoadLibrary()
     print( "Carbon Econ version " .. self.Version .. " Loading..." )
 
     -- Gets/Creates Data File
@@ -67,10 +68,10 @@ end
 
 function table.containsval(t,cv) for _, v in pairs(t) do  if v == cv then return true  end  end return nil end
 local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
-                     "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
-                     "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
-                     "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
-                     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
+    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
+    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
+    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
+    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
 
 function PLUGIN:cmdReload( netuser, cmd, args )
     if not reloadtoken then
@@ -125,7 +126,7 @@ function PLUGIN:OnKilled ( takedamage, dmg )
             local netuser = dmg.attacker.client.netUser
             local data = self:Convert( math.floor( math.random( npcData.min, npcData.max )))
             self:AddBalance( netuser, data.g, data.s, data.c )
-        return end --break out of all loops after finding controller type
+            return end --break out of all loops after finding controller type
     end
 end
 
@@ -379,7 +380,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
     if( not args[1] ) then
         rust.Notice( netuser, 'help info ' )
         -- Your job, Mischa. xD
-    return end
+        return end
     -- Getting da item!
     if ( args[1] and not args[2] ) then
         -- local data = self.Item[ tostring(args[1]) ]
