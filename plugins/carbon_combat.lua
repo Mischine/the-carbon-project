@@ -63,6 +63,7 @@ end
 
 function PLUGIN:ModifyDamage (takedamage, dmg)
     --CLIENT VS CLIENT
+
     if dmg.victim.controllable then
         if dmg.attacker.controllable and dmg.victim.controllable then
             if dmg.attacker.controllable ~= dmg.victim.controllable then
