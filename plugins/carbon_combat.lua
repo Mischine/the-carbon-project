@@ -15,8 +15,6 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 
-
-
     --[[
     if dmg.attacker.client.netUser then
         if weaponData then
