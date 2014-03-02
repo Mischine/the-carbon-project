@@ -45,7 +45,7 @@ function PLUGIN:cmdReloadAll( netuser, cmd, args )
     for _,v in ipairs(plugins) do
         if not reloadtoken then
             local b, str = reloadCarbon(v)
-            func:Notice(netuser.networkPlayer," ϟ ",str, 4 )
+            Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ϟ", str .. '      ', duration or 4.0 )
         end
     end
 

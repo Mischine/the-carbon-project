@@ -191,9 +191,9 @@ end
 
 
 
-function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
+function PLUGIN:GiveXp(combatData, xp)
 
-    local guild = guild:getGuild( netuser )
+    local guild = guild:getGuild( combatData.netuser )
     if( guild ) then
         local gxp = math.floor( xp * .1 )
         local glory = self:hasForGlory( guild )
@@ -201,27 +201,27 @@ function PLUGIN:GiveXp(weaponData, netuser, netuserData, xp)
         --xp = xp - gxp --if we want to take from the players xp.
         guild.Guild[ guild ].xp = guild.Guild[ guild ].xp + gxp
         self:GuildSave()
-        rust.InventoryNotice( netuser, '+' .. gxp .. 'gxp' )
+        rust.InventoryNotice( combatData.netuser, '+' .. gxp .. 'gxp' )
     end
 
-    if (netuserData.dp>xp) then
-        netuserData.dp = netuserData.dp - xp
-        rust.InventoryNotice( netuser, '-' .. (netuserData.dp - xp) .. 'dp' )
-    elseif (netuserData.dp<=0) then
-        netuserData.xp = netuserData.xp+xp
-        netuserData.skills[ weaponData.name ].xp = netuserData.skills[ weaponData.name ].xp + xp
-        rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
-        self:PlayerLvl(netuser, netuserData, xp)
-        self:WeaponLvl(weaponData, netuser, netuserData, xp)
+    if (combatData.netuserData.dp>xp) then
+        combatData.netuserData.dp = combatData.netuserData.dp - xp
+        rust.InventoryNotice( combatData.netuser, '-' .. (combatData.netuserData.dp - xp) .. 'dp' )
+    elseif (combatData.netuserData.dp<=0) then
+        combatData.netuserData.xp = combatData.netuserData.xp+xp
+        combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp
+        rust.InventoryNotice( combatData.netuser, '+' .. xp .. 'xp' )
+        self:PlayerLvl(combatData, xp)
+        self:WeaponLvl(combatData, xp)
     else
-        local xp = xp-netuserData.dp
-        netuserData.xp = netuserData.xp+xp
-        netuserData.skills[ weaponData.name ].xp = netuserData.skills[ weaponData.name ].xp + xp
-        netuserData.dp = 0
-        rust.InventoryNotice( netuser, '-' .. netuserData.dp .. 'dp' )
-        rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
-        self:PlayerLvl(netuser, netuserData, xp)
-        self:WeaponLvl(weaponData, netuser, netuserData, xp)
+        local xp = xp-combatData.netuserData.dp
+        combatData.netuserData.xp = combatData.netuserData.xp+xp
+        combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp
+        combatData.netuserData.dp = 0
+        rust.InventoryNotice( combatData.netuser, '-' .. combatData.netuserData.dp .. 'dp' )
+        rust.InventoryNotice( combatData.netuser, '+' .. xp .. 'xp' )
+        self:PlayerLvl(combatData, xp)
+        self:WeaponLvl(combatData, xp)
     end
     self:UserSave()
 end
@@ -234,44 +234,44 @@ function PLUGIN:getLvl( netuser )
 end
 
 --PLUGIN:GiveDp
-function PLUGIN:GiveDp(vicuser, vicuserData, dp)
-    if ((vicuserData.dp+dp/vicuserData.xp) >= .5) then
-        vicuserData.dp = vicuserData.xp*.5
-        rust.InventoryNotice( vicuser, '+' .. (dp - vicuserData.xp*.5) .. 'dp' )
+function PLUGIN:GiveDp(combatData, dp)
+    if ((combatData.vicuserData.dp+dp/combatData.vicuserData.xp) >= .5) then
+        combatData.vicuserData.dp = combatData.vicuserData.xp*.5
+        rust.InventoryNotice( combatData.vicuser, '+' .. (dp - combatData.vicuserData.xp*.5) .. 'dp' )
     else
-        vicuserData.dp = vicuserData.dp + dp
-        rust.InventoryNotice( vicuser, '+' .. (dp) .. 'dp' )
+        combatData.vicuserData.dp = combatData.vicuserData.dp + dp
+        rust.InventoryNotice( combatData.vicuser, '+' .. (dp) .. 'dp' )
     end
     self:UserSave()
 end
 
 --PLUGIN:PlayerLvl
-function PLUGIN:PlayerLvl(netuser, netuserData, xp)
+function PLUGIN:PlayerLvl(combatData, xp)
 
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)
-    if (calcLvl ~= netuserData.lvl) then
-        netuserData.lvl = calcLvl
-        rust.Notice( netuser, 'You are now level ' .. calcLvl .. '!', 5 )
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)
+    if (calcLvl ~= combatData.netuserData.lvl) then
+        combatData.netuserData.lvl = calcLvl
+        rust.Notice( combatData.netuser, 'You are now level ' .. calcLvl .. '!', 5 )
     end
-    local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/3)
-    if (calcAp > netuserData.ap) then
-        netuserData.ap = calcAp
-        timer.Once(2, function() rust.SendChatToUser( netuser, core.sysname, 'You have earned an attribute point!') end)
+    local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/3)
+    if (calcAp > combatData.netuserData.ap) then
+        combatData.netuserData.ap = calcAp
+        timer.Once(2, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned an attribute point!') end)
     end
-    local calcPp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(netuserData.xp+xp))+25))+50)/100)/6)
-    if (calcPp > netuserData.pp) then
-        netuserData.pp = calcPp
-        timer.Once(3, function() rust.SendChatToUser( netuser, core.sysname, 'You have earned a perk point!') end)
+    local calcPp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/6)
+    if (calcPp > combatData.netuserData.pp) then
+        combatData.netuserData.pp = calcPp
+        timer.Once(3, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned a perk point!') end)
     end
-    rust.SendChatToUser( netuser, core.sysname, tostring(netuserData.ap) .. ' ' .. tostring(netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
+    rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
 end
 
 --PLUGIN:WeaponLvl
-function PLUGIN:WeaponLvl(weaponData, netuser, netuserData, xp)
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.weaponlvlmodifier*(netuserData.skills[ weaponData.name ].xp+xp))+25))+50)/100)
-    if (calcLvl ~= netuserData.skills[ weaponData.name ].lvl) then
-        netuserData.skills[ weaponData.name ].lvl = calcLvl
-        timer.Once( 5, function()  rust.Notice( netuser, 'Your skill with the ' .. tostring(weaponData.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
+function PLUGIN:WeaponLvl(combatData, xp)
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.weaponlvlmodifier*(combatData.netuserData.skills[ combatData.weapon.name ].xp+xp))+25))+50)/100)
+    if (calcLvl ~= combatData.netuserData.skills[ combatData.weapon.name ].lvl) then
+        combatData.netuserData.skills[ combatData.weapon.name ].lvl = calcLvl
+        timer.Once( 5, function()  rust.Notice( combatData.netuser, 'Your skill with the ' .. tostring(combatData.weapon.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
     end
 end
 
