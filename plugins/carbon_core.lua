@@ -107,12 +107,32 @@ function PLUGIN:SetDefaultConfig()
             }
         },
         ['guild'] = {
+            ['vault']={             -- room is inventory space / cost is in gold.
+                ['1'] = {
+                    ['cap']=50
+                },
+                ['2'] = {
+                    ['cost']=3,
+                    ['cap']=500
+                },
+                ['3'] = {
+                    ['cost']=5,
+                    ['cap']=750
+                },
+                ['4'] = {
+                    ['cost']=10,
+                    ['cap']=1000
+                },
+                ['5'] = {
+                    ['cost']=20,
+                    ['cap']=1500
+                },
+            },
             ['prices']={
                 ['create']=25000
             },
             ['settings']={
-                ['vault']={['req']=2,['cost']=50000 ,['slots']=30},
-                ['glvlmodifier']=.1,
+                ['glvlmodifier']=.1
             },
             ['calls']={
                 ['rally']={['requirements']={['cost']=30000,['glvl']=3},['mod']=.05},

@@ -59,6 +59,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         return end
     local action = tostring( args[1] ):lower()
     if ( action == 'create') then
+        if self:getGuild( netuser ) then rust.Notice( netuser, 'You\'re already in a guild!' ) return end
         -- /g create 'Guild Name' 'Guild Tag'
         if(( args[2] ) and ( args[3] )) then
             local lvl = tonumber( char:getLvl( netuser ) )
@@ -127,17 +128,18 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Tag        : ' .. data.tag)
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Level     : ' .. data.glvl)
         rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')')
+        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor(data.xp / data.xpforLVL * 100), 32))
+        rust.SendChatToUser(netuser,core.sysname,'║ ')
+        rust.SendChatToUser(netuser,core.sysname,'║ Vault lvl: ' .. tostring(data.vault.lvl))
+        rust.SendChatToUser(netuser,core.sysname,'║ [ Gold: ' .. data.vault.money.g .. ' ] [ Silver: ' .. data.vault.money.s .. ' ] [ Copper: ' .. data.vault.money.c .. ' ]')
+        rust.SendChatToUser(netuser,core.sysname,'║ Capacity          :  (' .. data.vault.cap .. '/' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap .. ')   [ ' .. math.floor((data.vault.cap/core.Config.guild.vault[tostring(data.vault.lvl)].cap)*100) .. '% ]   (+' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap-data.vault.cap .. ')' )
+        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor((data.vault.cap/core.Config.guild.vault[tostring(data.vault.lvl)].cap)*100) , 32))
         rust.SendChatToUser(netuser,core.sysname,'║ ')
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Leader   : ' .. self:getGuildLeader( guild ))
         rust.SendChatToUser(netuser,core.sysname,'║ Members        : ' .. func:count( data.members ))
-        if( data.interval >= 10 ) then
-            rust.SendChatToUser(netuser,core.sysname,'║ Collect/' .. data.interval .. 'h     : ' .. data.collect)
-        else
-            rust.SendChatToUser(netuser,core.sysname,'║ Collect/' .. data.interval .. 'h      : ' .. data.collect)
-        end
-        rust.SendChatToUser(netuser,core.sysname,'║ Perks               : ' .. func:sayTable( data.unlockedperks, ', ' ))
-        rust.SendChatToUser(netuser,core.sysname,'║ Active Perks : ' .. func:sayTable( data.activeperks, ', ' ))
-        rust.SendChatToUser(netuser,core.sysname,'║ War                   : ' .. func:sayTable( data.war, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ Perks               : ' .. table.concat( data.unlockedcalls, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ Active Perks : ' .. table.concat( data.activecalls, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ War                   : ' .. table.concat( data.war, ', ' ))
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
         rust.SendChatToUser(netuser,core.sysname,'║ ⌘')
         rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
@@ -501,36 +503,151 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             else rust.SendChatToUser( netuser, '/g rank [list]' ) end
         end
 
-        -- elseif ( action == 'vault' ) then -- [ canvault ]
-        -- /g vault buy                             -- Buy a vault
+    elseif ( action == 'vault' ) then -- [ canvault ]
+        local guild = self:getGuild( netuser )
+        if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
+        if not args[2] then
+            local data = self:getGuildData( guild )
+            -- List capacity, money and items in the vault.
+            local content = {
+                ['subheader'] ='[ Gold: ' .. data.vault.money.g .. ' ] [ Silver: ' .. data.vault.money.s .. ' ] [ Copper: ' .. data.vault.money.c .. ' ]',
+                ['header'] ='Vault level: ' .. tostring( data.vault.lvl) ,
+                'Capacity: (' .. data.vault.cap .. '/' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap .. ')   [ ' .. math.floor((data.vault.cap/core.Config.guild.vault[tostring(data.vault.lvl)].cap)*100) .. '% ]   (+' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap-data.vault.cap .. ')',
+                ['list'] = {'Capacity: (' .. data.vault.cap .. '/' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap .. ')   [ ' .. math.floor((data.vault.cap/core.Config.guild.vault[tostring(data.vault.lvl)].cap)*100) .. '% ]   (+' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap-data.vault.cap .. ')',
+                            func:xpbar(math.floor((data.vault.cap/core.Config.guild.vault[tostring(data.vault.lvl)].cap)*100) , 32)},
+                ['cmds'] = {'store','withdraw','upgrade','donate'}
+            }
+            for k,v in pairs( data.vault.items ) do
+                table.insert( content.list, tostring(v) .. 'x ' .. k  )
+            end
+            func:TextBox(netuser,content,cmd,args)
 
+        elseif args[2]:lower() == 'help' then
+            local content = {
+                ['msg'] ='',
+                ['list'] = {'Level 1: Cost: free | 50 vault capacity.','Level 2: Cost: 3 Gold | 500 vault capacity.','Level 3: Cost: 5 Gold | 750 vault capacity.','Level 4: Cost: 10 Gold | 1000 vault capacity.','Level 5: Cost: 20 Gold | 1500 vault capacity.'},
+                ['suffix'] = 'To upgrade your vault use /g vault upgrade',
+                ['cmds'] = {'store','withdraw','upgrade','donate'}
+            }
+            func:TextBox(netuser,content,cmd,args)
+        elseif args[2]:lower() == 'store' then
         -- /g vault add                             -- Add items/money to the guild vault
-
+            if( not self:hasAbility( netuser, guild, 'canvault' ) ) then rust.Notice(netuser, 'You\'re not permitted to interact with the guild vault.' ) return end
+            if not args[3] and not args[4] then
+                local content = {
+                    ['msg'] ='Storing items in the vaul will take up capacity. Every item is 1 capacity. A M4 is 1 capacity, 1 stone is 1 capacity. \n to store an item in the vault type /g vault store "itemname" [amount]',
+                }
+                func:TextBox(netuser,content,cmd,args)
+            elseif args[3] and args[4] then
+                -- /g vault store "item" amount
+                local guilddata = self:getGuildData( guild )
+                local item = args[3]
+                local amount = tonumber( args[4] )
+                if not amount then rust.Notice( netuser, 'Invalid amount!' ) return end
+                if guilddata.vault.cap == core.Config.guild.vault[tostring(guilddata.vault.lvl)].cap then rust.Notice( netuser, 'Guild vault capacity is maxed!' ) return end
+                if (( guilddata.vault.cap + amount ) > core.Config.guild.vault[tostring(guilddata.vault.lvl)].cap ) then
+                    amount = core.Config.guild.vault[tostring(guilddata.vault.lvl)].cap - guilddata.vault.cap
+                    rust.SendChatToUser(netuser,core.sysname , 'Amount adjusted to ' ..  tostring(amount) .. ' to prevent overflow.' )
+                end
+                self:StoreItems( netuser, item, amount, guilddata )
+            end
+        elseif args[2]:lower() == 'donate' then
+            if not args[3] then
+                local content = {
+                    ['msg'] ='To donate money type /g vault donate gold silver copper \n For example /g vault donate 2 5 10 donates 2 gold 5 Silver and 10 Copper.',
+                }
+                func:TextBox(netuser,content,cmd,args)
+            else
+                local g,s,c = 0,0,0
+                g = tonumber(args[3])
+                if not g then rust.Notice(netuser, 'Invalid Gold amount!' ) return end
+                if args[4] then s = tonumber(args[4]) end
+                if not g then rust.Notice(netuser, 'Invalid Silver amount!' ) return end
+                if args[5] then c = tonumber(args[5]) end
+                if not c then rust.Notice( netuser, 'Invalid Copper amount!' ) return end
+                local canbuy = econ:canBuy( netuser, g, s, c )
+                if not canbuy then rust.Notice( netuser, 'Not enough balance!' ) return end
+                self:GuildDeposit( netuser.displayName, guild, g,s,c )
+                econ:RemoveBalance( netuser, g, s, c )
+                econ:Save()
+            end
+        elseif args[2]:lower() == 'withdraw' then
         -- /g vault withdraw                        -- withdraw items/money from the guild vault
-
+            if( not self:hasAbility( netuser, guild, 'canvault' ) ) then rust.Notice(netuser, 'You\'re not permitted to interact with the guild vault.' ) return end
+            if not args[3] then
+                local content = {
+                    ['msg'] ='To withdraw /g vault withdraw "ItemName" [amount] OR /g vault withdraw money Gold Silver Copper',
+                }
+                func:TextBox(netuser,content,cmd,args)
+            return end
+            if args[3] == 'money' then
+                if not args[4] then
+                    local content = {
+                        ['msg'] = 'Syntax: /g vault withdraw money GOLD SILVER COPPER. For example: /g vault withdraw 0 8 4 || This will withdraw 8 silver and 4 copper.'
+                    }
+                else
+                    local g,s,c = 0,0,0
+                    g = tonumber(args[4])
+                    if not g then rust.Notice(netuser, 'Invalid Gold amount!' ) return end
+                    if args[5] then s = tonumber(args[5]) end
+                    if not s then rust.Notice(netuser, 'Invalid Silver amount!' ) return end
+                    if args[6] then c = tonumber(args[6]) end
+                    if not c then rust.Notice( netuser, 'Invalid Copper amount!' ) return end
+                    local canbuy = self:canBuyGuild( guild, g, s, c )
+                    if not canbuy then rust.Notice( netuser, 'Not enough balance in the guild vault!' ) return end
+                    self:GuildWithdraw( netuser.displayName, guild, g,s,c )
+                    econ:AddBalance( netuser, g, s, c )
+                    econ:Save()
+                end
+            elseif args[3] and args[4] then
+                local guilddata = self:getGuildData( guild )
+                local itemname = tostring(args[3])
+                local datablock = rust.GetDatablockByName( itemname )
+                if not datablock then rust.Notice( netuser, itemname .. ' does not exist!') return end
+                if not guilddata.vault.items[ itemname ] then rust.Notice( netuser, 'Guild vault does not have ' .. itemname .. ' stored!' ) return end
+                local amount = tonumber(args[4])
+                if not amount then rust.Notice(netuser, 'Invalid amount!' ) return end
+                local vaultamount = guilddata.vault.items[ itemname ]
+                if amount > vaultamount then amount = vaultamount rust.SendChatToUser( netuser,core.sysname, 'amount set to ' .. tostring( vaultamount )) end
+                local inv = rust.GetInventory(netuser)
+                if not inv then rust.Notice( netuser, 'Inventory not found, please relog!' ) return end
+                guilddata.vault.items[ itemname ] = guilddata.vault.items[ itemname ] - amount
+                if guilddata.vault.items[ itemname ] == 0 then guilddata.vault.items[ itemname ] = nil end
+                inv:AddItemAmount( datablock, amount )
+                self:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has withdrawed: ' .. tostring( amount ) .. 'x ' .. itemname .. ' ::::::::::::::' )
+                guilddata.vault.cap = guilddata.vault.cap - amount
+                self:GuildSave()
+                char:UserSave()
+            else
+                local content = {
+                    ['msg'] ='To withdraw /g vault withdraw "ItemName" [amount] OR /g vault withdraw money Gold Silver Copper',
+                }
+                func:TextBox(netuser,content,cmd,args)
+            end
+        elseif args[2]:lower() == 'upgrade' then
         -- /g vault upgrade                         -- Upgrade your vault to the next lvl
+            if( not self:hasAbility( netuser, guild, 'canvault' ) ) then rust.Notice(netuser, 'You\'re not permitted to interact with the guild vault.' ) return end
 
+        else
+            local content = {
+                ['msg'] ='',
+                ['list'] = {'Level 1: Cost: free | 50 vault capacity.','Level 2: Cost: 3 Gold | 500 vault capacity.','Level 3: Cost: 5 Gold | 750 vault capacity.','Level 4: Cost: 10 Gold | 1000 vault capacity.','Level 5: Cost: 20 Gold | 1500 vault capacity.'},
+                ['suffix'] = 'To upgrade your vault use /g vault upgrade',
+                ['cmds'] = {'store','withdraw','upgrade','donate'}
+            }
+            func:TextBox(netuser,content,cmd,args)
+        end
     elseif ( action == 'help' ) then
         local guild = self:getGuild( netuser )
         if( not guild ) then guild = core.sysname end
         if not args[2] then
             local content = {
                 ['msg'] ='Learn more about guilds in Carbon!',
-                ['cmds'] ={'create','delete','info','stats','invite','kick','war','rank','rank','ability','vault','calls','collection','assassin'}
+                ['cmds'] ={'create','delete','info','stats','invite','kick','war','rank','rank','ability','vault','calls','assassin'}
             }
             func:TextBox(netuser,content,cmd,args)
             return
         end
-
-        --[[
-        local content = {
-            ['header'] ='',
-            ['msg'] ='',
-            ['cmds'] ={'',}
-        }
-        func:TextBox(netuser,content,cmd,args)
-         ]]
-
         local action2 = tostring(args[2]:lower())
         if( action2 == 'create' ) then
             local content = {
@@ -546,8 +663,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'info' ) then
             local content = {
-                ['header'] ='',
-                ['msg'] ='/g info displays information about a guild. \n Information regarding guildname, guild tag, guild level, current guild xp, number of members, the collection interval/amount, available calls, active calls, and the tags of enemey guilds.',
+                ['msg'] ='/g info displays information about a guild. \n Information regarding guildname, guild tag, guild level, current guild xp, number of members, available calls, active calls, and the tags of enemey guilds.',
             }
             func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'stats' ) then
@@ -576,7 +692,7 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         elseif( action2 == 'rank' ) then
             local content = {
             ['header'] ='It is required to have the ability: canrank',
-            ['msg'] ='Ranks in guilds are mainly to assign permissions and figurative status. There are 6 default ranks: Leader, Co-Leader, Quartermaster, War-Leader, Assassin ( coming soon! ) and member. Quartermasters are able to add/take from the guildvault also they are able to edit the rate and collection amount.'
+            ['msg'] ='Ranks in guilds are mainly to assign permissions and figurative status. There are 6 default ranks: Leader, Co-Leader, Quartermaster, War-Leader, Assassin ( coming soon! ) and member. Quartermasters are able to add/take from the guild vault.'
             }
             func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'ability' ) then
@@ -590,11 +706,6 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             }
             func:TextBox(netuser,content,cmd,args)
         elseif( action2 == 'calls' ) then
-            local content = {
-                ['msg'] ='COMING SOON!'
-            }
-            func:TextBox(netuser,content,cmd,args)
-        elseif( action2 == 'collection' ) then
             local content = {
                 ['msg'] ='COMING SOON!'
             }
@@ -657,12 +768,18 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.members[ netuserID ][ 'rank' ] = 'Leader'
     entry.members[ netuserID ][ 'moncon' ] = 0
     entry.members[ netuserID ][ 'xpcon' ] = 0
-    entry.war = {}                                                                                                  -- Guild is at war with:
-    entry.collect = 0                                                                                               -- Collects money from members
-    entry.gocollect = 0                                                                                             -- time left for next collection
-    entry.interval = 0                                                                                              -- Amount of hours between each collection.
-    entry.unlockedperks = {'rally','syg','forglory','cotw',}                                                        -- Perks are unlocked at certain Guild lvls ( Max: 10 )
-    entry.activeperks = {}                                                                                          -- Perks are unlocked at certain Guild lvls ( Max: 10 )
+    entry.war = {}
+    entry.vault = {}                                                                                                -- Vault
+    entry.vault[ 'money' ] = {}
+    entry.vault[ 'money' ][ 'g' ] = 0                                                                              -- Gold in vault
+    entry.vault[ 'money' ][ 's' ] = 0                                                                              -- Silver in vault
+    entry.vault[ 'money' ][ 'c' ] = 0                                                                              -- Copper in vault
+    entry.vault[ 'items' ] = {}                                                                                     -- items in vault                                                                                               -- Guild is at war with:
+    entry.vault[ 'lvl' ] = 1                                                                                        -- Current level of the vault                                                                                           -- Guild is at war with:
+    entry.vault[ 'cap' ] = 0                                                                                        -- Current capacity of the vault
+    entry.unlockedcalls = {}                                                                                        -- calls are unlocked at certain Guild lvls ( Max: 10 )
+    entry.activecalls = {}                                                                                          -- Add complete table to Guilds file
+    char.User[ netuserID ][ 'guild' ] = name                                                                        -- calls are activated by the perks command
     timer.Once( 1, function()
         rust.SendChatToUser( netuser, core.sysname, 'Creating Guild...' )
         timer.Once( 3, function()rust.SendChatToUser( netuser, core.sysname, 'Creating guild nameplates...' ) end )
@@ -671,21 +788,133 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         timer.Once( 16, function()rust.SendChatToUser( netuser, tostring( '[' .. tag .. '] ' .. name ), 'Feeding the chickens...' ) end )
         timer.Once( 18, function()rust.SendChatToUser( netuser, tostring( '[' .. tag .. '] ' .. name ), 'Your guild has been created!' ) end )
         timer.Once( 19, function()
-            self.Guild[ name ] = entry                                                                                  -- Add complete table to Guilds file
-            char.User[ netuserID ][ 'guild' ] = name                                                                    -- Add guild to userdata.
+            self.Guild[ name ] = entry                                                                                  -- Add guild to userdata.
             char:UserSave()
             self:GuildSave() end)
     end )
 end
+
+local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
+    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
+    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
+    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
+    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
+
+--PLUGIN:StoreItems
+function PLUGIN:StoreItems( netuser, itemname, amount, guilddata )
+    local datablock = rust.GetDatablockByName( itemname )
+    if not datablock then rust.Notice( netuser, ' Item does not exist ') return end
+    local inv = rust.GetInventory( netuser )
+    if not inv then rust.Notice( netuser, 'Inventory not found, please report this to a GM.' ) return end
+    local isUnstackable = func:containsval(unstackable,itemname)
+    local i = 0
+    local item = inv:FindItem(datablock)
+    if (item) then
+        if (not isUnstackable) then
+            while (i < amount) do
+                if (item.uses > 0) then
+                    item:SetUses(item.uses - 1)
+                    i = i + 1
+                else
+                    inv:RemoveItem(item)
+                    item = inv:FindItem(datablock)
+                    if (not item) then
+                        break
+                    end
+                end
+            end
+        else
+            while (i < amount) do
+                inv:RemoveItem(item)
+                i = i + 1
+                item = inv:FindItem(datablock)
+                if (not item) then
+                    break
+                end
+            end
+        end
+    else rust.Notice(netuser, "Item not found in inventory!") return end
+    if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
+
+    if guilddata.vault.items[ itemname ] then
+        guilddata.vault.items[ itemname ] = guilddata.vault.items[ itemname ] + i
+    else
+        guilddata.vault.items[ itemname ] = i
+    end
+    guilddata.vault.cap = guilddata.vault.cap + i
+    self:GuildSave()
+    local guild = self:getGuild( netuser )
+    self:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has deposit: ' .. tostring( amount ) .. 'x ' .. itemname .. ' ::::::::::::::' )
+end
+
 --[[
     entry.vault = {}                                                                                                -- Vault
     entry.vault[ 'money' ][ 'gp' ] = 0                                                                              -- Gold in vault
     entry.vault[ 'money' ][ 'sp' ] = 0                                                                              -- Silver in vault
     entry.vault[ 'money' ][ 'cp' ] = 0                                                                              -- Copper in vault
-    entry.vault[ 'weapons' ] = {}                                                                                   -- Weapons in vault
-    entry.vault[ 'weapons' ] = {}                                                                                   -- Armor in vault
-    entry.vault[ 'materials' ] = {}                                                                                 -- Metarials in vault
-]]--
+    entry.vault[ 'items' ] = {}                                                                                     -- items in vault                                                                                               -- Guild is at war with:
+    entry.vault[ 'lvl' ] = 1                                                                                        -- Current level of the vault                                                                                           -- Guild is at war with:
+    entry.vault[ 'cap' ] = 0                                                                                        -- Current capacity of the vault
+ ]]
+
+function PLUGIN:GuildDeposit( name, guild, g, s, c )
+    local guilddata = self:getGuildData( guild )
+    while ( c >= 100 ) do
+        c = c - 100
+        s = s + 1
+    end
+    while ( s >= 100 ) do
+        s = s - 100
+        g = g + 1
+    end
+    if( g ) then guilddata.vault.money.g = guilddata.vault.money.g + g end
+    if( s ) then guilddata.vault.money.s = guilddata.vault.money.s + s end
+    if( c ) then guilddata.vault.money.c = guilddata.vault.money.c + c end
+    while( guilddata.vault.money.c >= 100 ) do
+        guilddata.vault.money.s = guilddata.vault.money.s + 1
+        guilddata.vault.money.c = guilddata.vault.money.c - 100
+    end
+    while( guilddata.vault.money.s >= 100 ) do
+        guilddata.vault.money.g = guilddata.vault.money.g + 1
+        guilddata.vault.money.s = guilddata.vault.money.s - 100
+    end
+    local msg = ':::::::::::::: has donated [ Gold: ' .. g .. ' ] [ Silver: ' .. s .. ' ] [ Copper: ' .. c .. ' ] ::::::::::::::'
+    self:sendGuildMsg( guild, name, msg )
+    self:GuildSave()
+end
+
+function PLUGIN:GuildWithdraw( name, guild, g, s, c )
+    local guilddata = self:getGuildData( guild )
+    while ( c >= 100 ) do
+        c = c - 100
+        s = s + 1
+    end
+    while ( s >= 100 ) do
+        s = s - 100
+        g = g + 1
+    end
+    if( g ) then guilddata.vault.money.g = guilddata.vault.money.g - g end
+    if( s ) then guilddata.vault.money.s = guilddata.vault.money.s - s end
+    if( c ) then guilddata.vault.money.c = guilddata.vault.money.c - c end
+    while( guilddata.vault.money.c < 0 ) do
+        guilddata.vault.money.c = guilddata.vault.money.c + 100
+        guilddata.vault.money.s =guilddata.vault.money.s - 1
+    end
+    while( guilddata.vault.money.s < 0 ) do
+        guilddata.vault.money.s = guilddata.vault.money.s + 100
+        guilddata.vault.money.g = guilddata.vault.money.g - 1
+    end
+    local msg = ':::::::::::::: has withdrawed [ Gold: ' .. g .. ' ] [ Silver: ' .. s .. ' ] [ Copper: ' .. c .. ' ] ::::::::::::::'
+    self:sendGuildMsg( guild, name, msg )
+    self:GuildSave()
+end
+
+function PLUGIN:canBuyGuild( guild, g, s, c )
+    local data = self:getGuildData( guild )
+    local cost = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
+    local bal = (( data.vault.money.g * 10000 ) + ( data.vault.money.s * 100 ) + ( data.vault.money.c * 1 ))
+    if( bal >= cost ) then return true else return false end
+end
 
 --PLUGIN:getGuildTag
 function PLUGIN:getGuildTag( netuser )
@@ -729,7 +958,7 @@ function PLUGIN:sendGuildMsg( guild, name, msg )
     local guilddata = self:getGuildData( guild )
     for k,v in pairs( self.Guild[ guild ].members ) do
         local b, targuser = rust.FindNetUsersByName( v.name )
-        if( b ) then rust.SendChatToUser( targuser, v.name .. '  [G]' , msg ) end
+        if( b ) then rust.SendChatToUser( targuser, name .. '  [G]' , msg ) end
     end
 end
 

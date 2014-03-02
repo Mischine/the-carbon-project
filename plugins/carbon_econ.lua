@@ -72,27 +72,6 @@ local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotg
     "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
 
-function PLUGIN:cmdReload( netuser, cmd, args )
-    if not reloadtoken then
-        local b, str = reloadCarbon('carbonecon')
-        rust.Notice(netuser,str)     end
-end
-
-function reloadCarbon(carbonecon)
-    reloadtoken = timer.Once(3,function() reloadtoken = nil  end)
-    print('Carbon Econ reloader initiated.. .')
-    cs.reloadplugin(carbonecon)
-    local ceplugin = plugins.Find(carbonecon)
-    if ceplugin then
-        ceplugin:Init()
-        if ceplugin.PostInit then cplugin:PostInit() end
-    else
-        return false, 'Failed to reload carbon'
-    end
-    print('Carbon Econ reloader complete.')
-    return true, 'Carbon Econ reloaded'
-end
-
 function PLUGIN:OnKilled ( takedamage, dmg )
     if ( takedamage:GetComponent( "HumanController" )) then
         local victim = takedamage:GetComponent( "HumanController" )
@@ -438,6 +417,8 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
         -- buy stuff.
         local data = false
         local key = false
+        local datablock = rust.GetDatablockByName( tostring(args[1]) )
+        if not datablock then rust.Notice( netuser, args[1] .. ' does not exist!') return end
         local amount = math.floor(( tonumber( args[2] )))
         if not amount then rust.Notice( netuser, 'Invalid amount! Please put a numeric amount! (ie. 8 )' ) return end
         -- Check if item exists.
@@ -464,8 +445,6 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
         elseif( data and key and amount and ( amount <= data.amount )) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then -- Item exist and is tradable
             local g,s,c = data.price.g * amount, data.price.s * amount, data.price.c * amount
             local canbuy = self:canBuy( netuser, g, s ,c )
-            local datablock = rust.GetDatablockByName( data.name )
-            if not datablock then rust.Notice( netuser, ' Datablock not found, report this to a GM please. ') return end
             if( canbuy ) then -- Has enough money datablock found.
                 local inv = rust.GetInventory( netuser )
                 if not inv then rust.Notice( netuser, 'Inventory not found! Please report this to a GM' ) return end
