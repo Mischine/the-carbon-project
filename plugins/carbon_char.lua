@@ -249,21 +249,28 @@ end
 function PLUGIN:PlayerLvl(combatData, xp)
 
     local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)
-    if (calcLvl ~= combatData.netuserData.lvl) then
-        combatData.netuserData.lvl = calcLvl
-        rust.Notice( combatData.netuser, 'You are now level ' .. calcLvl .. '!', 5 )
+    if calcLvl <= core.Config.settings.maxplayerlvl then
+        if (calcLvl ~= combatData.netuserData.lvl) then
+            combatData.netuserData.lvl = calcLvl
+            rust.Notice( combatData.netuser, 'You are now level ' .. calcLvl .. '!', 5 )
+        end
+        local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/3)
+        if (calcAp > combatData.netuserData.ap) then
+            combatData.netuserData.ap = calcAp
+            timer.Once(2, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned an attribute point!') end)
+        end
+        local calcPp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/6)
+        if (calcPp > combatData.netuserData.pp) then
+            combatData.netuserData.pp = calcPp
+            timer.Once(3, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned a perk point!') end)
+        end
+        rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
+    else
+        local ab = core.Config.settings.maxplayerlvl
+        local b = core.Config.settings.lvlmodifier
+        local f = ((ab*ab)+ab)/b*100-(ab*100)
+        combatData.netuserData.xp = f
     end
-    local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/3)
-    if (calcAp > combatData.netuserData.ap) then
-        combatData.netuserData.ap = calcAp
-        timer.Once(2, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned an attribute point!') end)
-    end
-    local calcPp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/6)
-    if (calcPp > combatData.netuserData.pp) then
-        combatData.netuserData.pp = calcPp
-        timer.Once(3, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned a perk point!') end)
-    end
-    rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
 end
 
 --PLUGIN:WeaponLvl
