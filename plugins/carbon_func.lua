@@ -179,3 +179,19 @@ function PLUGIN:xpbar( value, size )
     end
     return msg
 end
+
+function PLUGIN:GetTimeMilliSeconds()
+
+    local epoch = System.DateTime.Parse[1]( "1970-01-01 00:00:00" ):ToLocalTime()
+    local now = System.DateTime.Now
+    local unix = now:Subtract( epoch )
+
+    return unix.TotalMilliSeconds
+
+end
+function PLUGIN:Roll(amount)
+    local seed = self:GetTimeMilliSeconds()
+    math.randomseed(seed)
+    local result = math.random(amount)
+    return result
+end

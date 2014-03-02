@@ -68,7 +68,7 @@ function PLUGIN:SetDefaultConfig()
             ['Pipe Shotgun'] ={['name']='Pipe Shotgun',['type']='c',['dmg']=1,['lvl']=1},
             ['Revolver']={['name']='Revolver',['type']='c',['dmg']=1,['lvl']=1},
             ['9mm Pistol']={['name']='9mm Pistol',['type']='c',['dmg']=1,['lvl']=1},
-            ['M4']={['name']='M4',['type']='l',['dmg']=1,['lvl']=1},
+            ['M4']={['name']='M4',['type']='l',['dmg']=1,['lvl']=0},
             ['Bolt Action Rifle']={['name']='Bolt Action Rifle',['type']='l',['dmg']=1,['lvl']=10},
             ['Explosive Charge']={['name']='Explosive Charge',['type']='e',['dmg']=1,['lvl']=1},
             ['F1 Grenade']={['name']='F1 Grenade',['type']='e',['dmg']=1,['lvl']=1},
