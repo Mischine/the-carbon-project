@@ -107,17 +107,18 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        --[[
-        dmg = self:AttackGuild(combatData) --all guild offensive calls and modifiers
-        dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-        dmg = self:DefendGuild(combatData)--all guild DEFENSIVE calls and modifiers
-        --]]
+        dmg = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+        --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+        dmg = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
+
     elseif combatData.scenario == 2 then
         --rust.BroadcastChat('------------pve vs client------------')
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
+        --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+        dmg = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
         --rust.BroadcastChat('------------client vs pve------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
@@ -125,12 +126,56 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
+        dmg = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+        --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end
     --rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
     dmg.amount = combatData.dmg.amount
     combatData = {}
     return dmg
 end
+
+function PLUGIN:GuildAttack(combatData)
+    --rust.BroadcastChat('----PLUGIN:GuildAttack----')
+    if combatData.scenario == 1 then --client vs client
+
+    elseif combatData.scenario == 2 then --npc vs client
+
+    elseif combatData.scenario == 3 then --client vs npc
+
+    end
+    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    return combatData.dmg.amount
+end
+
+function PLUGIN:GuildDefend(combatData)
+    --rust.BroadcastChat('----PLUGIN:GuildDefend----')
+    if combatData.scenario == 1 then --client vs client
+
+    elseif combatData.scenario == 2 then --npc vs client
+
+    elseif combatData.scenario == 3 then --client vs npc
+
+    end
+    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    return combatData.dmg.amount
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- PLUGIN:OnKilled | http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 function PLUGIN:OnKilled (takedamage, dmg)
@@ -326,6 +371,7 @@ function PLUGIN:CritCheck(combatData)
     --rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
+
 function PLUGIN:Parry(combatData)
     --CRITICAL HIT CHECK
     if( char.User[ combatData.netuserData.id ].buffs[ 'ParryCrit' ]) then
