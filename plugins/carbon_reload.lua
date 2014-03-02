@@ -40,13 +40,12 @@ function PLUGIN:cmdReloadAll( netuser, cmd, args )
     local plugins = {
         'carbon_call','carbon_char','carbon_chat','carbon_combat','carbon_core','carbon_debug','carbon_econ',
         'carbon_func','carbon_guild','carbon_mail','carbon_party','carbon_perk','carbon_prof','carbon_sandbox','carbon_stats',
-        'carbon_reload'
+        'carbon_reload',
     }
     for _,v in ipairs(plugins) do
         if not reloadtoken then
             local b, str = reloadCarbon(v)
-            Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ϟ", str .. '      ', duration or 4.0 )
-            rust.RunServerCommand( 'wildlife.forceupdate' )
+            func:Notice(netuser.networkPlayer," ϟ ",str, 4 )
         end
     end
 
