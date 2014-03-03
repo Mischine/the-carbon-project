@@ -16,6 +16,20 @@ function PLUGIN:Init()
 
 end
 
+function PLUGIN:test( netuser, cmd, args)
+    local avatar = netuser:LoadAvatar()
+    local builder = avatar:ToBuilder()
+    rust.BroadcastChat('before: ')
+    local count = builder.BlueprintsCount
+    rust.BroadcastChat( tostring( count ))
+    -- Clearing
+    builder:ClearBlueprints()
+    rust.BroadcastChat('after: ')
+    local count = builder.BlueprintsCount
+    rust.BroadcastChat(tostring( count ))
+end
+
+
 --PLUGIN:cmdStorm
 function PLUGIN:cmdStorm(netuser,cmd, args)
     --rust.RunServerCommand( 'env.daylength 45')

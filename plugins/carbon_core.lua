@@ -113,18 +113,22 @@ function PLUGIN:SetDefaultConfig()
                 },
                 ['2'] = {
                     ['cost']=3,
+                    ['req']=2,
                     ['cap']=500
                 },
                 ['3'] = {
                     ['cost']=5,
+                    ['req']=5,
                     ['cap']=750
                 },
                 ['4'] = {
                     ['cost']=10,
+                    ['req']=7,
                     ['cap']=1000
                 },
                 ['5'] = {
                     ['cost']=20,
+                    ['req']=10,
                     ['cap']=1500
                 },
             },
@@ -132,14 +136,27 @@ function PLUGIN:SetDefaultConfig()
                 ['create']=25000
             },
             ['settings']={
-                ['glvlmodifier']=.1
+                ['glvlmodifier']= .1,
+                ['maxguildlvl']= 10,
+                ['lvlreq']={
+                    ['1']= 0,
+                    ['2']= 3,
+                    ['3']= 5,
+                    ['4']= 10,
+                    ['5']= 15,
+                    ['6']= 20,
+                    ['7']= 30,
+                    ['8']= 40,
+                    ['9']= 50,
+                    ['10']= 100
+                }
             },
             ['calls']={
-                ['rally']={['requirements']={['cost']=30000,['glvl']=3},['mod']=.05},
-                ['syg']={['requirements']={['cost']=30000,['glvl']=3,['mod']=.05},['mod']=.04},
-                ['cotw']={['requirements']={['cost']=25000,['glvl']=2},['mod']=.05},
-                ['forglory']={['requirements']={['cost']=25000,['glvl']=2},['mod']=.05 },
-                ['kos']={['requirements']={['cost']=25000,['glvl']=2},['mod']=50}
+                ['rally']={['requirements']={['cost']={['g']=1,['s']=50,['c']=0},['glvl']=3},['mod']=.05},
+                ['syg']={['requirements']={['cost']={['g']=1,['s']=50,['c']=0},['glvl']=3,['mod']=.05},['mod']=.04},
+                ['cotw']={['requirements']={['cost']={['g']=1,['s']=0,['c']=0},['glvl']=2},['mod']=.05},
+                ['forglory']={['requirements']={['cost']={['g']=2,['s']=0,['c']=0},['glvl']=2},['mod']=.05 },
+                ['kos']={['requirements']={['cost']={['g']=5,['s']=0,['c']=0},['glvl']=2},['mod']=50}
             }
         }
     }

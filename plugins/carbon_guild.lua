@@ -127,6 +127,11 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Name    : ' .. guild)
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Tag        : ' .. data.tag)
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Level     : ' .. data.glvl)
+        if data.glvl ~= 10 then
+        rust.SendChatToUser(netuser,core.sysname,'║ Required for guild level ' .. tostring(data.glvl + 1) )
+        rust.SendChatToUser(netuser,core.sysname,'║ members: ( ' .. func:count( data.members ) .. '/' .. core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] .. ' )' )
+        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor( func:count( data.members ) / core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] * 100), 32))
+        end
         rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')')
         rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor(data.xp / data.xpforLVL * 100), 32))
         rust.SendChatToUser(netuser,core.sysname,'║ ')
@@ -173,10 +178,12 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                     rust.Notice( netuser, 'Multiple users found with the name: ' .. util.QuoteSafe( targname ) )
                 end
                 return end
+            local hisguild = self:getGuild( targuser )
+            if hisguild then rust.Notice( targname .. ' is already in a guild!' ) return end
             local targuserID = rust.GetUserID( targuser )
             local members = self:getGuildMembers( guild )
             print (tostring( members ))
-            -- if( self.Guild[ guild].members[ targuserID ] ) then rust.Notice( netuser, tostring( targname ) .. ' is already in ' .. guild ) return end
+            if( self.Guild[ guild].members[ targuserID ] ) then rust.Notice( netuser, tostring( targname ) .. ' is already in ' .. guild ) return end
             if( self.Guild.temp[ targuserID ] ) then rust.Notice( netuser, targname .. ' is alrady invited!' ) return end
             self.Guild.temp[ targuserID ] = guild
             timer.Once( 60, function()
@@ -627,7 +634,36 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         elseif args[2]:lower() == 'upgrade' then
         -- /g vault upgrade                         -- Upgrade your vault to the next lvl
             if( not self:hasAbility( netuser, guild, 'canvault' ) ) then rust.Notice(netuser, 'You\'re not permitted to interact with the guild vault.' ) return end
-
+            local data = self:getGuildData( guild )
+            if not data then rust.Notice(netuser, 'Guild data not found.' ) return end
+            if not args[3] then
+                if data.glvl >= core.Config.guild.vault[data.vault.lvl + 1].req then
+                    local content = {
+                        ['header']='Upgrading vault to level: ' .. data.vault.lvl + 1,
+                        ['msg']='Upgrading to vault level will cost: Gold: ' .. core.Config.guild.vault[ data.vault.lvl + 1].cost,
+                        ['suffix']='Type "/g vault upgrade yes" to upgrade your vault!'
+                    }
+                    func:TextBox(netuser,content,cmd,args)
+                else
+                    local content = {
+                        ['header']='Upgrading vault to level: ' .. data.vault.lvl + 1,
+                        ['msg']='You cannot level your guild vault! Guild level required: ' .. core.Config.guild.vault[data.vault.lvl + 1].req
+                    }
+                    func:TextBox(netuser,content,cmd,args)
+                end
+            return end
+            if args[3]:lower() == 'yes' then
+                -- Uprade vault
+                local g = core.Config.guild.vault[data.vault.lvl +1].cost
+                local canbuy = self:canBuyGuild( guild, g, 0, 0)
+                if not canbuy then rust.Notice(netuser, 'Insufficient guild funds!' ) return end
+                data.vault.lvl = data.vault.lvl + 1
+                data.vault.cap = core.Config.guild.vault[ data.vault.lvl + 1].cap
+                self:GuildWithdraw( netuser.displayName, guild, g, 0, 0 )
+                local msg = '::::::::::: has upgraded the vault to level ' .. data.vault.lvl .. ' :::::::::::'
+                self:sendGuildMsg( guild, netuser.displayName, msg )
+                self:GuildSave()
+            end
         else
             local content = {
                 ['msg'] ='',
@@ -1052,9 +1088,36 @@ function PLUGIN:CanOpenDoor( netuser, door )
     -- Check if in same guild
     if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. char.User[ ownerID ].name .. '\'s house! ') return true end
 end
+-- NEEDS TESTING!
+function PLUGIN:GiveGXP( guild, xp )
+    local data = self:getGuildData( guild )
+    if not data then return end
+    if data.lvl == core.Config.guild.settings.maxguildlvl then return end
+    local members = func:count( data.members )
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.glvlmodifier*(data.xp+xp))+25))+50)/100)
+    if( calcLvl ~= data.lvl ) then
+        -- level up | check if allowed.
+        if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
+            data.xp = data.xp + xp
+            data.glvl = calcLvl
+            self:GuildSave()
+            return
+        else
+            rust.BroadcastChat( 'cannot lvl' )
+            return
+        end
+    end
+    data.xp = data.xp + xp
+end
 
 -- GUILD UPDATE AND SAVE
 function PLUGIN:GuildSave()
     self.GuildFile:SetText( json.encode( self.Guild, { indent = true } ) )
     self.GuildFile:Save()
 end
+
+--[[
+--      local ab = core.Config.settings.maxplayerlvl
+        local b = core.Config.settings.lvlmodifier
+        local f = ((ab*ab)+ab)/b*100-(ab*100)]
+ ]]

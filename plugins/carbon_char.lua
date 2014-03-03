@@ -195,13 +195,9 @@ function PLUGIN:GiveXp(combatData, xp)
 
     local guild = guild:getGuild( combatData.netuser )
     if( guild ) then
-        local gxp = math.floor( xp * .1 )
-        local glory = self:hasForGlory( guild )
-        if( glory ) then gxp = gxp * glory end
-        --xp = xp - gxp --if we want to take from the players xp.
-        guild.Guild[ guild ].xp = guild.Guild[ guild ].xp + gxp
-        self:GuildSave()
-        rust.InventoryNotice( combatData.netuser, '+' .. gxp .. 'gxp' )
+        local gxp = math.floor( xp * 0.1 )
+        guild:GiveGXP( guild, gxp )
+        timer.Once( 3 , function() rust.InventoryNotice( combatData.netuser, '+' .. gxp .. 'gxp' )  end)
     end
 
     if (combatData.netuserData.dp>xp) then
@@ -247,7 +243,6 @@ end
 
 --PLUGIN:PlayerLvl
 function PLUGIN:PlayerLvl(combatData, xp)
-
     local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)
     if calcLvl <= core.Config.settings.maxplayerlvl then
         if (calcLvl ~= combatData.netuserData.lvl) then
