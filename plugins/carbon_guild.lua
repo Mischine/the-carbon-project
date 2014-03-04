@@ -21,7 +21,13 @@ function PLUGIN:Init()
 
     self:AddChatCommand( 'g', self.cmdGuilds )
     self:AddChatCommand( 'gc', self.cmdGuildChat )
+    self:AddChatCommand( 'destroy', self.destroy )
 
+    -- local CallTimer = timer.Repeat( 60, function() self:CallTimer() end)
+end
+
+function PLUGIN:destroy()
+    CallTimer:Destroy()
 end
 
 --PLUGIN:Guilds commands
@@ -132,8 +138,8 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser(netuser,core.sysname,'║ members: ( ' .. func:count( data.members ) .. '/' .. core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] .. ' )' )
         rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor( func:count( data.members ) / core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] * 100), 32))
         end
-        rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')')
-        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor(data.xp / data.xpforLVL * 100), 32))
+        rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp/(((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.glvlmodifier*100-(data.glvl*100)) / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')')
+        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor(data.xp/(((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.glvlmodifier*100-(data.glvl*100)) / data.xpforLVL * 100), 32))
         rust.SendChatToUser(netuser,core.sysname,'║ ')
         rust.SendChatToUser(netuser,core.sysname,'║ Vault lvl: ' .. tostring(data.vault.lvl))
         rust.SendChatToUser(netuser,core.sysname,'║ [ Gold: ' .. data.vault.money.g .. ' ] [ Silver: ' .. data.vault.money.s .. ' ] [ Copper: ' .. data.vault.money.c .. ' ]')
@@ -142,8 +148,8 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         rust.SendChatToUser(netuser,core.sysname,'║ ')
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Leader   : ' .. self:getGuildLeader( guild ))
         rust.SendChatToUser(netuser,core.sysname,'║ Members        : ' .. func:count( data.members ))
-        rust.SendChatToUser(netuser,core.sysname,'║ Perks               : ' .. table.concat( data.unlockedcalls, ', ' ))
-        rust.SendChatToUser(netuser,core.sysname,'║ Active Perks : ' .. table.concat( data.activecalls, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ Calls                  : ' .. table.concat( data.unlockedcalls, ', ' ))
+        rust.SendChatToUser(netuser,core.sysname,'║ Active Calls    : ' .. table.concat( data.activecalls, ', ' ))
         rust.SendChatToUser(netuser,core.sysname,'║ War                   : ' .. table.concat( data.war, ', ' ))
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
         rust.SendChatToUser(netuser,core.sysname,'║ ⌘')
@@ -325,29 +331,64 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         char.User[ targuserID ].guild = nil
         char:UserSave()
         self:GuildSave()
-        --[[   elseif ( action == 'calls') then                --                                                  [ canwar ]
-               local guild = self:getGuild( netuser )
-               if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
-               if not args[1] then
-                   -- display calls, if they're active and what they do. and their modifiers.
-                   rust.SendChatToUser(netuser,' ',' ')
-                   rust.SendChatToUser(netuser,' ','╔════════════════════════')
-                   rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  buy > ' .. data.name .. ' > bought ')
-                   rust.SendChatToUser(netuser,' ','╟────────────────────────')
-                   rust.SendChatToUser(netuser,' ','║ ' )
-                   rust.SendChatToUser(netuser,' ','╟────────────────────────')
-                   if( self:hasAbility( netuser, guild, 'canwar' ) ) then -- can add calls
-                       rust.SendChatToUser(netuser,' ','║ add • remove ⌘ ' )
-                   else
-                       rust.SendChatToUser(netuser,' ','║ ⌘ ' )
-                   end
-                   rust.SendChatToUser(netuser,' ','╚════════════════════════')
-                   rust.SendChatToUser(netuser,' ',' ')
-               elseif args[1] =='add' then
-                   if args[2] then
-                   else
-                   end
-               end ]]
+    elseif ( action == 'calls') then                --                                                  [ canwar ]
+       local guild = self:getGuild( netuser )
+       local data = self:getGuildData( guild )
+       if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
+       if not args[2] then
+           -- display calls, if they're active and what they do. and their modifiers.
+           local content = {
+               ['header'] = 'Available Calls',
+               ['msg'] = 'Choose wisely when activating a call. They\'re only for 4 hours! \nHere is a list of available calls:',
+               ['list'] = {},
+               ['cmds'] = {},
+               ['suffix'] = 'Adding a call is only for 4 hours!'
+           }
+           local count = func:count( data.unlockedcalls )
+           if count > 0 then
+               for k,v in pairs( data.unlockedcalls ) do
+                   local call = core.Config.guild.calls[v].name
+                   local g,s = core.Config.guild.calls[v].requirements.cost.g, core.Config.guild.calls[v].requirements.cost.s
+                   local cost = '[ Gold: ' .. g .. ' ]  [ Silver: ' .. s .. ' ] '
+                   table.insert(content.list, cost .. call .. ' (' .. v .. ')' )
+               end
+           else
+                table.insert(content.list, 'There are no calls unlocked!' )
+           end
+           local count2 = func:count(data.activecalls)
+           rust.BroadcastChat( tostring(count2))
+           if count2 > 0 then
+               table.insert(content.list, ' ' )
+               table.insert(content.list, 'Active Calls' )
+               for k, v in pairs( data.activecalls) do
+                   local call = core.Config.guild.calls[k].name .. ' ' .. tostring(v) .. ' minutes'
+                   table.insert(content.list, call )
+               end
+           end
+
+           if( self:hasAbility( netuser, guild, 'cancall' ) ) then -- can add calls
+                table.insert(content.cmds, 'activate' )
+           end
+           func:TextBox(netuser,content,cmd,args)
+       end
+       if args[2] then
+           local call = tostring(args[3])
+           if( not self:hasAbility( netuser, guild, 'cancall' ) ) then rust.Notice( netuser, 'You are not allowed to activate calls!' ) return end
+           if not core.Config.guild.calls[call] then rust.Notice( netuser, call .. ' does not exist!' ) return end
+           rust.BroadcastChat( data.tag)
+           if not func:containsval(data.unlockedcalls, call) then rust.Notice( netuser, call .. ' is not unlocked!' ) return end
+           if data.activecalls[ call ] then rust.Notice( netuser, call .. ' is already active!' ) return end
+           data.activecalls[ call ] = {}
+           data.activecalls[ call ][ 'time' ] = 240
+           self:sendGuildMsg( guild, 'INCOMING CALL', '::::::::: ' .. call .. ' is activated! :::::::::' )
+           self:GuildSave()
+       end
+    elseif args[1] =='add' then
+           if args[2] then
+
+           else
+
+           end
 
     elseif ( action == 'war') then                  --                                                  [ canwar ]
         -- /g war guildtag                          -- Engage a war with another guild / other guild will be notified.
@@ -771,6 +812,65 @@ function PLUGIN:engageWar( guild, guild2, netuser )
     end
 end
 
+function PLUGIN:GiveGXP( guild, xp )
+    local data = self:getGuildData( guild )
+    if not data then return end
+    if data.glvl == core.Config.guild.settings.maxguildlvl then return end
+    local members = func:count( data.members )
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.glvlmodifier*(data.xp+xp))+25))+50)/100)
+    rust.BroadcastChat( tostring(calcLvl) )
+    if( calcLvl ~= data.glvl ) then
+        -- level up | check if allowed.
+        if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
+            data.xp = data.xp + xp
+            data.glvl = calcLvl
+            local a = data.glvl + 1 --level +1
+            local b = core.Config.guild.settings.glvlmodifier
+            local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
+            data.xpforLVL = c
+            self:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(calcLvl) .. ' reached! ::::::::::::::::' )
+            self:GuildSave()
+            self:CallUnlock(guild)
+            return xp
+        else
+            xp = 0
+            return xp
+        end
+    end
+    data.xp = data.xp + xp
+    self:GuildSave()
+    return xp
+end
+
+function PLUGIN:CallUnlock( guild )
+    local data = self:getGuildData( guild )
+    if not data then return end
+    for k, v in pairs( core.Config.guild.calls) do
+        if data.glvl == v.requirements.glvl then
+            -- unlocked!
+            table.insert( data.unlockedcalls, k )
+            self:sendGuildMsg( guild, 'CALL UNLOCK!', v.name .. ' is now unlocked!' )
+            self:GuildSave()
+        end
+    end
+end
+
+function PLUGIN:CallTimer()
+    for k, v in pairs(self.Guild) do
+        local count = #v.activecalls
+        if count > 0 then
+            for y,z in pairs(v.activecalls) do
+                z.time = v.time - 1
+                if z.time <= 0 then
+                    z = nil
+                    self:SendGuildMsg(k, 'CALL ENDED', '::::::::::::' .. y .. ' has ended! ::::::::::::' )
+                end
+            end
+        end
+    end
+    self:GuildSave()
+end
+
 --PLUGIN:CreateGuild
 function PLUGIN:CreateGuild( netuser, name, tag )
     if( self.Guild[ name ] ) then rust.Notice( netuser, 'This guild name is already used.' ) return end
@@ -791,8 +891,8 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.glvl = 1                                                                                                  -- Guild Level
     entry.xp = 0                                                                                                    -- Experience
     entry.xpforLVL = math.ceil((((2*2)+2)/core.Config.settings.glvlmodifier*100-(2*100)))                           -- xpforLVL
-    entry.ranks = { ['Leader']={'candelete','caninvite','cankick','canvault','canwar','canrank'},                   -- Create default Ranks
-        ['Co-Leader']={'caninvite','cankick','canvault','canwar'},
+    entry.ranks = { ['Leader']={'candelete','caninvite','cankick','canvault','canwar','canrank','cancall'},         -- Create default Ranks
+        ['Co-Leader']={'caninvite','cankick','canvault','canwar','cancall'},
         ['War-Leader']={'canwar'},
         ['Quartermaster']={'canvault'},
         ['Assasin']={},
@@ -1087,27 +1187,6 @@ function PLUGIN:CanOpenDoor( netuser, door )
 
     -- Check if in same guild
     if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. char.User[ ownerID ].name .. '\'s house! ') return true end
-end
--- NEEDS TESTING!
-function PLUGIN:GiveGXP( guild, xp )
-    local data = self:getGuildData( guild )
-    if not data then return end
-    if data.lvl == core.Config.guild.settings.maxguildlvl then return end
-    local members = func:count( data.members )
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.glvlmodifier*(data.xp+xp))+25))+50)/100)
-    if( calcLvl ~= data.lvl ) then
-        -- level up | check if allowed.
-        if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
-            data.xp = data.xp + xp
-            data.glvl = calcLvl
-            self:GuildSave()
-            return
-        else
-            rust.BroadcastChat( 'cannot lvl' )
-            return
-        end
-    end
-    data.xp = data.xp + xp
 end
 
 -- GUILD UPDATE AND SAVE

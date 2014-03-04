@@ -152,11 +152,11 @@ function PLUGIN:SetDefaultConfig()
                 }
             },
             ['calls']={
-                ['rally']={['requirements']={['cost']={['g']=1,['s']=50,['c']=0},['glvl']=3},['mod']=.05},
-                ['syg']={['requirements']={['cost']={['g']=1,['s']=50,['c']=0},['glvl']=3,['mod']=.05},['mod']=.04},
-                ['cotw']={['requirements']={['cost']={['g']=1,['s']=0,['c']=0},['glvl']=2},['mod']=.05},
-                ['forglory']={['requirements']={['cost']={['g']=2,['s']=0,['c']=0},['glvl']=2},['mod']=.05 },
-                ['kos']={['requirements']={['cost']={['g']=5,['s']=0,['c']=0},['glvl']=2},['mod']=50}
+                ['rally']={['name']='Rally!',['requirements']={['cost']={['g']=1,['s']=50,['c']=0},['glvl']=4},['mod']=.05},
+                ['syg']={['name']='Stand Your Ground!',['requirements']={['cost']={['g']=1,['s']=50,['c']=0},['glvl']=5,['mod']=.05},['mod']=.04},
+                ['cotw']={['name']='Call Of The Wild',['requirements']={['cost']={['g']=1,['s']=0,['c']=0},['glvl']=2},['mod']=.05},
+                ['forglory']={['name']='For Glory!',['requirements']={['cost']={['g']=2,['s']=0,['c']=0},['glvl']=5},['mod']=.05 },
+                ['kos']={['name']='Kill On Sight!',['requirements']={['cost']={['g']=5,['s']=0,['c']=0},['glvl']=6},['mod']=50}
             }
         }
     }

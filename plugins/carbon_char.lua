@@ -193,11 +193,13 @@ end
 
 function PLUGIN:GiveXp(combatData, xp)
 
-    local guild = guild:getGuild( combatData.netuser )
+    local guildname = guild:getGuild( combatData.netuser )
     if( guild ) then
         local gxp = math.floor( xp * 0.1 )
-        guild:GiveGXP( guild, gxp )
-        timer.Once( 3 , function() rust.InventoryNotice( combatData.netuser, '+' .. gxp .. 'gxp' )  end)
+        local gxp = guild:GiveGXP( guildname, gxp )
+        if gxp > 0 then
+            timer.Once( 3 , function() rust.InventoryNotice( combatData.netuser, '+' .. gxp .. 'gxp' )  end)
+        end
     end
 
     if (combatData.netuserData.dp>xp) then
@@ -259,7 +261,7 @@ function PLUGIN:PlayerLvl(combatData, xp)
             combatData.netuserData.pp = calcPp
             timer.Once(3, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned a perk point!') end)
         end
-        rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
+        -- rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
     else
         local ab = core.Config.settings.maxplayerlvl
         local b = core.Config.settings.lvlmodifier

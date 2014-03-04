@@ -152,8 +152,8 @@ function PLUGIN:containsval(t,cv) for _, v in ipairs(t) do  if v == cv then retu
 function PLUGIN:count( table ) local i = 0 for k, v in pairs( table ) do i = i + 1 end return i end
 -- self:sayTable( lists the values of that table , sep is the seperator, so like , or ; )
 function PLUGIN:sayTable( table, sep ) local msg = '' local count = #table if( count <= 0 ) then return 'N/A' end local i = true
-
 for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. '.' return msg end
+
 function PLUGIN:returnvalues( table ) if( not table ) then return false end local msg = '' for k,v in pairs( table ) do msg = msg .. '[ ' .. v .. ' ]' end return msg end
 
 function PLUGIN:Notice(netuser,prefix,text,duration)
