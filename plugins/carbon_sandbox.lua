@@ -50,12 +50,12 @@ function PLUGIN:sandbox(netuser,cmd, args)
     end
     local count = avatar.BlueprintsCount
     rust.SendChatToUser( netuser, ' ', tostring(count))
---]]
+
     --rust.BroadcastChat('Crouched : ' .. tostring(char.crouchable.crouched)) -- Shows 0
 
     --local avatar = netuser:LoadAvatar()
     --local builder = avatar:ToBuilder()
-    --[[
+
     local idMain = char.idMain
     --
     local avatar = netuser:LoadAvatar()
@@ -86,7 +86,7 @@ function PLUGIN:sandbox(netuser,cmd, args)
 
     rust.SendChatToUser( netuser, ' ', tostring(char.blueprints_))
 
-
+--]]
 end
 
 
