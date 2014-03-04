@@ -101,6 +101,7 @@ function PLUGIN:SetDefaultConfig()
             ['lvlmodifier']=1, --0.5=Veteran | 1=hard | 1.5=normal | 2=easy
             ['maxplayerlvl']=70,
             ['glvlmodifier']=.1,
+            ['clvlmodifier']=.5,
             ['maxguildlvl']=10,
             ['untraincost']=500, --this is the cost in copper
             ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.

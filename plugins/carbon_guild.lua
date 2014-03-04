@@ -332,64 +332,68 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         char:UserSave()
         self:GuildSave()
     elseif ( action == 'calls') then                --                                                  [ canwar ]
-       local guild = self:getGuild( netuser )
-       local data = self:getGuildData( guild )
-       if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
-       if not args[2] then
-           -- display calls, if they're active and what they do. and their modifiers.
-           local content = {
-               ['header'] = 'Available Calls',
-               ['msg'] = 'Choose wisely when activating a call. They\'re only for 4 hours! \nHere is a list of available calls:',
-               ['list'] = {},
-               ['cmds'] = {},
-               ['suffix'] = 'Adding a call is only for 4 hours!'
-           }
-           local count = func:count( data.unlockedcalls )
-           if count > 0 then
-               for k,v in pairs( data.unlockedcalls ) do
-                   local call = core.Config.guild.calls[v].name
-                   local g,s = core.Config.guild.calls[v].requirements.cost.g, core.Config.guild.calls[v].requirements.cost.s
-                   local cost = '[ Gold: ' .. g .. ' ]  [ Silver: ' .. s .. ' ] '
-                   table.insert(content.list, cost .. call .. ' (' .. v .. ')' )
-               end
-           else
-                table.insert(content.list, 'There are no calls unlocked!' )
-           end
-           local count2 = func:count(data.activecalls)
-           rust.BroadcastChat( tostring(count2))
-           if count2 > 0 then
-               table.insert(content.list, ' ' )
-               table.insert(content.list, 'Active Calls' )
-               for k, v in pairs( data.activecalls) do
-                   local call = core.Config.guild.calls[k].name .. ' ' .. tostring(v) .. ' minutes'
-                   table.insert(content.list, call )
-               end
-           end
+        local guild = self:getGuild( netuser )
+        local data = self:getGuildData( guild )
+        if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
+        if args[2] then
+            if args[2]:lower() == 'activate' then
+                local call = tostring(args[3])
+                if( not self:hasAbility( netuser, guild, 'cancall' ) ) then rust.Notice( netuser, 'You are not allowed to activate calls!' ) return end
+                if not core.Config.guild.calls[call] then
+                    local content = {
+                        ['header'] = call .. ' does not exist',
+                        ['msg']= 'Available calls: cotw, glory, syd and rally'
+                    }
+                    func:TextBox(netuser,content,cmd,args)
+                return end
+                if not func:containsval(data.unlockedcalls, call) then rust.Notice( netuser, call .. ' is not unlocked!' ) return end
+                if data.activecalls[ call ] then rust.Notice( netuser, call .. ' is already active!' ) return end
+                data.activecalls[ call ] = {}
+                data.activecalls[ call ][ 'time' ] = 240
+                self:sendGuildMsg( guild, 'INCOMING CALL', '::::::::: ' .. call .. ' is activated! :::::::::' )
+                self:GuildSave()
+            end
+        end
+        -- display calls, if they're active and what they do. and their modifiers.
+        if args[2] then
+            local i = 2
+            while args[i] do
+                args[i] = nil
+                i = i + 1
+            end
+        end
+        local content = {
+            ['header'] = 'Available Calls',
+            ['msg'] = 'Choose wisely when activating a call. They\'re only for 4 hours! \nHere is a list of available calls:',
+            ['list'] = {},
+            ['cmds'] = {},
+            ['suffix'] = 'Adding a call is only for 4 hours!'
+        }
+        local count = func:count( data.unlockedcalls )
+        if count > 0 then
+            for k,v in pairs( data.unlockedcalls ) do
+                local call = core.Config.guild.calls[v].name
+                local g,s = core.Config.guild.calls[v].requirements.cost.g, core.Config.guild.calls[v].requirements.cost.s
+                local cost = '[ Gold: ' .. g .. ' ]  [ Silver: ' .. s .. ' ] '
+                table.insert(content.list, cost .. call .. ' (' .. v .. ')' )
+            end
+        else
+            table.insert(content.list, 'There are no calls unlocked!' )
+        end
+        local count2 = func:count(data.activecalls)
+        if count2 > 0 then
+            table.insert(content.list, ' ' )
+            table.insert(content.list, 'Active Calls' )
+            for k, v in pairs( data.activecalls) do
+                local call = core.Config.guild.calls[k].name .. ' | Time Left: ' .. tostring(v.time) .. ' minutes'
+                table.insert(content.list, call )
+            end
+        end
 
-           if( self:hasAbility( netuser, guild, 'cancall' ) ) then -- can add calls
-                table.insert(content.cmds, 'activate' )
-           end
-           func:TextBox(netuser,content,cmd,args)
-       end
-       if args[2] then
-           local call = tostring(args[3])
-           if( not self:hasAbility( netuser, guild, 'cancall' ) ) then rust.Notice( netuser, 'You are not allowed to activate calls!' ) return end
-           if not core.Config.guild.calls[call] then rust.Notice( netuser, call .. ' does not exist!' ) return end
-           rust.BroadcastChat( data.tag)
-           if not func:containsval(data.unlockedcalls, call) then rust.Notice( netuser, call .. ' is not unlocked!' ) return end
-           if data.activecalls[ call ] then rust.Notice( netuser, call .. ' is already active!' ) return end
-           data.activecalls[ call ] = {}
-           data.activecalls[ call ][ 'time' ] = 240
-           self:sendGuildMsg( guild, 'INCOMING CALL', '::::::::: ' .. call .. ' is activated! :::::::::' )
-           self:GuildSave()
-       end
-    elseif args[1] =='add' then
-           if args[2] then
-
-           else
-
-           end
-
+        if( self:hasAbility( netuser, guild, 'cancall' ) ) then -- can add calls
+            table.insert(content.cmds, 'activate' )
+        end
+        func:TextBox(netuser,content,cmd,args)
     elseif ( action == 'war') then                  --                                                  [ canwar ]
         -- /g war guildtag                          -- Engage a war with another guild / other guild will be notified.
         local guild = self:getGuild( netuser )
@@ -451,10 +455,11 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
             rust.SendChatToUser(netuser,core.sysname,'║ ⌘ list • give • add • edit ')
             rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
-        elseif( args[2] == 'give' ) then                        -- /g rank give 'rank' name | Add a rank to a member        [ canrank ]
+        elseif( args[2] == 'give' ) then
             local guild = self:getGuild( netuser )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
             if( not self:hasAbility( netuser, guild, 'canrank' ) ) then rust.Notice(netuser, 'You\'re not permitted to give ranks to a player.' ) return end
+
             if( args[3] and args[4] ) then
                 local netuserID = rust.GetUserID( netuser )
                 local targname = tostring( args[ 4 ] )
@@ -465,16 +470,24 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
                     else
                         rust.Notice( netuser, 'Multiple users found with the name: ' .. util.QuoteSafe( targname ) )
                     end
-                    return end
+                return end
                 local targuserID = rust.GetUserID( targuser )
                 if( not self.Guild[ guild ].members[targuserID] ) then rust.Notice( netuser, targname .. ' is not in your guild!' ) return end
                 if( not self.Guild[ guild ].ranks[ tostring( args[3]) ] ) then rust.Notice( netuser, tostring( args[3] .. ' is not an available rank! ')) return end
-                if( not self.Guild[ guild ].members[targuserID].rank['Leader']) then rust.Notice( netuser, 'You\re not able to change the leaders rank! ') return end
+                if( not self.Guild[ guild ].members[targuserID].rank['Leader']) then rust.Notice( netuser, 'You\'re not able to change the leaders rank! ') return end
                 if(( tostringargs[3] == 'Leader' ) and( not self.Guild[ guild ].members[ netuserID ].rank == 'Leader' )) then rust.Notice( netuser, 'You cannot give anyone the Leader rank!') return end
                 self.Guild[ guild ].members[targuserID].rank = tostring( args[3] )
                 rust.Notice(netuser, targname .. ' is now a ' .. tostring( args[3] ))
                 self:GuildSave()
+            else
+                local content = {
+                    ['header']='Incomplete command!',
+                    ['msg']='/g rank give "rank" "name" '
+                }
+                func:TextBoxError(netuser,content,cmd,args)
+                return
             end
+
         elseif( args[2] == 'add' ) then                         -- /g rank add 'rank' | Create a new custom rank            [ canrank ]
             local guild = self:getGuild( netuser )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
