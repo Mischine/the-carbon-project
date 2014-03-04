@@ -119,14 +119,14 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                 --                                      ___     <-- best smiley evah?
                 local xp = math.floor(( math.random( data.xp.min, data.xp.max ))*amount)
                 if failed then xp = xp / 2 rust.Notice( netuser, 'Crafting failure!' ) end
-                -- self:AddCraftXP( netuser, prof, xp )
                 if( not data.prof == 'Intelligence' ) then
-                    timer.Once(3, function()
-                        craftdata.xp = craftdata.xp + xp -- TEMPORARY!
+                    timer.Once(2, function()
+                        self:AddCraftXP( netuser, data.prof, xp )
+                        if xp == 0 then return end
                         rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
                     end)
                 else
-                    timer.Once(3, function()
+                    timer.Once(2, function()
                         char.User[ netuserID ].xp = char.User[ netuserID ].xp + xp
                         rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
                     end)
@@ -140,6 +140,23 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         rust.Notice( netuser, blueprint.resultItem.name .. ' is not in the carbon_craft file, please report to a GM.' )
         return false
     end
+end
+
+function PLUGIN:AddCraftXP(netuser, prof, xp)
+    local data = char:GetUserData(netuser)
+    if not data then return end
+    local craftdata = data.prof[ prof ]
+    if not craftdata then return end
+    if craftdata.lvl == craftdata.maxlvl then return 0 end
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.clvlmodifier*(data.xp+xp))+25))+50)/100)
+    if calcLvl ~= craftdata.lvl then
+        -- Level up
+
+    else
+        -- Add xp
+
+    end
+
 end
 
 -- inspect items. Crafting and maybe Economy.

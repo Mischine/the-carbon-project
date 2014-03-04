@@ -66,7 +66,9 @@ function PLUGIN:ControllerProbe(netuser, cmd, args)
     --meto:Vomit() -- UNKNOWN??
 end
 
+
 function PLUGIN:test( netuser, cmd, args)
+
     local controllable = netuser.playerClient.controllable
     local character = controllable:GetComponent( "Character" )
     local inv = controllable:GetComponent( "Inventory" )
