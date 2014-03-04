@@ -259,7 +259,7 @@ function PLUGIN:PlayerLvl(combatData, xp)
             combatData.netuserData.pp = calcPp
             timer.Once(3, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned a perk point!') end)
         end
-        rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
+        --rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
     else
         local ab = core.Config.settings.maxplayerlvl
         local b = core.Config.settings.lvlmodifier
@@ -305,6 +305,7 @@ function PLUGIN:GetUserData( netuser )
         data = {}
         data.id = netuserID
         data.name = netuser.displayName
+        data.lang = 'en'
         data.lvl = 1
         data.xp = 0
         data.pp = 0
