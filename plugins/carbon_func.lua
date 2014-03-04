@@ -5,6 +5,17 @@ PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
+    self:AddChatCommand( 'poison', self.Poison )
+    self:AddChatCommand( 'injure', self.Injure )
+    self:AddChatCommand( 'antirad', self.AntiRad )
+    self:AddChatCommand( 'rad', self.Rad )
+    self:AddChatCommand( 'bleed', self.Bleed )
+    self:AddChatCommand( 'hot', self.HealOverTime )
+    self:AddChatCommand( 'reflect', self.Reflect )
+    self:AddChatCommand( 'calories', self.Calories )
+    self:AddChatCommand( 'bandage', self.Bandage )
+    self:AddChatCommand( 'hurt', self.Hurt )
+    self:AddChatCommand( 'takeover', self.TakeOver )
     self.spamNet = {} --used to prevent spammed messages to a user.
 end
 --Util
@@ -194,4 +205,270 @@ function PLUGIN:Roll(amount)
     math.randomseed(seed)
     local result = math.random(amount)
     return result
+end
+-------------------------------------------------------------------------------
+-- NEW FUNCTIONS
+function PLUGIN:Poison(netuser, cmd, args)
+    local validate, vicuser = rust.FindNetUsersByName( args[1] )
+    if (not validate) then
+        if (vicuser == 0) then
+            print( "No player found with that name: " .. tostring( args[1] ))
+        else
+            print( "Multiple players found with name: " .. tostring( args[1] ))
+        end
+        return false
+    end
+    local controllable = vicuser.playerClient.controllable
+    local this = controllable:GetComponent("Metabolism")
+
+    if args[3] and args[2] == 'remove' and this:IsPoisoned() then
+        this:SubtractPosion(tonumber(args[3]))
+    elseif args[3] and args[2] == 'add' and not this:IsPoisoned() then
+        this:AddPoison(tonumber(args[3]))
+    elseif not args[3] and args[2] == 'check'  then
+        rust.SendChatToUser(netuser,tostring( this:IsPoisoned() ))
+    end
+end
+function PLUGIN:AntiRad(netuser, cmd, args)
+    local validate, vicuser = rust.FindNetUsersByName( args[1] )
+    if (not validate) then
+        if (vicuser == 0) then
+            print( "No player found with that name: " .. tostring( args[1] ))
+        else
+            print( "Multiple players found with name: " .. tostring( args[1] ))
+        end
+        return false
+    end
+    local controllable = vicuser.playerClient.controllable
+    local this = controllable:GetComponent("Metabolism")
+
+    if args[3] and args[2] == 'add' then
+        this:AddAntiRad(tonumber(args[3]))
+    end
+
+end
+function PLUGIN:Rad(netuser, cmd, args)
+    local validate, vicuser = rust.FindNetUsersByName( args[1] )
+    if (not validate) then
+        if (vicuser == 0) then
+            print( "No player found with that name: " .. tostring( args[1] ))
+        else
+            print( "Multiple players found with name: " .. tostring( args[1] ))
+        end
+        return false
+    end
+    local controllable = vicuser.playerClient.controllable
+    local this = controllable:GetComponent("Metabolism")
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/rad "name" add|remove|check #[amount]' )
+    end
+    if args[3] and args[2] == 'add' then
+        this:AddRads(tonumber(args[3]))
+    elseif not args[3] and args[2] == 'check'  then
+        local radLevel = this:GetRadLevel()
+        rust.SendChatToUser(netuser,tostring( radLevel ))
+    end
+
+end
+function PLUGIN:Calories(netuser, cmd, args)
+    local validate, vicuser = rust.FindNetUsersByName( args[1] )
+    if (not validate) then
+        if (vicuser == 0) then
+            print( "No player found with that name: " .. tostring( args[1] ))
+        else
+            print( "Multiple players found with name: " .. tostring( args[1] ))
+        end
+        return false
+    end
+    local controllable = vicuser.playerClient.controllable
+    local this = controllable:GetComponent("Metabolism")
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/calories "name" add|remove|check #[amount]' )
+    end
+    if args[3] and args[2] == 'remove' and this:IsPoisoned() then
+        this:SubtractCalories(tonumber(args[3]))
+    elseif args[3] and args[2] == 'add' then
+        this:AddCalories(tonumber(args[3]))
+    elseif not args[3] and args[2] == 'check'  then
+        rust.SendChatToUser(netuser,tostring( this:GetCalorieLevel() ))
+    end
+end
+function PLUGIN:Injure(netuser, cmd, args)
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/injure "name" add|check|clear #[length]' )
+    else
+        local validate, vicuser = rust.FindNetUsersByName( args[1] )
+        if (not validate) then
+            if (netuser == 0) then
+                print( "No player found with that name: " .. tostring( args[1] ))
+            else
+                print( "Multiple players found with name: " .. tostring( args[1] ))
+            end
+            return false
+        end
+        local controllable = vicuser.playerClient.controllable
+        local this = controllable:GetComponent("FallDamage")
+        if args[3] and args[2] == 'add' then
+            this:SetLegInjury(tonumber(args[3]))
+        elseif not args[3] and args[2] == 'check'  then
+            local injuryLevel = this:GetLegInjury()
+            rust.SendChatToUser(netuser,tostring( injuryLevel ))
+        elseif not args[3] and args[2] == 'clear'  then
+            this:ClearInjury()
+        end
+
+        --this:AddLegInjury(float)
+        --this:ResetInjuryTime(float) -- float time = this.injury_length * Random.Range(0.9f, 1.1f);
+        --this:FallImpact(float fallspeed) --
+    end
+end
+function PLUGIN:Bleed(netuser, cmd, args)
+    local validate, vicuser = rust.FindNetUsersByName( args[1] )
+    if (not validate) then
+        if (netuser == 0) then
+            print( "No player found with that name: " .. tostring( args[1] ))
+        else
+            print( "Multiple players found with name: " .. tostring( args[1] ))
+        end
+        return false
+    end
+    local controllable = vicuser.playerClient.controllable
+    local this = controllable:GetComponent("HumanBodyTakeDamage")
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/bleed "name" add|check|clear #[length]' )
+    end
+    if args[3] and args[2] == 'add' then
+        this:SetBleedingLevel(tonumber(args[3]))
+    elseif not args[3] and args[2] == 'check'  then
+        rust.SendChatToUser(netuser,tostring( this:IsBleeding() ))
+    elseif not args[3] and args[2] == 'clear'  then
+        this:SetBleedingLevel(0)
+    end
+end
+function PLUGIN:HealOverTime(netuser, cmd, args)
+    local validate, vicuser = rust.FindNetUsersByName( args[1] )
+    if (not validate) then
+        if (netuser == 0) then
+            print( "No player found with that name: " .. tostring( args[1] ))
+        else
+            print( "Multiple players found with name: " .. tostring( args[1] ))
+        end
+        return false
+    end
+    local controllable = vicuser.playerClient.controllable
+    local this = controllable:GetComponent("HumanBodyTakeDamage")
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/hot "name" add|check|clear #[amount]' )
+    end
+    if args[3] and args[2] == 'add' then
+        this:HealOverTime(tonumber(args[3]))
+    elseif not args[3] and args[2] == 'check'  then
+        rust.SendChatToUser(netuser,tostring( this:CheckLevels() ))
+    elseif not args[3] and args[2] == 'clear'  then
+        this._healOverTime = 0
+    end
+end
+function PLUGIN:Bandage(netuser, cmd, args)
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/bandage "name" #[amount]' )
+    else
+        local validate, vicuser = rust.FindNetUsersByName( args[1] )
+        if (not validate) then
+            if (netuser == 0) then
+                print( "No player found with that name: " .. tostring( args[1] ))
+            else
+                print( "Multiple players found with name: " .. tostring( args[1] ))
+            end
+            return false
+        end
+        local controllable = vicuser.playerClient.controllable
+        local this = controllable:GetComponent("HumanBodyTakeDamage")
+
+
+        if args[2] then
+            this:Bandage(tonumber(args[3]))
+        end
+    end
+end
+function PLUGIN:Reflect(netuser, cmd, args)
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/reflect "from name" "to name"' )
+    else
+        local validatea, vicusera = rust.FindNetUsersByName( args[1] )
+        if (not validatea) then
+            if (vicusera == 0) then
+                print( "No player found with that name: " .. tostring( args[1] ))
+            else
+                print( "Multiple players found with name: " .. tostring( args[1] ))
+            end
+            return false
+        end
+        local validateb, vicuserb = rust.FindNetUsersByName( args[2] )
+        if (not validateb) then
+            if (vicuserb == 0) then
+                print( "No player found with that name: " .. tostring( args[2] ))
+            else
+                print( "Multiple players found with name: " .. tostring( args[2] ))
+            end
+            return false
+        end
+        local controllablea = vicusera.playerClient.controllable
+        local this = controllablea:GetComponent("HumanBodyTakeDamage")
+        local controllableb = vicuserb.playerClient.controllable
+        local other = controllableb:GetComponent("HumanBodyTakeDamage")
+
+        if args[2] then
+            this:CopyMembersTo(other)
+        end
+    end
+end
+function PLUGIN:Hurt(netuser, cmd, args)
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/hurt "name" #[amount]' )
+    else
+        local validate, vicuser = rust.FindNetUsersByName( args[1] )
+        if (not validate) then
+            if (netuser == 0) then
+                print( "No player found with that name: " .. tostring( args[1] ))
+            else
+                print( "Multiple players found with name: " .. tostring( args[1] ))
+            end
+            return false
+        end
+        local controllable = vicuser.playerClient.controllable
+        local this = controllable:GetComponent("TakeDamage")
+        local that = controllable:GetComponent("HumanBodyTakeDamage")
+        rust.SendChatToUser(netuser,tostring(this) )
+        rust.SendChatToUser(netuser,tostring(that) )
+        if args[2] then
+            this:Hurt(netuser.idMain, vicuser.idMain, tonumber(args[3]))
+        end
+    end
+end
+function PLUGIN:TakeOver(netuser, cmd, args)
+    if(#args==0)then
+        rust.SendChatToUser(netuser,'/hurt "name" #[amount]' )
+    else
+        local validate, vicuser = rust.FindNetUsersByName( args[1] )
+        if (not validate) then
+            if (vicuser == 0) then
+                print( "No player found with that name: " .. tostring( args[1] ))
+            else
+                print( "Multiple players found with name: " .. tostring( args[1] ))
+            end
+            return false
+        end
+        local controllable = netuser.playerClient.controllable
+        local controller = controllable:GetComponent("HumanController")
+        --local self = controllable:GetComponent("TakeDamage")
+        --local self = controllable:GetComponent("HumanBodyTakeDamage")
+
+        local controllable = vicuser.playerClient.controllable
+        local this = controllable:GetComponent("Character")
+
+        if args[2] then
+            this:ControlOverriddenBy(controller)
+
+        end
+    end
 end

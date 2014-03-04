@@ -38,6 +38,9 @@ function PLUGIN:LoadLibrary()
     reload = cs.findplugin("carbon_reload")
     sandbox = cs.findplugin("carbon_sandbox")
     stats = cs.findplugin("carbon_stats")
+    lang = cs.findplugin("carbon_lang")
+    cmd = cs.findplugin("carbon_cmd")
+    oxidecore = cs.findplugin("oxidecore")
 end
 
 --PLUGIN:SetDefaultConfig
@@ -86,6 +89,8 @@ function PLUGIN:SetDefaultConfig()
             ['Uber Hatchet']={['name']='Uber Hatchet',['type']='c',['dmg']=1,['lvl']=1},
         },
         ['settings']={
+            ['ENABLE_LOCAL_CHAT'] = true,
+            ['CHAT_DISTANCE'] = 20,
             ['filename']='carbon',
             ['sysname']=' ',
             ['dppercent']=5,

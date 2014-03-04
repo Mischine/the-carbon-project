@@ -11,22 +11,95 @@ function PLUGIN:Init()
     self:AddChatCommand( 'alpha', self.AlphaTXT )
     self:AddChatCommand( 'help', self.cmdHelp )
     self:AddChatCommand( 'storm', self.cmdStorm )
-
     self:AddChatCommand( 'test', self.test )
+
+    self:AddChatCommand( 'v', self.ControllerProbe )
 
 end
 
+function PLUGIN:ControllerProbe(netuser, cmd, args)
+    --[[
+    local validate, vicuser = rust.FindNetUsersByName( args[1] )
+    if (not validate) then
+        if (vicuser == 0) then
+            print( "No player found with that name: " .. tostring( args[1] ))
+        else
+            print( "Multiple players found with name: " .. tostring( args[1] ))
+        end
+        return false
+    end
+    local controllable = vicuser.playerClient.controllable
+
+    local controllable = netuser.playerClient.controllable
+    local char = controllable:GetComponent( "Character" )
+    local idchar = char.idMain:GetComponent( "IDLocalCharacter" )
+    local inv = controllable:GetComponent( "Inventory" )
+    local pinv = controllable:GetComponent( "PlayerInventory" )
+    local nu = controllable:GetComponent( "NetUser" )
+    local bp = controllable:GetComponent( "Blueprint" )
+    local asr = controllable:GetComponent("AvatarSaveRestore")
+
+    local takeDamage = controllable:GetComponent("HumanBodyTakeDamage")
+    local meto = controllable:GetComponent("Metabolism")
+    local equipWearer = controllable:GetComponent("EquipmentWearer")
+    local falldmg = controllable:GetComponent("FallDamage")
+--]]
+    local controllable = netuser.playerClient.controllable
+    local inv = controllable:GetComponent( "Inventory" )
+    rust.GetInventory( netuser )
+    local b, item = inv:GetItem( 30 )
+    print(tostring(item.datablock))
+
+    --idchar:set_lockLook(true)
+    --idchar:set_lockMovement(true)
+    --rust.SendChatToUser(netuser, tostring(idchar.lockMovement))
+    --rust.SendChatToUser(netuser, tostring(idchar.lockLook))
+    --meto:SubtractCalories(500) --Remove Calories
+    --meto:Vomit()
+    --takeDamage:SetBleedingLevel(50)
+    --takeDamage:DoBleed()
+    --takeDamage:HealOverTime(20)
+    --meto:AddRads(100) -- Add Radiation
+    --meto:AddPoison(20) -- Add Poison
+    --meto:AddWater(100) -- Add Water Doesnt do anything yet.
+    --takeDamage:Bandage(100) --  Bandage
+    --meto:Vomit() -- UNKNOWN??
+end
+
 function PLUGIN:test( netuser, cmd, args)
-    local avatar = netuser:LoadAvatar()
-    local builder = avatar:ToBuilder()
-    rust.BroadcastChat('before: ')
-    local count = builder.BlueprintsCount
-    rust.BroadcastChat( tostring( count ))
+    local controllable = netuser.playerClient.controllable
+    local character = controllable:GetComponent( "Character" )
+    local inv = controllable:GetComponent( "Inventory" )
+    local pinv = controllable:GetComponent( "PlayerInventory" )
+    local nu = controllable:GetComponent( "NetUser" )
+    local bp = controllable:GetComponent( "Blueprint" )
+    local asr = controllable:GetComponent("AvatarSaveRestore")
+    local loadout = controllable:GetComponent("Loadout")
+
+    --local asp = controllable:GetComponent("AvatarSaveProc")
+    --local avatar = netuser:LoadAvatar()
+    --local builder = avatar:ToBuilder()
+    --rust.BroadcastChat('before: ')
+    --local count = builder.BlueprintsCount
+    --rust.BroadcastChat( tostring( count ))
     -- Clearing
-    builder:ClearBlueprints()
-    rust.BroadcastChat('after: ')
-    local count = builder.BlueprintsCount
-    rust.BroadcastChat(tostring( count ))
+    --builder:ClearBlueprints()
+    --rust.BroadcastChat('after: ')
+    --local count = builder.BlueprintsCount
+    --rust.BroadcastChat(tostring( count ))
+    loadout._defaultBlueprints = nil
+    local avatar = asr:LoadAvatar()
+    avatar:ClearAvatar()
+    avatar:ShutdownAvatar(true)
+    avatar:ClearInventory()
+    avatar:ClearBlueprints()
+    avatar:SaveAvatar()
+
+    --character.GetLocal:PlayerInventory().SaveToAvatar(builder)
+    --character.netUser.SaveAvatar(builder.Build());
+   -- asp:SaveAll()
+
+
 end
 
 
