@@ -1,6 +1,6 @@
 PLUGIN.Title = 'carbon_core'
 PLUGIN.Description = 'core module'
-PLUGIN.Version = '0.0.1'
+PLUGIN.Version = '0.0.2'
 PLUGIN.Author = 'mischa / carex'
 
 local OSdateTime = util.GetStaticPropertyGetter( System.DateTime, 'Now' )
