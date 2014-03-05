@@ -1,6 +1,6 @@
 PLUGIN.Title = 'carbon_core'
 PLUGIN.Description = 'core module'
-PLUGIN.Version = '0.0.2'
+PLUGIN.Version = '0.0.3'
 PLUGIN.Author = 'mischa / carex'
 
 local OSdateTime = util.GetStaticPropertyGetter( System.DateTime, 'Now' )
@@ -41,6 +41,11 @@ function PLUGIN:LoadLibrary()
     lang = cs.findplugin("carbon_lang")
     cmd = cs.findplugin("carbon_cmd")
     oxidecore = cs.findplugin("oxidecore")
+
+    a = cs.findplugin("carbon_a")
+    b = cs.findplugin("carbon_b")
+    c = cs.findplugin("carbon_c")
+    d = cs.findplugin("carbon_d")
 end
 
 --PLUGIN:SetDefaultConfig
