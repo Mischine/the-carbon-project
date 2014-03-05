@@ -218,7 +218,7 @@ function PLUGIN:OnBlueprintUse( blueprint, item )
     end
 end
 
--- Blocking researching
+-- Blocking researching kit
 function PLUGIN:OnResearchItem( researchtoolitem, item )
     return MergeResult.Failed
 end
