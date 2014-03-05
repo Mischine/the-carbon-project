@@ -126,20 +126,29 @@ function PLUGIN:cmdGuilds( netuser, cmd, args )
         local guild = self:getGuild( netuser )
         if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
         local data = self:getGuildData( guild )
+        local a=data.glvl+1
+        local b=data.glvl
+        local c=core.Config.guild.settings.glvlmodifier
+        local d=(a*a+a)/c*100-a*100             -- xp required for next lvl
+        local e=math.floor(data.xp/d*100+0.5)   -- Percent currently to next lvl
+        local f=d-data.xp                       -- xp left to go until next lvl
+        local g=(b*b+b)/c*100-b*100             -- Amount needed for current lvl
+        if a==2 and core.Config.guild.settings.glvlmodifier>=2 then g=0 end
+        if (a == 2) and (core.Config.guild.settings.glvlmodifier >= 2) then f = 0 end
         rust.SendChatToUser(netuser,' ',' ')
         rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
         rust.SendChatToUser(netuser,core.sysname,'║ guild > ' .. guild .. ' > info')
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Name    : ' .. guild)
         rust.SendChatToUser(netuser,core.sysname,'║ Guild Tag        : ' .. data.tag)
-        rust.SendChatToUser(netuser,core.sysname,'║ Guild Level     : ' .. data.glvl)
+        rust.SendChatToUser(netuser,core.sysname,'║ Guild Level     : ' .. b)
         if data.glvl ~= 10 then
-        rust.SendChatToUser(netuser,core.sysname,'║ Required for guild level ' .. tostring(data.glvl + 1) )
-        rust.SendChatToUser(netuser,core.sysname,'║ members: ( ' .. func:count( data.members ) .. '/' .. core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] .. ' )' )
-        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor( func:count( data.members ) / core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] * 100), 32))
+        rust.SendChatToUser(netuser,core.sysname,'║ Required for guild level ' .. tostring(a) )
+        rust.SendChatToUser(netuser,core.sysname,'║ members: ( ' .. func:count( data.members ) .. '/' .. core.Config.guild.settings.lvlreq[tostring(a)] .. ' )' )
+        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor( func:count( data.members ) / core.Config.guild.settings.lvlreq[tostring(a)] * 100), 32))
         end
-        rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. data.xpforLVL .. ')   [' .. math.floor(data.xp/(((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.glvlmodifier*100-(data.glvl*100)) / data.xpforLVL * 100) .. '%]   (+' .. data.xpforLVL - data.xp .. ')')
-        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor(data.xp/(((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.glvlmodifier*100-(data.glvl*100)) / data.xpforLVL * 100), 32))
+        rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. d .. ')   [' .. e .. '%]   (+' .. f .. ')')
+        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar( e, 32))
         rust.SendChatToUser(netuser,core.sysname,'║ ')
         rust.SendChatToUser(netuser,core.sysname,'║ Vault lvl: ' .. tostring(data.vault.lvl))
         rust.SendChatToUser(netuser,core.sysname,'║ [ Gold: ' .. data.vault.money.g .. ' ] [ Silver: ' .. data.vault.money.s .. ' ] [ Copper: ' .. data.vault.money.c .. ' ]')
@@ -903,7 +912,6 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.tag = '[' .. tag .. ']'                                                                                   -- Guild Tag
     entry.glvl = 1                                                                                                  -- Guild Level
     entry.xp = 0                                                                                                    -- Experience
-    entry.xpforLVL = math.ceil((((2*2)+2)/core.Config.settings.glvlmodifier*100-(2*100)))                           -- xpforLVL
     entry.ranks = { ['Leader']={'candelete','caninvite','cankick','canvault','canwar','canrank','cancall'},         -- Create default Ranks
         ['Co-Leader']={'caninvite','cankick','canvault','canwar','cancall'},
         ['War-Leader']={'canwar'},
@@ -920,9 +928,9 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.war = {}
     entry.vault = {}                                                                                                -- Vault
     entry.vault[ 'money' ] = {}
-    entry.vault[ 'money' ][ 'g' ] = 0                                                                              -- Gold in vault
-    entry.vault[ 'money' ][ 's' ] = 0                                                                              -- Silver in vault
-    entry.vault[ 'money' ][ 'c' ] = 0                                                                              -- Copper in vault
+    entry.vault[ 'money' ][ 'g' ] = 0                                                                               -- Gold in vault
+    entry.vault[ 'money' ][ 's' ] = 0                                                                               -- Silver in vault
+    entry.vault[ 'money' ][ 'c' ] = 0                                                                               -- Copper in vault
     entry.vault[ 'items' ] = {}                                                                                     -- items in vault                                                                                               -- Guild is at war with:
     entry.vault[ 'lvl' ] = 1                                                                                        -- Current level of the vault                                                                                           -- Guild is at war with:
     entry.vault[ 'cap' ] = 0                                                                                        -- Current capacity of the vault
