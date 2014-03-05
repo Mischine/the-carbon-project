@@ -41,7 +41,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         return false
     end
     local inv = rust.GetInventory( netuser )
-    if not inv then rust.Notice('Inventory not found, report to a GM. Unable to craft.') return false end
+    if not inv then rust.Notice( netuser, 'Inventory not found, report to a GM. Unable to craft.') return false end
     if( self.craft[ blueprint.resultItem.name ] ) then
         local netuserID = rust.GetUserID( netuser )
         if char.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
@@ -115,9 +115,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                         char.User[ netuserID ].crafting = false
                     end)
                 end
-                -- add xp || Random xp is not random... o.O     <-- best smiley evah?
-                --                                      ___     <-- best smiley evah?
-                local xp = math.floor(( math.random( data.xp.min, data.xp.max ))*amount)
+                local xp = func:Roll( true, data.xp.min, data.xp.max )*amount
                 if failed then xp = xp / 2 rust.Notice( netuser, 'Crafting failure!' ) end
                 if( not data.prof == 'Intelligence' ) then
                     timer.Once(2, function()
@@ -148,12 +146,13 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
     local craftdata = data.prof[ prof ]
     if not craftdata then return end
     if craftdata.lvl == craftdata.maxlvl then return 0 end
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.clvlmodifier*(data.xp+xp))+25))+50)/100)
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.clvlmodifier*(craftdata.xp+xp))+25))+50)/100)
     if calcLvl ~= craftdata.lvl then
-        -- Level up
         craftdata.lvl = calcLvl
         rust.Notice( netuser, 'You\'re now level ' .. calcLvl .. ' ' .. prof )
+        char:UserSave()
     end
+    craftdata.xp = craftdata.xp + xp
     return xp
 end
 
@@ -187,4 +186,39 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
             func:TextBox(netuser,content,cmd,args) return
         end
     end
+end
+
+function PLUGIN:OnBlueprintUse( blueprint, item )
+    local inv = item.inventory
+    local s = tostring( inv )
+    local f = "Player"
+    local deb = string.find(s, f ) +7
+    local fin = string.find( s, "(" , deb, true) - 2
+    local s2 = string.sub(s, deb, fin)
+    local validate, netuser = rust.FindNetUsersByName( tostring(s2) )
+    if (not validate) then
+        if (netuser == 0) then
+            print( "[ OnBluePrintUse ] No players found with name: " .. tostring( s2 ))
+        else
+            print( "[ OnBluePrintUse ] Multiple players found with name: " .. tostring( s2 ))
+        end
+        return false
+    end
+    if( self.craft[ blueprint.resultItem.name ] ) then
+        local netuserID = rust.GetUserID( netuser )
+        local data = self.craft[ blueprint.resultItem.name ]
+        if not data then rust.Notice( netuser, 'No data found...' ) return false end
+        local craftdata = char.User[ netuserID ].prof[ data.prof ]
+        if( craftdata.lvl < data.req ) then
+            rust.Notice( netuser, 'You cannot research this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!')
+        return false end
+    else
+        rust.Notice( netuser, blueprint.resultItem.name .. ' was not found in the database! Report this to a GM!' )
+        return false
+    end
+end
+
+-- Blocking researching
+function PLUGIN:OnResearchItem( researchtoolitem, item )
+    return MergeResult.Failed
 end

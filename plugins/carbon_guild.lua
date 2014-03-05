@@ -27,6 +27,7 @@ function PLUGIN:Init()
 end
 
 function PLUGIN:destroy()
+    if not netuser:CanAdmin() then return end
     CallTimer:Destroy()
 end
 
@@ -840,21 +841,18 @@ function PLUGIN:GiveGXP( guild, xp )
     if data.glvl == core.Config.guild.settings.maxguildlvl then return end
     local members = func:count( data.members )
     local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.glvlmodifier*(data.xp+xp))+25))+50)/100)
-    rust.BroadcastChat( tostring(calcLvl) )
+    rust.BroadcastChat( tostring( calcLvl ))
     if( calcLvl ~= data.glvl ) then
         -- level up | check if allowed.
         if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
             data.xp = data.xp + xp
             data.glvl = calcLvl
-            local a = data.glvl + 1 --level +1
-            local b = core.Config.guild.settings.glvlmodifier
-            local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
-            data.xpforLVL = c
             self:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(calcLvl) .. ' reached! ::::::::::::::::' )
             self:GuildSave()
             self:CallUnlock(guild)
             return xp
         else
+            data.xp = (((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.glvlmodifier*100-(data.glvl*100))-1
             xp = 0
             return xp
         end
@@ -879,7 +877,8 @@ end
 
 function PLUGIN:CallTimer()
     for k, v in pairs(self.Guild) do
-        local count = #v.activecalls
+        local count = func:count(v.activecalls)
+        rust.BroadcastChat( tostring( count ))
         if count > 0 then
             for y,z in pairs(v.activecalls) do
                 z.time = v.time - 1
