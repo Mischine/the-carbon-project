@@ -55,24 +55,15 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
             if( char.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) char.User[ netuserID ].crafting = false return false end
         end
 
-
-        local profLvl = craftdata.lvl
-        local int = char.User[ netuserID ].attributes.int
-        local iDiff = data.dif
-        local CritChance=100-((profLvl*0.321429)/2)-((int*2.25)/2)+(iDiff*0.22501)
-        local FailChance=50-(profLvl*0.321429)-(int*2.25)+(iDiff*0.4501)
+        local a,b,c=craftdata.lvl, char.User[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
         local crit, failed = false,false
         local roll = func:Roll(true, 100)
-        if(roll < FailChance) then
+        if(roll < e) then
             failed = true
-        elseif roll > CritChance then
+        elseif (roll > d) then
             crit = true
         end
-        -- Crafting:
-        -- check for crit
-        -- check for failed
         local Time = data.ct * amount
-        -- If crit, then Time becomes = 0. This means instant craft.
         if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
         local i = Time
         if Time == 0 then Time = 1 end
@@ -80,7 +71,6 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
             if Time > 0 then rust.InventoryNotice( netuser, tostring(i) ) end
             i = i - 1
             if( i <= 0 ) then
-                -- del mats
                 for k,v in pairs( data.mats ) do
                     if failed then v = (v*amouunt) / 2 end
                     v = v * amount
@@ -117,10 +107,8 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                 end
 
                 local item2 = rust.GetDatablockByName( blueprint.resultItem.name )
-                -- craft crit the double the amount is given.
                 if crit then amount = amount * 2 end
 
-                -- if craft failed, then no items are given.
                 if not failed then
                     timer.Once( 1, function()
                         inv:AddItemAmount( item2, amount )
