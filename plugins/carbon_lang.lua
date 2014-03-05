@@ -20,6 +20,7 @@ end
 
 function PLUGIN:SetLocalization()
     self.Text = {
+        ['available']={'english','russian'},
         ['xp'] = {
             ['english'] = {
                 ['level'] = 'Level',
