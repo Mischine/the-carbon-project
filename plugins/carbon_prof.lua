@@ -55,6 +55,19 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
             if( char.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) char.User[ netuserID ].crafting = false return false end
         end
 
+
+        local profLvl = craftdata.lvl
+        local int = char.User[ netuserID ].attributes.int
+        local iDiff = data.dif
+        local CritChance=100-((profLvl*0.321429)/2)-((int*2.25)/2)+(iDiff*0.22501)
+        local FailChance=50-(profLvl*0.321429)-(int*2.25)+(iDiff*0.4501)
+        local crit, failed = false,false
+        local roll = func:Roll(true, 100)
+        if(roll < FailChance) then
+            failed = true
+        elseif roll > CritChance then
+            crit = true
+        end
         -- Crafting:
         -- check for crit
         -- check for failed
