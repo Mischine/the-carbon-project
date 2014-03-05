@@ -41,7 +41,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         return false
     end
     local inv = rust.GetInventory( netuser )
-    if not inv then rust.Notice('Inventory not found, report to a GM. Unable to craft.') return false end
+    if not inv then rust.Notice( netuser, 'Inventory not found, report to a GM. Unable to craft.') return false end
     if( self.craft[ blueprint.resultItem.name ] ) then
         local netuserID = rust.GetUserID( netuser )
         if char.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
@@ -55,11 +55,15 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
             if( char.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) char.User[ netuserID ].crafting = false return false end
         end
 
-        -- Crafting:
-        -- check for crit
-        -- check for failed
+        local a,b,c=craftdata.lvl, char.User[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
+        local crit, failed = false,false
+        local roll = func:Roll(true, 100)
+        if(roll < e) then
+            failed = true
+        elseif (roll > d) then
+            crit = true
+        end
         local Time = data.ct * amount
-        -- If crit, then Time becomes = 0. This means instant craft.
         if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
         local i = Time
         if Time == 0 then Time = 1 end
@@ -67,7 +71,6 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
             if Time > 0 then rust.InventoryNotice( netuser, tostring(i) ) end
             i = i - 1
             if( i <= 0 ) then
-                -- del mats
                 for k,v in pairs( data.mats ) do
                     if failed then v = (v*amouunt) / 2 end
                     v = v * amount
@@ -104,10 +107,8 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                 end
 
                 local item2 = rust.GetDatablockByName( blueprint.resultItem.name )
-                -- craft crit the double the amount is given.
                 if crit then amount = amount * 2 end
 
-                -- if craft failed, then no items are given.
                 if not failed then
                     timer.Once( 1, function()
                         inv:AddItemAmount( item2, amount )
@@ -115,9 +116,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                         char.User[ netuserID ].crafting = false
                     end)
                 end
-                -- add xp || Random xp is not random... o.O     <-- best smiley evah?
-                --                                      ___     <-- best smiley evah?
-                local xp = math.floor(( math.random( data.xp.min, data.xp.max ))*amount)
+                local xp = func:Roll( true, data.xp.min, data.xp.max )*amount
                 if failed then xp = xp / 2 rust.Notice( netuser, 'Crafting failure!' ) end
                 if( not data.prof == 'Intelligence' ) then
                     timer.Once(2, function()
@@ -148,12 +147,13 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
     local craftdata = data.prof[ prof ]
     if not craftdata then return end
     if craftdata.lvl == craftdata.maxlvl then return 0 end
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.clvlmodifier*(data.xp+xp))+25))+50)/100)
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.clvlmodifier*(craftdata.xp+xp))+25))+50)/100)
     if calcLvl ~= craftdata.lvl then
-        -- Level up
         craftdata.lvl = calcLvl
         rust.Notice( netuser, 'You\'re now level ' .. calcLvl .. ' ' .. prof )
+        char:UserSave()
     end
+    craftdata.xp = craftdata.xp + xp
     return xp
 end
 
@@ -187,4 +187,39 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
             func:TextBox(netuser,content,cmd,args) return
         end
     end
+end
+
+function PLUGIN:OnBlueprintUse( blueprint, item )
+    local inv = item.inventory
+    local s = tostring( inv )
+    local f = "Player"
+    local deb = string.find(s, f ) +7
+    local fin = string.find( s, "(" , deb, true) - 2
+    local s2 = string.sub(s, deb, fin)
+    local validate, netuser = rust.FindNetUsersByName( tostring(s2) )
+    if (not validate) then
+        if (netuser == 0) then
+            print( "[ OnBluePrintUse ] No players found with name: " .. tostring( s2 ))
+        else
+            print( "[ OnBluePrintUse ] Multiple players found with name: " .. tostring( s2 ))
+        end
+        return false
+    end
+    if( self.craft[ blueprint.resultItem.name ] ) then
+        local netuserID = rust.GetUserID( netuser )
+        local data = self.craft[ blueprint.resultItem.name ]
+        if not data then rust.Notice( netuser, 'No data found...' ) return false end
+        local craftdata = char.User[ netuserID ].prof[ data.prof ]
+        if( craftdata.lvl < data.req ) then
+            rust.Notice( netuser, 'You cannot research this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!')
+        return false end
+    else
+        rust.Notice( netuser, blueprint.resultItem.name .. ' was not found in the database! Report this to a GM!' )
+        return false
+    end
+end
+
+-- Blocking researching kit
+function PLUGIN:OnResearchItem( researchtoolitem, item )
+    return MergeResult.Failed
 end

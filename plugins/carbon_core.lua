@@ -71,7 +71,6 @@ function PLUGIN:SetDefaultConfig()
             ['Hatchet']={['name']='Hatchet',['type']='m',['dmg']=1,['lvl']=1},
             ['Pick Axe']={['name']='Pick Axe',['type']='m',['dmg']=1,['lvl']=1},
 
-
             ['Hand Cannon']={['name']='Hand Cannon',['type']='c',['dmg']=1,['lvl']=1},
             ['Pipe Shotgun'] ={['name']='Pipe Shotgun',['type']='c',['dmg']=1,['lvl']=1},
             ['Revolver']={['name']='Revolver',['type']='c',['dmg']=1,['lvl']=1},
@@ -81,12 +80,9 @@ function PLUGIN:SetDefaultConfig()
             ['Explosive Charge']={['name']='Explosive Charge',['type']='e',['dmg']=1,['lvl']=1},
             ['F1 Grenade']={['name']='F1 Grenade',['type']='e',['dmg']=1,['lvl']=1},
 
-
             ['Hunting Bow']={['name']='Hunting Bow',['type']='l',['dmg']=1,['lvl']=1},
             ['MP5A4']={['name']='MP5A4',['type']='l',['dmg']=1,['lvl']=1},
             ['P250']={['name']='P250',['type']='c',['dmg']=1,['lvl']=1},
-
-
 
             ['Rock']={['name']='Rock',['type']='m',['dmg']=1,['lvl']=1},
             ['Shotgun']={['name']='Shotgun',['type']='c',['dmg']=1,['lvl']=1},

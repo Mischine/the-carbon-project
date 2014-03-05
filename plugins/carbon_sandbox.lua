@@ -28,7 +28,7 @@ function PLUGIN:sandbox(netuser,cmd, args)
 
     local avi = netuser:LoadAvatar()
 
-    recycler = avi:avatar.Recycler()
+    -- recycler = avi.avatar.Recycler()
     builder = avi:recycler.OpenBuilder()
     avi:character.GetLocal:PlayerInventory().SaveToAvatar(builder)
     avi:character.netUser.SaveAvatar(builder.Build())
