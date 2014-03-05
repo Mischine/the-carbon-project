@@ -39,6 +39,7 @@ function PLUGIN:sandbox(netuser,cmd, args)
     avatar:ClearInventory()
     avatar:ClearBlueprints()
     avatar:SaveAvatar()
+    --[[
     local count = avatar.BlueprintsCount
     rust.SendChatToUser( netuser, ' ', tostring(count))
     local num = 0
@@ -54,7 +55,7 @@ function PLUGIN:sandbox(netuser,cmd, args)
 
     --local avatar = netuser:LoadAvatar()
     --local builder = avatar:ToBuilder()
-    --[[
+
     local idMain = char.idMain
     --
     local avatar = netuser:LoadAvatar()
@@ -84,8 +85,8 @@ function PLUGIN:sandbox(netuser,cmd, args)
 
 
     rust.SendChatToUser( netuser, ' ', tostring(char.blueprints_))
-    ]]
 
+--]]
 end
 
 
