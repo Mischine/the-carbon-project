@@ -6,3 +6,22 @@ PLUGIN.Author = 'Mischa & CareX'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
+--[[
+
+i = 1
+local bool = inv:IsSlotFree(i)
+i = i + 1
+if bool then inv:DropItem(inv,i)
+
+
+
+i = 1
+local bool = inv:IsSlotFree(i)
+i = i + 1
+if bool then
+moveitem
+else
+dropitem
+end
+
+--]]

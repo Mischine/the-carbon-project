@@ -41,7 +41,7 @@ function PLUGIN:xp(netuser, cmd, args)
     if (a == 2) and (core.Config.settings.lvlmodifier >= 2) then f = 0 end
     local content = {
         ['list']={
-            lang.Text.xp[netuserData.lang].level .. ':                          ' .. tostring(a-1),
+            lang.Text.xp[netuserData.lang].level .. ':                          ' .. tostring(ab),
             ' ',
             lang.Text.xp[netuserData.lang].experience .. ':              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')',
             tostring(func:xpbar( d, 32 )),
