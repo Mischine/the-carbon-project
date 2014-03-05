@@ -186,10 +186,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
             func:TextBoxError(netuser, content, cmd, args) return
         end
     end
-
 end
-
-
 
 function PLUGIN:GiveXp(combatData, xp)
 
@@ -321,11 +318,12 @@ function PLUGIN:GetUserData( netuser )
         data.crafting = false
         data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
         data.prof = {
-            ['Engineer']={['lvl']=1,['xp']=0,['maxlvl']=70},
-            ['Medic']={['lvl']=0,['xp']=0,['maxlvl']=70},
-            ['Carpenter']={['lvl']=1,['xp']=0,['maxlvl']=70},
-            ['Armorsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-            ['Weaponsmith']={['lvl']=1,['xp']=0,['maxlvl']=70}}
+            ['Engineer']={['lvl']=1,['xp']=0,['maxlvl']=70,['nextlvl']=1000},
+            ['Medic']={['lvl']=0,['xp']=0,['maxlvl']=70,['nextlvl']=1000},
+            ['Carpenter']={['lvl']=1,['xp']=0,['maxlvl']=70,['nextlvl']=1000},
+            ['Armorsmith']={['lvl']=1,['xp']=0,['maxlvl']=70,['nextlvl']=1000},
+            ['Weaponsmith']={['lvl']=1,['xp']=0,['maxlvl']=70,['nextlvl']=1000 }
+            }
         self.User[ netuserID ] = data
         self:UserSave()
     end
