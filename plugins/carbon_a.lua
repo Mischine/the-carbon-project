@@ -5,4 +5,11 @@ PLUGIN.Author = 'Mischa & CareX'
 
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
+
+    self:AddChatCommand( 'test', self.test )
 end
+
+function PLUGIN:test(netuser, cmd, args )
+
+end
+

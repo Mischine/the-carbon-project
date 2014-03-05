@@ -15,14 +15,13 @@ function PLUGIN:PostInit()
     self:AddChatCommand( 'xp', self.xp )
 
     -- Guild
-    self:AddChatCommand( 'ghelp', self.cmdGuildHelp )
-    self:AddChatCommand( 'guild', self.cmdGuild )
-    self:AddChatCommand( 'vault', self.cmdVault )
-    self:AddChatCommand( 'g', self.cmdGuildChat )
-    self:AddChatCommand( 'members', self.cmdMembers )
-    self:AddChatCommand( 'ginvite', self.cmdInvite )
+    self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
+    self:AddChatCommand( 'vault', self.cmdVault )       -- TESTED
+    self:AddChatCommand( 'g', guild.cmdGuildChat )
+    self:AddChatCommand( 'members', self.cmdMembers )   -- TESTED
+    self:AddChatCommand( 'ginvite', self.cmdInvite )    -- TESTED
     self:AddChatCommand( 'gkick', self.cmdKick )
-    self:AddChatCommand( 'rank', self.cmdRank )
+    self:AddChatCommand( 'rank', self.cmdRank )         -- TESTED
     self:AddChatCommand( 'war', self.cmdWar )
     self:AddChatCommand( 'call', self.cmdCall )
 
@@ -35,28 +34,30 @@ function PLUGIN:PostInit()
     self:AddChatCommand( 'testme', self.test )
 end
 
+
+
 function PLUGIN:cmdGuild(netuser, cmd ,args)
     -- Get Language & Data
     local netuserData = char.User[rust.GetUserID( netuser )]
     local lang = netuserData.lang                               -- Will implement later. This is gonna fuck up the outlining tho
     if not args[1] then
         guild:GuildIntro( netuser )
-    elseif args[1]:lower() == 'create' then
+    elseif args[1]:lower() == 'create' then     -- TESTED
         guild:GuildCreate( netuser, args )
-    elseif args[1]:lower() == 'delete' then
+    elseif args[1]:lower() == 'delete' then     -- TESTED
         guild:GuildDelete( netuser, args )
-    elseif args[1]:lower() == 'info' then
+    elseif args[1]:lower() == 'info' then       -- TESTED
         guild:GuildInfo( netuser )
     elseif args[1]:lower() == 'accept' then
         guild:GuildAccept( netuser )
-    elseif args[1]:lower() == 'help' then
-        guild:GuildHelp( netuser, args )
-    elseif args[1]:lower() == 'leave' then
+    elseif args[1]:lower() == 'help' then       -- TESTED
+        guild:GuildHelp( netuser, cmd, args )
+    elseif args[1]:lower() == 'leave' then      -- TESTED
         guild:GuildLeave( netuser,args )
-    elseif args[1]:lower() == 'stats' then
+    elseif args[1]:lower() == 'stats' then      -- TESTED
         guild:GuildStats( netuser )
     else
-        guild:GuildCommands( netuser, cmd ,args )               -- TODO
+        -- guild:GuildCommands( netuser, cmd ,args )               -- TODO
     end
 end
 function PLUGIN:cmdInvite( netuser, cmd ,args )
@@ -74,7 +75,7 @@ function PLUGIN:cmdKick( netuser, cmd, args )
     guild:GuildKick( netuser, args )
 end
 function PLUGIN:cmdCall( netuser, cmd, args )
-    guild:GuildCall( netuser, args )
+    guild:GuildCall( netuser, cmd, args )
 end
 function PLUGIN:cmdWar( netuser, cmd, args )
     if not args[1] then rust.Notice( netuser, '/war "GuildTag" ' ) return end

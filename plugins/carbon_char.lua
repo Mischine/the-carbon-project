@@ -323,6 +323,7 @@ function PLUGIN:GetUserData( netuser )
             ['Carpenter']={['lvl']=1,['xp']=0,['maxlvl']=70},
             ['Armorsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
             ['Weaponsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
+            ['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
             ['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
             }
         self.User[ netuserID ] = data
