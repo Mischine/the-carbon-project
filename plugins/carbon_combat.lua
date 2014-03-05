@@ -356,14 +356,7 @@ function PLUGIN:CritCheck(combatData)
     return combatData.dmg.amount
 end
 
-function PLUGIN:Parry(combatData)
-    --CRITICAL HIT CHECK
-    if( char.User[ combatData.netuserData.id ].buffs[ 'ParryCrit' ]) then
-        combatData.dmg.amount = combatData.dmg.amount * 2
-        rust.InventoryNotice( combatData.netuser, 'Critical Hit!' )
-        char.User[ combatData.netuserData.id ].buffs[ 'ParryCrit' ] = nil
-    end
-end
+
 
 
 

@@ -16,6 +16,7 @@ function PLUGIN:Init()
         print( 'Creating carbon lang file...' )
         self:SetLocalization()
     end
+
 end
 
 function PLUGIN:SetLocalization()
