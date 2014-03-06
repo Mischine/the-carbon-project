@@ -20,8 +20,7 @@ function PLUGIN:Init()
 
     self:AddChatCommand( 'c', self.cmdCarbon )
 end
-function PLUGIN:InfoCharacter(netuserData)
-
+function PLUGIN:InfoCharacter(netuser, cmd ,args, netuserData)
     local a = netuserData.lvl+1 --level +1
     local ab = netuserData.lvl --level
     local b = core.Config.settings.lvlmodifier
@@ -32,8 +31,6 @@ function PLUGIN:InfoCharacter(netuserData)
     local g = math.floor(((netuserData.dp/(f*.5))*100)+0.5) -- percentage of dp
     local h = (f*.5) -- total possible dp
     if (a == 2) and (core.Config.settings.lvlmodifier >= 2) then f = 0 end
-
-    local txt = lang.Text.c[netuserData.lang]
 
     local content = {
         ['list']={
@@ -48,7 +45,7 @@ function PLUGIN:InfoCharacter(netuserData)
     }
     func:TextBox(netuser, content, cmd, args) return
 end
-function PLUGIN:InfoAttributes(netuserData)
+function PLUGIN:InfoAttributes(netuser, cmd ,args, netuserData)
     local txt = lang.Text.attr[netuserData.lang]
     local content = {
     ['list']={

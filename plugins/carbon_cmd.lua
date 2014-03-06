@@ -23,13 +23,13 @@ function PLUGIN:PostInit()
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
     self:AddChatCommand( 'vault', self.cmdVault )       -- TESTED
-    self:AddChatCommand( 'gl', self.cmdChat )
+    self:AddChatCommand( 'g', guild.cmdGuildChat )
     self:AddChatCommand( 'members', self.cmdMembers )   -- TESTED
     self:AddChatCommand( 'ginvite', self.cmdInvite )    -- TESTED
-    self:AddChatCommand( 'gkick', self.cmdKick )        -- TESTED
+    self:AddChatCommand( 'gkick', self.cmdKick )
     self:AddChatCommand( 'rank', self.cmdRank )         -- TESTED
     self:AddChatCommand( 'war', self.cmdWar )
-    self:AddChatCommand( 'call', self.cmdCall )         -- TESTED
+    self:AddChatCommand( 'call', self.cmdCall )
 
     -- Prof
 
@@ -77,6 +77,9 @@ function PLUGIN:cmdReset(netuser, cmd ,args)
         char:InfoSkills( netuserData )
     end
 end
+
+
+
 
     -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                    GUILD COMMANDS
