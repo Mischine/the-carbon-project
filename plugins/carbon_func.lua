@@ -202,7 +202,8 @@ function PLUGIN:GetTimeMilliSeconds()
 end
 
 function PLUGIN:Roll(a,b,c)
-    local d=self:GetTimeMilliSeconds()math.randomseed(d)
+    local d=self:GetTimeMilliSeconds()
+    math.randomseed(d)
     local result = 0
     if not c then
         result=math.random(b)
@@ -395,7 +396,7 @@ function PLUGIN:Bandage(netuser, cmd, args)
 
 
         if args[2] then
-            this:Bandage(tonumber(args[3]))
+            this:Bandage(tonumber(args[2]))
         end
     end
 end

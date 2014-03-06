@@ -56,8 +56,10 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         local roll = func:Roll(true, 100)
         if(roll < e) then
             failed = true
+            rust.BroadcastChat( netuser, 'FAILED' )
         elseif (roll > d) then
             crit = true
+            rust.BroadcastChat( netuser, 'CRIT' )
         end
         local Time = data.ct * amount
         if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
@@ -165,8 +167,6 @@ end
 
 -- inspect items. Crafting and maybe Economy.
 function PLUGIN:cmdInspect( netuser, cmd, args )
-    rust.BroadcastChat( tostring( cmd ))
-    rust.BroadcastChat( tostring( args ))
     if not args[1] then
         if not args[1]then local content={['msg']=' With the inspect feature you\'re able inspect any item ingame. This will show the crafting information. \n \n Simply type /inspect "Item Name"' }
         func:TextBox(netuser,content,cmd,args)return end

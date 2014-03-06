@@ -100,64 +100,50 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
 
     --BEGIN BATTLE SYSTEM
     if combatData.scenario == 1 then
-        --rust.BroadcastChat('------------client vs client------------')
+       rust.BroadcastChat('------------client vs client------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+        combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-        --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
+        combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
 
     elseif combatData.scenario == 2 then
 
-        --rust.BroadcastChat('------------pve vs client------------')
+       rust.BroadcastChat('------------pve vs client------------')
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-        --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
+        combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
-        --rust.BroadcastChat('------------client vs pve------------')
+       rust.BroadcastChat('------------client vs pve------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
-        combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
+        --combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        --combatData.dmg.amount = = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-        --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+        combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+        -- dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end
-    --rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
+  rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
     dmg.amount = combatData.dmg.amount
     combatData = {}
     return dmg
 end
 
 function PLUGIN:GuildAttack(combatData)
-    --rust.BroadcastChat('----PLUGIN:GuildAttack----')
-    if combatData.scenario == 1 then --client vs client
-
-    elseif combatData.scenario == 2 then --npc vs client
-
-    elseif combatData.scenario == 3 then --client vs npc
-
-    end
-    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    rust.BroadcastChat('----PLUGIN:GuildAttack----')
+    combatData.dmg.amount = guild:GuildAttackMods( combatData )
     return combatData.dmg.amount
 end
 
 function PLUGIN:GuildDefend(combatData)
-    --rust.BroadcastChat('----PLUGIN:GuildDefend----')
-    if combatData.scenario == 1 then --client vs client
-
-    elseif combatData.scenario == 2 then --npc vs client
-
-    elseif combatData.scenario == 3 then --client vs npc
-
-    end
-    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    rust.BroadcastChat('----PLUGIN:GuildDefend----')
+    combatData.dmg.amount = guild:GuildDefendMods( combatData )
     return combatData.dmg.amount
 end
 -----------------------------------------------------------------
@@ -223,7 +209,7 @@ function PLUGIN:WeaponSkill (combatData)
     return combatData.dmg.amount
 end
 function PLUGIN:DmgModifier (combatData)
-    --rust.BroadcastChat('----PLUGIN:DmgModifier----')
+    rust.BroadcastChat('----PLUGIN:DmgModifier----')
     if combatData.scenario == 1 then
         if combatData.weapon then
             combatData.dmg.amount = combatData.dmg.amount * combatData.weapon.dmg
@@ -246,19 +232,19 @@ function PLUGIN:DmgModifier (combatData)
             combatData.dmg.amount = combatData.dmg.amount * combatData.npcData.dmg
         end
     end
-    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
 function PLUGIN:DmgRandomizer(combatData)
-    --rust.BroadcastChat('----PLUGIN:DmgRandomizer----')
+    rust.BroadcastChat('----PLUGIN:DmgRandomizer----')
     local seed = func:GetTimeMilliSeconds()
     math.randomseed(seed)
     combatData.dmg.amount = math.random(combatData.dmg.amount*.5,combatData.dmg.amount)
-    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
 function PLUGIN:Attack(combatData)
-    --rust.BroadcastChat('----PLUGIN:Attack----')
+    rust.BroadcastChat('----PLUGIN:Attack----')
     if combatData.scenario == 1 then
         --ATTACKER DP DMG MODIFIERS
         if combatData.netuserData.dp then
@@ -308,14 +294,14 @@ function PLUGIN:Attack(combatData)
             end
         end
     end
-    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
 function PLUGIN:CritCheck(combatData)
-    --rust.BroadcastChat('----PLUGIN:CritCheck----')
+    rust.BroadcastChat('----PLUGIN:CritCheck----')
     if combatData.scenario == 1 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(100)
+            local roll = func:Roll(false, 100)
             if combatData.dmg.damageTypes == 4 then
                 if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
@@ -330,7 +316,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 2 then
         if (combatData.npcData.attributes.agi>0) then
-            local roll = func:Roll(100)
+            local roll = func:Roll(false, 100)
             if (combatData.npcData.attributes.agi+math.random(combatData.vicuserData.lvl-1,combatData.vicuserData.lvl+1))*.002 >= roll then
                 combatData.dmg.amount = combatData.dmg.amount * 2
                 rust.InventoryNotice( vicuser, 'Critically Wounded!' )
@@ -338,7 +324,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 3 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(100)
+            local roll = func:Roll(false, 100)
             if combatData.dmg.damageTypes == 4 then
                 if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
@@ -352,7 +338,7 @@ function PLUGIN:CritCheck(combatData)
             end
         end
     end
-    --rust.BroadcastChat(tostring(combatData.dmg.amount))
+    rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
 

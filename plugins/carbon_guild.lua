@@ -360,6 +360,9 @@ function PLUGIN:GuildCall( netuser, cmd, args )
                 return end
             if not func:containsval(data.unlockedcalls, call) then rust.Notice( netuser, call .. ' is not unlocked!' ) return end
             if data.activecalls[ call ] then rust.Notice( netuser, call .. ' is already active!' ) return end
+            local g,s = core.Config.guild.calls[ call ].requirements.cost.g, core.Config.guild.calls[ call ].requirements.cost.s
+            if not self:canBuyGuild( guild, g,s, 0 ) then rust.Notice( netuser, 'insuficient funds!' ) return end
+            self:GuildWithdraw( netuser.displayName, guild, g, s, 0 )
             data.activecalls[ call ] = {}
             data.activecalls[ call ][ 'time' ] = 240
             self:sendGuildMsg( guild, 'INCOMING CALL', '::::::::: ' .. call .. ' is activated! :::::::::' )
@@ -1070,9 +1073,78 @@ function PLUGIN:GuildWithdraw( name, guild, g, s, c )
     self:GuildSave()
 end
 
+function PLUGIN:GuildAttackMods( combatData )
+    if combatData.scenario == 1 then                                                -- Client vs Client
+        local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
+        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        local guilddata = self:getGuildData( guild )                                    -- gets guild data
+        local vicguild = self:getGuild( combatData.vicuser )                            -- check victems guild
+        if not vicguild then return combatData.dmg.amount end                           -- if not vicguild, return dmg
+        local vicguilddata = self:getGuildData( vicguild )                              -- gets vicguild data
+        if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
+        local mod = self:hasCall( guilddata, 'rally' )
+        if (not mod ) then return combatData.dmg.amount end
+    rust.BroadcastChat( 'rally' .. tostring(combatData.dmg.amount * ( mod + 1 )))
+        combatData.dmg.amount = combatData.dmg.amount * ( mod + 1 )
+        return combatData.dmg.amount
+    elseif combatData.scenario == 3 then                                            -- Client vs NPC
+        local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
+        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        local guilddata = self:getGuildData( guild )                                    -- gets guild data
+        local mod = self:hasCall( guilddata, 'cotw' )                                       -- check for call COTW.
+        if not mod then return combatData.dmg.amount end                                -- if not, return dmg
+        combatData.dmg.amount = combatData.dmg.amount * (mod + 1)                       -- if so, modify dmg
+    rust.BroadcastChat(tostring(combatData.dmg.amount) )
+        return combatData.dmg.amount                                                    -- return dmg
+    else
+        return combatData.dmg.amount                                                    -- failsafe to return dmg
+    end
+end
+
+function PLUGIN:GuildDefendMods( combatData )
+    if combatData.scenario == 1 then                                                -- Client vs Client
+        local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
+        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        local guilddata = self:getGuildData( guild )                                    -- gets guild data
+        local vicguild = self:getGuild( combatData.vicuser )                            -- check victems guild
+        if not vicguild then return combatData.dmg.amount end                           -- if not vicguild, return dmg
+        local vicguilddata = self:getGuildData( vicguild )                              -- gets vicguild data
+        if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
+        local mod = self:hasCall( vicguilddata, 'syg' )
+        if (not mod ) then return combatData.dmg.amount end
+    rust.BroadcastChat( 'syg' .. tostring(combatData.dmg.amount * (1 - mod)) )
+        combatData.dmg.amount = combatData.dmg.amount * (1 - mod )
+        return combatData.dmg.amount
+    elseif combatData.scenario == 2 then                                            -- NPC vs CLient
+        local guild = self:getGuild( combatData.vicuser )                               -- check attackers guild
+        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        local guilddata = self:getGuildData( guild )                                    -- gets guild data
+        local mod = self:hasCall( guilddata, 'cotw' )                                       -- check for call COTW.
+        if not mod then return combatData.dmg.amount end                                -- if not, return dmg
+        combatData.dmg.amount = combatData.dmg.amount * (1 - mod)                       -- if so, modify dmg
+        rust.BroadcastChat(tostring(combatData.dmg.amount) )
+        return combatData.dmg.amount                                                    -- return dmg
+    else
+        return combatData.dmg.amount                                                    -- failsafe to return dmg
+    end
+end
+
+function PLUGIN:hasCall( guilddata, call )
+    local mod = false
+    if guilddata.activecalls[ call ] and core.Config.guild.calls[ call ] then
+       local dif = guilddata.glvl - core.Config.guild.calls[ call ].requirements.glvl
+       if dif <= 0 then dif = 1 end
+       mod = ((core.Config.guild.calls[ call ].mod ) * dif)
+    end
+    return mod
+end
+
 function PLUGIN:canBuyGuild( guild, g, s, c )
+    if not c then c = 0 end
+    if not s then s = 0 end
+    if not g then g = 0 end
     local data = self:getGuildData( guild )
-    local cost = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
+    local cost = (( g * 10000 or 0 ) + ( s * 100 or 0 ) + ( c * 1 or 0 ))
     local bal = (( data.vault.money.g * 10000 ) + ( data.vault.money.s * 100 ) + ( data.vault.money.c * 1 ))
     if( bal >= cost ) then return true else return false end
 end
