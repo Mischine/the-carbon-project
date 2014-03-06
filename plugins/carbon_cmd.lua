@@ -23,7 +23,7 @@ function PLUGIN:PostInit()
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
     self:AddChatCommand( 'vault', self.cmdVault )       -- TESTED
-    self:AddChatCommand( 'gl', self.cmdChat )
+    self:AddChatCommand( 'g', self.cmdChat )            -- TESTED
     self:AddChatCommand( 'members', self.cmdMembers )   -- TESTED
     self:AddChatCommand( 'ginvite', self.cmdInvite )    -- TESTED
     self:AddChatCommand( 'gkick', self.cmdKick )        -- TESTED
@@ -32,10 +32,23 @@ function PLUGIN:PostInit()
     self:AddChatCommand( 'call', self.cmdCall )         -- TESTED
 
     -- Prof
+    self:AddChatCommand( 'prof', self.cmdProf )
+
 
     -- Statistics (stats)
 
 end
+
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                 PROFFESIONS COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+function PLUGIN:cmdProf( netuser, cmd, args )
+    if not args [1] then
+        prof:InfoProf( netuser, cmd, args )
+    return end
+
+end
+
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                 CHARACTER COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -107,7 +120,7 @@ function PLUGIN:cmdGuild(netuser, cmd ,args)
 end
 
 function PLUGIN:cmdChat( netuser, cmd, args )
-    guild:cmdGuildChat( netuser, cmd, args )
+    guild:gChat( netuser, cmd, args )
 end
 function PLUGIN:cmdInvite( netuser, cmd ,args )
     if not args[1] then

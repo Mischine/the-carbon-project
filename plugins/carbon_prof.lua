@@ -26,7 +26,6 @@ local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotg
     "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag"}
 function PLUGIN:OnStartCrafting( inv, blueprint, amount )
-    --[[
     local s = tostring( inv )
     local f = "Player"
     local deb = string.find(s, f ) +7
@@ -50,14 +49,10 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         local data = self.craft[ blueprint.resultItem.name ]
         if not data then rust.Notice( netuser, 'No data found...' ) char.User[ netuserID ].crafting = false return false end
         local craftdata = char.User[ netuserID ].prof[ data.prof ]
-        if( data.prof ~= 'Intelligence' ) then
-            if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char.User[ netuserID ].crafting = false return false end
-        else
-            if( char.User[ netuserID ].attributes.int < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' ..  data.prof .. ' level ' .. data.req .. ' required!' ) char.User[ netuserID ].crafting = false return false end
-        end
-
+        if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char.User[ netuserID ].crafting = false return false end
         local a,b,c=craftdata.lvl, char.User[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
         local crit, failed = false,false
+
         local roll = func:Roll(true, 100)
         if(roll < e) then
             failed = true
@@ -73,8 +68,8 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
             i = i - 1
             if( i <= 0 ) then
                 for k,v in pairs( data.mats ) do
-                    if failed then v = (v*amouunt) / 2 end
                     v = v * amount
+                    if failed then v = math.floor(v / 2) end
                     local datablock = rust.GetDatablockByName( k )
                     local isUnstackable = func:containsval(unstackable, k )
                     local y = 0
@@ -114,24 +109,17 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                     timer.Once( 1, function()
                         inv:AddItemAmount( item2, amount )
                         rust.InventoryNotice( netuser, amount .. 'x ' .. blueprint.resultItem.name )
-                        char.User[ netuserID ].crafting = false
                     end)
                 end
                 local xp = func:Roll( true, data.xp.min, data.xp.max )*amount
-                if failed then xp = xp / 2 rust.Notice( netuser, 'Crafting failure!' ) end
-                if( not data.prof == 'Intelligence' ) then
-                    timer.Once(2, function()
-                        xp = self:AddCraftXP( netuser, data.prof, xp )
-                        if xp == 0 then return end
-                        rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
-                    end)
-                else
-                    timer.Once(2, function()
-                        char.User[ netuserID ].xp = char.User[ netuserID ].xp + xp
-                        rust.InventoryNotice( netuser, '+' .. xp .. 'xp' )
-                    end)
-                end
+                if failed then xp = math.floor(xp / 2) rust.Notice( netuser, 'Crafting failure!' ) end
+                timer.Once(2, function()
+                    xp = self:AddCraftXP( netuser, data.prof, xp )
+                    if xp == 0 then char.User[ netuserID ].crafting = falsereturn end
+                    rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
+                end)
                 char:UserSave()
+                char.User[ netuserID ].crafting = false
             end
         end )
         return false
@@ -140,7 +128,6 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         rust.Notice( netuser, blueprint.resultItem.name .. ' is not in the carbon_craft file, please report to a GM.' )
         return false
     end
-    --]]
 end
 
 function PLUGIN:AddCraftXP(netuser, prof, xp)
@@ -152,7 +139,24 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
     local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.clvlmodifier*(craftdata.xp+xp))+25))+50)/100)
     if calcLvl ~= craftdata.lvl then
         craftdata.lvl = calcLvl
-        rust.Notice( netuser, 'You\'re now level ' .. calcLvl .. ' ' .. prof )
+        -- LEVEL UP
+        local content = {
+            ['header'] = 'You\'re now level ' .. tostring(calcLvl) .. ' ' .. prof .. '!',
+            ['msg'] = 'Unlocked: '
+        }
+        local found = false
+        for k, v in pairs(self.craft) do
+            if v.prof == prof then
+                if v.lvl == calcLvl then
+                    content.msg = content.msg .. ', ' .. k
+                    found = true
+                end
+            end
+        end
+        local cmd = prof .. ' Level Up!'
+        local args = {}
+        if not found then content.msg = 'There are no new researches available.' end
+        func:TextBox(netuser,content,cmd,args) return
         char:UserSave()
     end
     craftdata.xp = craftdata.xp + xp
@@ -161,6 +165,8 @@ end
 
 -- inspect items. Crafting and maybe Economy.
 function PLUGIN:cmdInspect( netuser, cmd, args )
+    rust.BroadcastChat( tostring( cmd ))
+    rust.BroadcastChat( tostring( args ))
     if not args[1] then
         if not args[1]then local content={['msg']=' With the inspect feature you\'re able inspect any item ingame. This will show the crafting information. \n \n Simply type /inspect "Item Name"' }
         func:TextBox(netuser,content,cmd,args)return end
@@ -170,7 +176,9 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
             local content={['msg']=''.. itemname .. ' is not craftable!' }
             func:TextBoxError(netuser,content,cmd,args) return
         else
+            local netuserID = rust.GetUserID( netuser )
             local data = self.craft[ itemname ]
+            local a,b,c=data.req, char.User[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
 
             local content = {
                 ['list']=
@@ -181,10 +189,15 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
                     'Difficulty               : ' .. data.dif,
                     'Crafting Time       : ' .. data.ct,
                     'XP                           : ' .. data.xp.min .. ' - ' .. data.xp.max,
-                    ' ',
-                    'Materials: '
                 }
             }
+            local craftdata = char.User[ netuserID ].prof[ data.prof ]
+            if data.req <= craftdata.lvl then
+                table.insert( content.list, 'Fail chance           : ' .. tostring(math.floor(e+0.5)) .. '%' )
+                table.insert( content.list, 'Critical chance     : ' .. tostring(math.floor((100 - d)+0.5)) .. '%' )
+            end
+            table.insert( content.list, ' ')
+            table.insert( content.list, 'Materials: ')
             for k, v in pairs( data.mats ) do table.insert( content.list, '- ' .. v .. 'x ' .. k ) end
             func:TextBox(netuser,content,cmd,args) return
         end
@@ -225,3 +238,38 @@ end
 function PLUGIN:OnResearchItem( researchtoolitem, item )
     return MergeResult.Failed
 end
+
+function PLUGIN:InfoProf( netuser, cmd ,args )
+
+
+    local content = {
+        ['list']={}
+    }
+    for k, v in pairs( char.User[rust.GetUserID( netuser )].prof) do
+        if v.lvl >= 1 then
+            local a = v.lvl+1 --level +1
+            local ab = v.lvl --level
+            local b = core.Config.settings.clvlmodifier
+            local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
+            local d = math.floor(((v.xp/c)*100)+0.5) -- percent currently to next level.
+            local e = c-v.xp -- left to go until level
+            local f = ((ab*ab)+ab)/b*100-(ab*100) -- amount needed for current level
+            if (a == 2) and (core.Config.settings.clvlmodifier >= 2) then f = 0 end
+            table.insert(content.list, k .. ' level: ' .. tostring(ab) )
+            table.insert(content.list, 'Experience: (' .. v.xp .. '/' .. tostring(c) .. ')  [' .. tostring(d) .. '%]   (+' .. tostring(e) .. ')' )
+            table.insert(content.list, tostring(func:xpbar( d, 32 )))
+        end
+
+    end
+    func:TextBox(netuser,content,cmd,args) return
+end
+
+--[[
+txt.level .. ':                          ' .. tostring(ab),
+            ' ',
+            txt.experience .. ':              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')',
+            tostring(func:xpbar( d, 32 )),
+            ' ',
+            txt.deathpenalty .. ':         (' .. tostring(netuserData.dp) .. '/' .. tostring(h) .. ')   [' .. tostring(g) .. '%]',
+            tostring(func:xpbar( g, 32 )),
+ ]]

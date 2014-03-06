@@ -1094,15 +1094,7 @@ function PLUGIN:getGuildMembers( guild )
     return members
 end
 
-function PLUGIN:cmdGuildChat( netuser, cmd, args )
-    local guild = self:getGuild( netuser )
-    if not guild then rust.Notice( netuser, 'CANNOT COMPUTE.' ) return end
-    rust.Broadcast( guild )
-end
-
---[[
-function PLUGIN:cmdGuildChat( netuser, cmd, args )
-    rust.BroadcastChat( tostring(netuser))
+function PLUGIN:gChat( netuser, cmd, args )
     local guild = self:getGuild( netuser )
     if not guild then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
     local i = 1
@@ -1121,7 +1113,6 @@ function PLUGIN:cmdGuildChat( netuser, cmd, args )
     end
     self:sendGuildMsg(guild, netuser.displayName, msg )
 end
-]]
 
 --PLUGIN:sendGuildMsg
 function PLUGIN:sendGuildMsg( guild, name, msg )
