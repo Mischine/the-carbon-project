@@ -23,13 +23,13 @@ function PLUGIN:PostInit()
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
     self:AddChatCommand( 'vault', self.cmdVault )       -- TESTED
-    self:AddChatCommand( 'g', guild.cmdGuildChat )
+    self:AddChatCommand( 'g', self.cmdChat )
     self:AddChatCommand( 'members', self.cmdMembers )   -- TESTED
     self:AddChatCommand( 'ginvite', self.cmdInvite )    -- TESTED
-    self:AddChatCommand( 'gkick', self.cmdKick )
+    self:AddChatCommand( 'gkick', self.cmdKick )        -- TESTED
     self:AddChatCommand( 'rank', self.cmdRank )         -- TESTED
     self:AddChatCommand( 'war', self.cmdWar )
-    self:AddChatCommand( 'call', self.cmdCall )
+    self:AddChatCommand( 'call', self.cmdCall )         -- TESTED
 
     -- Prof
 
@@ -78,9 +78,6 @@ function PLUGIN:cmdReset(netuser, cmd ,args)
     end
 end
 
-
-
-
     -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                    GUILD COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -96,7 +93,7 @@ function PLUGIN:cmdGuild(netuser, cmd ,args)
         guild:GuildDelete( netuser, args )
     elseif args[1]:lower() == 'info' then       -- TESTED
         guild:GuildInfo( netuser )
-    elseif args[1]:lower() == 'accept' then
+    elseif args[1]:lower() == 'accept' then     -- TESTED
         guild:GuildAccept( netuser )
     elseif args[1]:lower() == 'help' then       -- TESTED
         guild:GuildHelp( netuser, cmd, args )
@@ -107,6 +104,10 @@ function PLUGIN:cmdGuild(netuser, cmd ,args)
     else
         -- guild:GuildCommands( netuser, cmd ,args )               -- TODO
     end
+end
+
+function PLUGIN:cmdChat( netuser, cmd, args )
+    guild:cmdGuildChat( netuser, cmd , args )
 end
 function PLUGIN:cmdInvite( netuser, cmd ,args )
     if not args[1] then

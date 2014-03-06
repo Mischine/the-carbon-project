@@ -26,7 +26,7 @@ local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotg
     "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag"}
 function PLUGIN:OnStartCrafting( inv, blueprint, amount )
-    -[[
+    --[[
     local s = tostring( inv )
     local f = "Player"
     local deb = string.find(s, f ) +7

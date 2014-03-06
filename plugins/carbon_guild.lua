@@ -310,7 +310,7 @@ function PLUGIN:GuildAccept( netuser )
     end
 end
 
-function PLUGIN:GuildAccept( netuser,args )
+function PLUGIN:GuildLeave( netuser,args )
     local guild = self:getGuild( netuser )
     if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild!') return end
     if( not args[2] ) then rust.Notice( netuser, '/g leave [guildtag] ' ) return end
@@ -325,18 +325,17 @@ function PLUGIN:GuildAccept( netuser,args )
 end
 
 function PLUGIN:GuildKick( netuser,args )
-    if( not args[1] ) then rust.Notice( netuser, '/g kick "name" ' )return end
+    if( not args[1] ) then rust.Notice( netuser, '/gkick "name" ' )return end
     local guild = self:getGuild( netuser )
     if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
     if( not self:hasAbility( netuser, guild, 'cankick' ) ) then rust.Notice(netuser, 'You\'re not permitted to kick a player from the guild.' ) return end
     local targname = util.QuoteSafe( args[1] )
     if( netuser.displayName == targname ) then rust.Notice( netuser, 'You cannot kick yourself...' ) return end
     local targuserID = false
-    for k, v in pairs( self.Guild[ guild ].members ) do
-        if( v.name:lower() == targname:lower() ) then targuserID = k return end
-    end
+    for k, v in pairs( self.Guild[ guild ].members ) do if( v.name:lower() == targname:lower() ) then targuserID = k break end end
     if( not targuserID ) then rust.Notice( netuser, 'player ' .. targname .. ' is not a member of ' .. guild .. '.') return end
     local date = System.DateTime.Now:ToString(core.Config.dateformat)
+    rust.Notice(netuser,  'Kicked ' .. targname .. ' from ' .. guild )
     mail:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
     self.Guild[ guild ].members[ targuserID ] = nil
     char.User[ targuserID ].guild = nil
@@ -491,8 +490,8 @@ function PLUGIN:GuildRank( netuser, cmd, args )
             local targuserID = rust.GetUserID( targuser )
             if( not self.Guild[ guild ].members[targuserID] ) then rust.Notice( netuser, targname .. ' is not in your guild!' ) return end
             if( not self.Guild[ guild ].ranks[ tostring( args[2]) ] ) then rust.Notice( netuser, tostring( args[2] .. ' is not an available rank! ')) return end
-            if( not self.Guild[ guild ].members[targuserID].rank['Leader']) then rust.Notice( netuser, 'You\'re not able to change the leaders rank! ') return end
-            if(( tostringargs[2] == 'Leader' ) and( not self.Guild[ guild ].members[ netuserID ].rank == 'Leader' )) then rust.Notice( netuser, 'You cannot give anyone the Leader rank!') return end
+            if( self.Guild[ guild ].members[targuserID].rank['Leader']) then rust.Notice( netuser, 'You\'re not able to change the leaders rank! ') return end
+            if( tostring(args[2]) == 'Leader' ) then rust.Notice( netuser, 'You cannot give anyone the Leader rank!') return end
             self.Guild[ guild ].members[targuserID].rank = tostring( args[2] )
             rust.Notice(netuser, targname .. ' is now a ' .. tostring( args[2] ))
             self:GuildSave()
@@ -1096,8 +1095,9 @@ function PLUGIN:getGuildMembers( guild )
 end
 
 function PLUGIN:cmdGuildChat( netuser, cmd, args )
+    rust.BroadcastChat( tostring(netuser))
     local guild = self:getGuild( netuser )
-    if not guild then rust.Notice( netuser, 'you\'re not in a guild!' ) return end
+    if not guild then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
     local i = 1
     local msg = ''
     while ( i <= #args ) do
