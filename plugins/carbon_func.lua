@@ -201,7 +201,21 @@ function PLUGIN:GetTimeMilliSeconds()
 
 end
 
-function PLUGIN:Roll(a,b,c)local d=self:GetTimeMilliSeconds()math.randomseed(d)if not c then local result=math.random(b)else local result=math.random(b,c)end;if a then return math.floor(result+0.5)else return result end end
+function PLUGIN:Roll(a,b,c)
+    local d=self:GetTimeMilliSeconds()
+    math.randomseed(d)
+    local result = 0
+    if not c then
+        result=math.random(b)
+    else
+        result=math.random(b,c)
+    end
+    if a then
+        return math.floor(result+0.5)
+    else
+        return result
+    end
+end
 -------------------------------------------------------------------------------
 -- NEW FUNCTIONS
 function PLUGIN:Poison(netuser, cmd, args)
@@ -382,7 +396,7 @@ function PLUGIN:Bandage(netuser, cmd, args)
 
 
         if args[2] then
-            this:Bandage(tonumber(args[3]))
+            this:Bandage(tonumber(args[2]))
         end
     end
 end
