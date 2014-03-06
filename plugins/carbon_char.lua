@@ -330,7 +330,7 @@ function PLUGIN:GetUserData( netuser )
         data = {}
         data.id = netuserID
         data.name = netuser.displayName
-        data.language = 'english'
+        data.lang = 'english'
         data.lvl = 1
         data.xp = 0
         data.pp = 0

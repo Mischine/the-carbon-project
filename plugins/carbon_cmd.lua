@@ -1,6 +1,6 @@
 PLUGIN.Title = 'carbon_call'
 PLUGIN.Description = 'guild call module'
-PLUGIN.Version = '0.0.2'
+PLUGIN.Version = '0.0.3'
 PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
