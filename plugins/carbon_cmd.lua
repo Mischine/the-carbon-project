@@ -12,7 +12,13 @@ function PLUGIN:PostInit()
     self:AddChatCommand( 'language', self.lang )
 
     -- Character
-    self:AddChatCommand( 'xp', self.xp )
+    self:AddChatCommand( 'c', self.cmdCharacter ) -- will show level, xp to go (w/bar), dp, available commands >
+    self:AddChatCommand( 'skills', self.cmdSkills ) --only lists your skills and levels w/ bar also inspect by name individually will show bonus damage.
+    self:AddChatCommand( 'attr', self.cmdAttributes ) --lists your attributes and point availability.
+    self:AddChatCommand( 'perks', self.cmdPerks ) --shows current perks and levels w/ bar also inspect by name individually will show perk description.
+    self:AddChatCommand( 'add', self.cmdAdd ) --used to add points to perks or attributes i.e. /add 1 str or /add 1 parry
+    self:AddChatCommand( 'reset', self.cmdReset ) --used to reset perks, attr, class or prestige profession
+
 
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
@@ -29,17 +35,59 @@ function PLUGIN:PostInit()
 
     -- Statistics (stats)
 
-    -- Random Mischa Crap.
-    self:AddChatCommand( 'avatar', self.avatar )
-    self:AddChatCommand( 'testme', self.test )
+end
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                 CHARACTER COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+function PLUGIN:cmdCharacter(netuser, cmd ,args)
+    local netuserID = rust.GetUserID( netuser )
+    local netuserData = char.User[netuserID]
+    if not args[1] then
+        local netuserData = char.User[netuserID]
+        char:InfoCharacter( netuserData )
+    end
+end
+function PLUGIN:cmdSkills(netuser, cmd ,args)
+    if not args[1] then
+        local netuserData = char.User[netuserID]
+        char:InfoSkills( netuserData )
+    end
+end
+function PLUGIN:cmdAttributes(netuser, cmd ,args)
+    if not args[1] then
+        local netuserData = char.User[netuserID]
+        char:InfoSkills( netuserData )
+    end
+end
+function PLUGIN:cmdPerks(netuser, cmd ,args)
+    if not args[1] then
+        local netuserData = char.User[netuserID]
+        char:InfoSkills( netuserData )
+    end
+end
+function PLUGIN:cmdAdd(netuser, cmd ,args)
+    if not args[1] then
+        local netuserData = char.User[netuserID]
+        char:InfoSkills( netuserData )
+    end
+end
+function PLUGIN:cmdReset(netuser, cmd ,args)
+    if not args[1] then
+        local netuserData = char.User[netuserID]
+        char:InfoSkills( netuserData )
+    end
 end
 
 
 
+
+    -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                    GUILD COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 function PLUGIN:cmdGuild(netuser, cmd ,args)
     -- Get Language & Data
     local netuserData = char.User[rust.GetUserID( netuser )]
-    local lang = netuserData.lang                               -- Will implement later. This is gonna fuck up the outlining tho
+    local lang = netuserData.lang   --the language is included in the netuserData B)~   -- Will implement later. This is gonna fuck up the outlining tho
     if not args[1] then
         guild:GuildIntro( netuser )
     elseif args[1]:lower() == 'create' then     -- TESTED
@@ -88,9 +136,14 @@ function PLUGIN:cmdVault( netuser, cmd, args )
     guild:GuildVault( netuser, cmd, args )
 end
 
-function foo(...)
-    rust.SendChatToUser( netuser, ' ', tostring(arg))
-end
+
+
+
+
+
+
+
+
 
 function PLUGIN:lang(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
@@ -111,6 +164,7 @@ function PLUGIN:lang(netuser, cmd, args)
     func:TextBox(netuser, content, cmd, args) return
 end
 
+--[[
 function PLUGIN:xp(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
     local netuserData = char.User[netuserID]
@@ -137,3 +191,4 @@ function PLUGIN:xp(netuser, cmd, args)
     }
     func:TextBox(netuser, content, cmd, args) return
 end
+--]]

@@ -26,6 +26,7 @@ local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotg
     "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag"}
 function PLUGIN:OnStartCrafting( inv, blueprint, amount )
+    -[[
     local s = tostring( inv )
     local f = "Player"
     local deb = string.find(s, f ) +7
@@ -139,6 +140,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         rust.Notice( netuser, blueprint.resultItem.name .. ' is not in the carbon_craft file, please report to a GM.' )
         return false
     end
+    --]]
 end
 
 function PLUGIN:AddCraftXP(netuser, prof, xp)

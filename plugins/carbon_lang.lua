@@ -16,23 +16,33 @@ function PLUGIN:Init()
         print( 'Creating carbon lang file...' )
         self:SetLocalization()
     end
+    self:AddChatCommand( 'updatelang', self.SetLocalization )
 
 end
 
 function PLUGIN:SetLocalization()
     self.Text = {
         ['available']={'english','russian'},
-        ['xp'] = {
+        ['c'] = {
             ['english'] = {
                 ['level'] = 'Level',
                 ['experience'] = 'Experience',
                 ['deathpenalty'] = 'Death Penalty',
+                ['cmds'] = {'attr','skills','perks'}
             },
             ['russian'] = {
                 ['level'] = 'уровень',
                 ['experience'] = 'опыт',
                 ['deathpenalty'] = 'смертная казнь',
             }
+        },
+        ['attr'] = {
+            ['strength'] = 'Strength',
+            ['agility'] = 'Agility',
+            ['stamina'] = 'Stamina',
+            ['intellect'] = 'Intellect',
+            ['cmds'] = {'add [#] [str|agi|sta|int]', 'reset'}
+
         }
     }
     self:TextSave()

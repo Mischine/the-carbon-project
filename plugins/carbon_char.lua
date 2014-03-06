@@ -20,7 +20,56 @@ function PLUGIN:Init()
 
     self:AddChatCommand( 'c', self.cmdCarbon )
 end
+function PLUGIN:InfoCharacter(netuserData)
 
+    local a = netuserData.lvl+1 --level +1
+    local ab = netuserData.lvl --level
+    local b = core.Config.settings.lvlmodifier
+    local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
+    local d = math.floor(((netuserData.xp/c)*100)+0.5) -- percent currently to next level.
+    local e = c-netuserData.xp -- left to go until level
+    local f = ((ab*ab)+ab)/b*100-(ab*100) -- amount needed for current level
+    local g = math.floor(((netuserData.dp/(f*.5))*100)+0.5) -- percentage of dp
+    local h = (f*.5) -- total possible dp
+    if (a == 2) and (core.Config.settings.lvlmodifier >= 2) then f = 0 end
+
+    local txt = lang.Text.c[netuserData.lang]
+
+    local content = {
+        ['list']={
+            txt.level .. ':                          ' .. tostring(ab),
+            ' ',
+            txt.experience .. ':              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')',
+            tostring(func:xpbar( d, 32 )),
+            ' ',
+            txt.deathpenalty .. ':         (' .. tostring(netuserData.dp) .. '/' .. tostring(h) .. ')   [' .. tostring(g) .. '%]',
+            tostring(func:xpbar( g, 32 )),
+        }
+    }
+    func:TextBox(netuser, content, cmd, args) return
+end
+function PLUGIN:InfoAttributes(netuserData)
+    local txt = lang.Text.attr[netuserData.lang]
+    local content = {
+    ['list']={
+        txt.strength .. ':     ' .. netuserData.attributes.str,
+            func:xpbar(netuserData.attributes.str*10,10),
+        txt.agility .. ':      ' .. netuserData.attributes.agi,
+            func:xpbar(netuserData.attributes.agi*10,10),
+        txt.stamina .. ':      ' .. netuserData.attributes.sta,
+            func:xpbar(netuserData.attributes.sta*10,10),
+        txt.intellect .. ':    ' .. netuserData.attributes.int,
+            func:xpbar(netuserData.attributes.int*10,10),
+        },
+            ['cmds']={txt.cmds}
+        }
+    func:TextBox(netuser, content, cmd, args) return
+end
+
+
+
+
+--[[
 -- CARBON CHAT COMMANDS
 function PLUGIN:cmdCarbon(netuser,cmd,args)
     local netuserID = rust.GetUserID( netuser )
@@ -41,30 +90,6 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         func:TextBox(netuser, content, cmd, args) return
     end
 
-    if #args==1 then
-        if (args[1] == 'xp') then
-            local a = netuserData.lvl+1 --level +1
-            local ab = netuserData.lvl --level
-            local b = core.Config.settings.lvlmodifier
-            local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
-            local d = math.floor(((netuserData.xp/c)*100)+0.5) -- percent currently to next level.
-            local e = c-netuserData.xp -- left to go until level
-            local f = ((ab*ab)+ab)/b*100-(ab*100) -- amount needed for current level
-            local g = math.floor(((netuserData.dp/(f*.5))*100)+0.5) -- percentage of dp
-            local h = (f*.5) -- total possible dp
-            if (a == 2) and (core.Config.settings.lvlmodifier >= 2) then f = 0 end
-            local content = {
-                ['list']={
-                    'Level:                          ' .. tostring(a-1),
-                    ' ',
-                    'Experience:              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')',
-                    tostring(func:xpbar( d, 32 )),
-                    ' ',
-                    'Death Penalty:         (' .. tostring(netuserData.dp) .. '/' .. tostring(h) .. ')   [' .. tostring(g) .. '%]',
-                    tostring(func:xpbar( g, 32 )),
-                }
-            }
-            func:TextBox(netuser, content, cmd, args) return
         elseif args[1]=='atr' then
             local content = {
                 ['list']={
@@ -128,7 +153,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
                 func:TextBoxError(netuser, content, cmd, args) return
             end
         elseif args[1] == 'skills'then
-            local skillData = netuserData.skills[args[2]]
+            local skillData = netuserData.skills[ args[2] ]
             if skillData then
                 local a = skillData.lvl+1 --level +1
                 local b = core.Config.settings.weaponlvlmodifier --level modifier
@@ -154,9 +179,9 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
     if #args>=3 then
         if args[1] == 'atr' and args[2] == 'train' and tonumber(args[4]) >= 1 and (args[3] == 'str' or args[3] == 'agi' or args[3] == 'sta' or args[3] == 'int')then
             if netuserData.ap >= tonumber(args[4]) then
-                if netuserData.attributes[args[3]]+tonumber(args[4])<=10 then
+                if netuserData.attributes[ args[3] ]+tonumber(args[4])<=10 then
                     netuserData.ap=netuserData.ap-tonumber(args[4])
-                    netuserData.attributes[args[3]]=netuserData.attributes[args[3]]+tonumber(args[4])
+                    netuserData.attributes[ args[3] ]=netuserData.attributes[ args[3] ]+tonumber(args[4])
                     rust.InventoryNotice(netuser, '+' .. tostring(args[4]) .. args[3])
                 else
                     local content = {
@@ -187,7 +212,7 @@ function PLUGIN:cmdCarbon(netuser,cmd,args)
         end
     end
 end
-
+--]]
 function PLUGIN:GiveXp(combatData, xp)
 
     local guildname = guild:getGuild( combatData.netuser )
@@ -220,6 +245,7 @@ function PLUGIN:GiveXp(combatData, xp)
     end
     self:UserSave()
 end
+
 
 --PLUGIN:getLvl
 function PLUGIN:getLvl( netuser )
@@ -304,6 +330,7 @@ function PLUGIN:GetUserData( netuser )
         data = {}
         data.id = netuserID
         data.name = netuser.displayName
+        data.language = 'english'
         data.lvl = 1
         data.xp = 0
         data.pp = 0

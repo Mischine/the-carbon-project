@@ -13,9 +13,10 @@ function PLUGIN:Init()
     self:AddChatCommand( 'storm', self.cmdStorm )
     self:AddChatCommand( 'sandbox', self.Sandbox )
 
-    self:AddChatCommand( 'v', self.ControllerProbe )
+    self:AddChatCommand( 'v', self.sandbox )
 
 end
+
 function PLUGIN:sandbox(netuser,cmd, args)
 
     local controllable = netuser.playerClient.controllable
@@ -25,69 +26,25 @@ function PLUGIN:sandbox(netuser,cmd, args)
     local nu = controllable:GetComponent( "NetUser" )
     local bp = controllable:GetComponent( "Blueprint" )
     local asr = controllable:GetComponent("AvatarSaveRestore")
-
-    local avi = netuser:LoadAvatar()
-
-    -- recycler = avi.avatar.Recycler()
-    builder = avi:recycler.OpenBuilder()
-    avi:character.GetLocal:PlayerInventory().SaveToAvatar(builder)
-    avi:character.netUser.SaveAvatar(builder.Build())
-
-    local avatar = asr:LoadAvatar()
-    avatar:ClearAvatar()
-    avatar:ShutdownAvatar(true)
-    avatar:ClearInventory()
-    avatar:ClearBlueprints()
-    avatar:SaveAvatar()
-    --[[
-    local count = avatar.BlueprintsCount
-    rust.SendChatToUser( netuser, ' ', tostring(count))
-    local num = 0
-    while num < avatar.BlueprintsCount do
-        local blueprint = avatar:GetBlueprints(num)
-        rust.BroadcastChat( tostring(blueprint))
-        num = num + 1
-    end
-    local count = avatar.BlueprintsCount
-    rust.SendChatToUser( netuser, ' ', tostring(count))
-
-    --rust.BroadcastChat('Crouched : ' .. tostring(char.crouchable.crouched)) -- Shows 0
-
-    --local avatar = netuser:LoadAvatar()
-    --local builder = avatar:ToBuilder()
-
-    local idMain = char.idMain
-    --
+    local asr = controllable:GetComponent("AvatarSaveRestore")
+    local cinv = controllable:GetComponent( "CraftingInventory" )
     local avatar = netuser:LoadAvatar()
-    local count = avatar.BlueprintsCount rust.BroadcastChat('local avatar = netuser:LoadAvatar(): ' .. tostring(count)) --shows 45
 
+    --CompleteAllCraftingInProgress = util.GetStaticMethod( Rust.CraftingInventory, "CompleteAllCraftingInProgress")
 
-    local builder = avatar:ToBuilder()
-    local count = builder.BlueprintsCount rust.BroadcastChat('local builder = avatar:ToBuilder(): ' .. tostring(count)) --shows 45
+    rust.BroadcastChat(tostring(cinv))
+    local secondsRemaining = cinv.craftingSecondsRemaining
 
-    builder:ClearBlueprints()
-    builder:ClearInventory()
-    local count = builder.BlueprintsCount rust.BroadcastChat('builder:ClearBlueprints(): ' .. tostring(count)) -- shows 0
+    timer.Once(secondsRemaining, function()
+        local craftingses = cinv.crafting
+        rust.BroadcastChat(tostring(craftingses.crafting))
+        craftingses.CancelInvoke("CompleteCrafting")
+        rust.Notice( netuser, 'Crafting fail!' )
+        --CraftingInventory:CancelCrafting(true)
 
-    avatar = builder:Build()
-    local count = avatar.BlueprintsCount rust.BroadcastChat('avatar = builder:Build(): ' .. tostring(count)) -- Shows 0
+        end)
 
-    netuser:SaveAvatar(avatar)
-   local count = avatar.BlueprintsCount rust.BroadcastChat('netuser:SaveAvatar(avatar): ' .. tostring(count)) -- Shows 0
-
-    local newavatar = netuser:LoadAvatar()
-    local count = newavatar.BlueprintsCount rust.BroadcastChat('newavatar:ParseFrom(avatar): ' .. tostring(count)) -- Shows 0
-
-    netuser:SaveAvatar(newavatar)
-    avatar = netuser:LoadAvatar()
-
-    local count = avatar.BlueprintsCount rust.BroadcastChat('avatar = netuser:LoadAvatar(): ' .. tostring(count)) -- Shows 0
-
-
-    rust.SendChatToUser( netuser, ' ', tostring(char.blueprints_))
-
---]]
-end
+    end
 
 
 
@@ -132,7 +89,7 @@ function PLUGIN:ControllerProbe(netuser, cmd, args)
     
 end
 function PLUGIN:test( netuser, cmd, args)
-
+--[[
     local avatar = netuser:LoadAvatar()
   local builder = avatar:ToBuilder()
     rust.BroadcastChat('before: ')
@@ -149,7 +106,7 @@ function PLUGIN:test( netuser, cmd, args)
     avatar:ClearInventory()
     avatar:ClearBlueprints()
     avatar:SaveAvatar()
-
+--]]
 end
 
 
