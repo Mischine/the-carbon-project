@@ -33,37 +33,36 @@ end
         end
     end
     --]]
-
---[[
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
+typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    rust.BroadcastChat('OnProcessDamageEvent')
-    if dmg.extraData then
-        weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
-        rust.BroadcastChat(weaponData.name)
-    end
-    return dmg
+    -- rust.BroadcastChat('OnProcessDamageEvent')
+    local combatData = {['dmg']={}}
+    combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
 
-    if dmg.attacker.client then
-        local isSamePlayer = (dmg.victim.client == dmg.attacker.client)
-        if not isSamePlayer then
-            if char:GetUserData(dmg.attacker.client.netUser) then
-                local netuser = dmg.attacker.client.netUser
-                local netuserData = char.User[rust.GetUserID(netuser)]
-                if weaponData.lvl > netuserData.lvl then
-                    local netuser = dmg.attacker.client.netUser
-                    local netuserData = char.User[rust.GetUserID(netuser)]
-                    dmg.status = LifeStatus.IsAlive
-                    dmg.amount = 0
-                    if not spamNet[weaponData.name .. netuser.displayName] then
-                        func:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
-                        spamNet[weaponData.name .. netuser.displayName] = true
-                        timer.Once(6, function() spamNet[weaponData.name .. netuser.displayName] = nil end)
-                    end
-                end
-            end
-        end
-    end
+    if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
+    if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
+    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char.User[rust.GetUserID(dmg.attacker.client.netUser)] end
+    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char.User[rust.GetUserID(dmg.victim.client.netUser)] end
 
+    if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
+	    combatData['scenario'] = 1 --client vs client
+	    dmg = self:WeaponSkill(combatData)
+    elseif dmg.attacker.controllable and not dmg.victim.controllable then
+	    combatData['scenario'] = 3 --client vs npc
+	    dmg = self:WeaponSkill(combatData)
+    end
+	if dmg == 0 then    -- Block attack
+		local netuser = combatData.netuser
+		dmg.status = LifeStatus.IsAlive
+		dmg.amount = 0
+		if not spamNet[weaponData.name .. netuser.displayName] then
+			self:Notice( netuser,'⊗','You are not proficient with this weapon!',5)
+			spamNet[combatData.weapon .. netuser.displayName] = true
+			timer.Once(6, function() spamNet[combatData.weapon .. netuser.displayName] = nil end)
+		end
+	end
+	return dmg
 end
 --]]
 

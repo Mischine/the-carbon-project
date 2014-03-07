@@ -52,7 +52,6 @@ function PLUGIN:cmdProf( netuser, cmd, args )
     if not args [1] then
         prof:InfoProf( netuser, cmd, args )
     return end
-
 end
 
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -154,7 +153,7 @@ function PLUGIN:cmdGuild(netuser, cmd ,args)
     elseif args[1]:lower() == 'stats' then      -- TESTED
         guild:GuildStats( netuser )
     else
-        -- guild:GuildCommands( netuser, cmd ,args )               -- TODO
+	    guild:GuildHelp( netuser, cmd, args )   -- TESTED
     end
 end
 

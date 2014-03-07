@@ -155,6 +155,7 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
                 end
             end
         end
+        craftdata.xp = craftdata.xp + xp
         local cmd = prof .. ' Level Up!'
         local args = {}
         if not found then content.msg = 'There are no new researches available.' end
@@ -240,8 +241,6 @@ function PLUGIN:OnResearchItem( researchtoolitem, item )
 end
 
 function PLUGIN:InfoProf( netuser, cmd ,args )
-
-
     local content = {
         ['list']={}
     }
@@ -259,7 +258,6 @@ function PLUGIN:InfoProf( netuser, cmd ,args )
             table.insert(content.list, 'Experience: (' .. v.xp .. '/' .. tostring(c) .. ')  [' .. tostring(d) .. '%]   (+' .. tostring(e) .. ')' )
             table.insert(content.list, tostring(func:xpbar( d, 32 )))
         end
-
     end
     func:TextBox(netuser,content,cmd,args) return
 end

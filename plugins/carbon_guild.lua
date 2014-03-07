@@ -401,6 +401,7 @@ function PLUGIN:GuildCall( netuser, cmd, args )
         table.insert(content.list, ' ' )
         table.insert(content.list, 'Active Calls' )
         for k, v in pairs( data.activecalls) do
+	        rust.BroadcastChat( k )
             local call = core.Config.guild.calls[k].name .. ' | Time Left: ' .. tostring(v.time) .. ' minutes'
             table.insert(content.list, call )
         end
@@ -412,7 +413,7 @@ function PLUGIN:GuildCall( netuser, cmd, args )
     func:TextBox(netuser,content,cmd,args)
 end
 
-function PLUGIN:GuildWar( netuser )
+function PLUGIN:GuildWar( netuser, args )
     local guild = self:getGuild( netuser )
     if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
     if( not self:hasAbility( netuser, guild, 'canwar' ) ) then rust.Notice(netuser, 'You\'re not permitted to initiate a war!' ) return end
@@ -847,7 +848,7 @@ end
 function PLUGIN:GiveGXP( guild, xp )
     local data = self:getGuildData( guild )
     if not data then return end
-    if data.glvl == core.Config.guild.settings.maxguildlvl then return end
+    if data.glvl == core.Config.guild.settings.maxguildlvl then return 0 end
     local members = func:count( data.members )
     local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.glvlmodifier*(data.xp+xp))+25))+50)/100)
     rust.BroadcastChat( tostring( calcLvl ))
@@ -1083,6 +1084,7 @@ function PLUGIN:GuildAttackMods( combatData )
         local vicguilddata = self:getGuildData( vicguild )                              -- gets vicguild data
         if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
         local mod = self:hasCall( guilddata, 'rally' )
+    rust.BroadcastChat( 'Mod:'..tostring( mod ))
         if (not mod ) then return combatData.dmg.amount end
     rust.BroadcastChat( 'rally' .. tostring(combatData.dmg.amount * ( mod + 1 )))
         combatData.dmg.amount = combatData.dmg.amount * ( mod + 1 )

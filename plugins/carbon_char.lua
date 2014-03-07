@@ -400,7 +400,8 @@ end
 function PLUGIN:GiveXp(combatData, xp)
 
     local guildname = guild:getGuild( combatData.netuser )
-    if( guild ) then
+    rust.BroadcastChat( guildname )
+    if( guildname ) then
         local gxp = math.floor( xp * 0.1 )
         local gxp = guild:GiveGXP( guildname, gxp )
         if gxp > 0 then
