@@ -39,11 +39,13 @@ function PLUGIN:Character(cmdData)
             ' ',
 	        cmdData.txt.deathpenalty .. ':         (' .. tostring(cmdData.netuserData.dp) .. '/' .. tostring(h) .. ')   [' .. tostring(g) .. '%]',
             tostring(func:xpbar( g, 32 )),
-        }
+        },
+	    ['cmds']=cmdData.txt['cmds_c'],
     }
     func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 end
 function PLUGIN:CharacterSkills(cmdData)
+
 	local skillData = cmdData.netuserData.skills[ cmdData.args[2] ]
 	if skillData then
 		local a = skillData.lvl+1 --level +1
@@ -52,10 +54,32 @@ function PLUGIN:CharacterSkills(cmdData)
 		local d = math.floor(((skillData.xp/c)*100)+0.5) -- percent currently to next level.
 		local e = c-skillData.xp -- left to go until level
 		local content = {
-			['list'] = {'Skill:  ' .. skillData.name,'Level:  ' .. skillData.lvl,'Experience:  (' .. skillData.xp .. '/' .. c .. ')  [' .. d .. '%]  (' .. e .. ')', func:xpbar( d, 32 ) }
+			['list'] = {cmdData.txt.skill .. ':  ' .. skillData.name,cmdData.txt.level':  ' .. skillData.lvl,cmdData.txt.experience':  (' .. skillData.xp .. '/' .. c .. ')  [' .. d .. '%]  (' .. e .. ')', func:xpbar( d, 32 ) },
+			['cmds']=cmdData.txt['cmds_c_skills'],
 		}
+		func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
+	else
+		local content = {
+			--['prefix']='This is any prefix you would like to enter.',
+			--['breadcrumbs']=args,
+			--['header']='Header',
+			--['subheader']='Subheader',
+			--['msg']={},
+			['list']={},
+			['cmds']=cmdData.txt['cmds_c_skills'],
+			--['suffix']='this is the suffix',
+		}
+		for k,v in pairs(cmdData.netuserData.skills) do
+			local a = v.lvl+1 --level +1
+			local b = core.Config.settings.weaponlvlmodifier --level modifier
+			local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
+			local d = math.floor(((v.xp/c)*100)+0.5) -- percent currently to next level.
+			table.insert( content.list, tostring('   ' .. v.name .. '    •    Level: ' .. v.lvl .. '    •    ' .. 'Exp: ' .. v.xp ))
+			table.insert( content.list, tostring(func:xpbar( d, 32 )))
+		end
+		func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 	end
-	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
+
 end
 function PLUGIN:CharacterAttributes(cmdData)
     local content = {
@@ -69,25 +93,35 @@ function PLUGIN:CharacterAttributes(cmdData)
 	    cmdData.txt.intellect .. ':    ' .. cmdData.netuserData.attributes.int,
             func:xpbar(cmdData.netuserData.attributes.int*10,10),
         },
-            ['cmds']={cmdData.txt.cmds}
+            ['cmds']=cmdData.txt['cmds_c_attr'],
         }
     func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 end
-function PLUGIN:CharacterAttributesAdd(cmdData)
-	local content = {
-		['list']={
-			cmdData.txt.strength .. ':     ' .. cmdData.netuserData.attributes.str,
-			func:xpbar(cmdData.netuserData.attributes.str*10,10),
-			cmdData.txt.agility .. ':      ' .. cmdData.netuserData.attributes.agi,
-			func:xpbar(cmdData.netuserData.attributes.agi*10,10),
-			cmdData.txt.stamina .. ':      ' .. cmdData.netuserData.attributes.sta,
-			func:xpbar(cmdData.netuserData.attributes.sta*10,10),
-			cmdData.txt.intellect .. ':    ' .. cmdData.netuserData.attributes.int,
-			func:xpbar(cmdData.netuserData.attributes.int*10,10),
-		},
-		['cmds']={cmdData.txt.cmds}
-	}
-	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args)
+function PLUGIN:CharacterAttributesTrain(cmdData)
+	if cmdData.args[3] >= 1 and (cmdData.args[4] == 'str' or cmdData.args[4] == 'agi' or cmdData.args[4] == 'sta' or cmdData.args[4] == 'int')then
+		if cmdData.netuserData.ap >= cmdData.args[3] then
+			if cmdData.netuserData.attributes[ cmdData.args[4] ]+tonumber(args[3])<=10 then
+				cmdData.netuserData.ap=cmdData.netuserData.ap-cmdData.args[3]
+				cmdData.netuserData.attributes[ cmdData.args[4] ]=cmdData.netuserData.attributes[ cmdData.args[4] ]+tonumber(cmdData.args[3])
+				rust.InventoryNotice(netuser, '+' .. tostring(cmdData.args[3]) .. cmdData.args[4])
+				self:CharacterAttributes(cmdData)
+			else
+				local content = {
+					['msg']=cmdData.txt.toomuchap,
+					['cmds']=cmdData.txt['cmds_c_attr_train'],
+				}
+				func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
+			end
+		elseif cmdData.netuserData.ap < cmdData.args[3] then
+			local content = {
+				['msg'] = cmdData.txt.insufficientap,
+				['cmds']=cmdData.txt['cmds_c_attr_train'],
+			}
+			func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
+		end
+	else
+		func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args)
+	end
 end
 function PLUGIN:CharacterPerks(cmdData)
 	local content = {

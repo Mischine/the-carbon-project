@@ -25,25 +25,36 @@ function PLUGIN:SetLocalization()
         ['available']={'english','russian'},
         ['c'] = {
             ['english'] = {
+	            --/c
                 ['level'] = 'Level',
                 ['experience'] = 'Experience',
                 ['deathpenalty'] = 'Death Penalty',
-                ['cmds'] = {'attr','skills','perks'}
+	            ['cmds_c'] = {'skills', 'attr', 'perks', 'class', 'reset'},
+	            ['skill'] = 'Skill',
+	            ['cmds_c_skills'] = {'[skill name]'},
+			    ['strength'] = 'Strength',
+			    ['agility'] = 'Agility',
+			    ['stamina'] = 'Stamina',
+			    ['intellect'] = 'Intellect',
+	            ['cmds_c_attr'] = {'add   [#]   [str|agi|sta|int]'},
+	            ['toomuchap']='You can\'t train above 10 points in a specific attribute field',
+	            ['cmds_c_attr_train'] = {'[#]   [str|agi|sta|int]'},
+                ['insufficientap']='Insufficient attribute points!',
+
             },
             ['russian'] = {
+	            --/c
                 ['level'] = 'уровень',
                 ['experience'] = 'опыт',
                 ['deathpenalty'] = 'смертная казнь',
-            }
+	            --/c attr
+	            ['strength'] = 'прочность',
+	            ['agility'] = 'ловкость',
+	            ['stamina'] = 'выносливость',
+	            ['intellect'] = 'интеллект',
+	            ['attrcmds'] = '',
+            },
         },
-        ['attr'] = {
-            ['strength'] = 'Strength',
-            ['agility'] = 'Agility',
-            ['stamina'] = 'Stamina',
-            ['intellect'] = 'Intellect',
-            ['cmds'] = {'add [#] [str|agi|sta|int]', 'reset'}
-
-        }
     }
     self:TextSave()
 end

@@ -99,7 +99,7 @@ function PLUGIN:TextBoxError(netuser, content, cmd, args)
         rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
         rust.SendChatToUser(netuser,core.sysname,' ')
     end
-    rust.InventoryNotice(netuser, 'Secrebleu!')
+    rust.InventoryNotice(netuser, 'Sacrebleu!')
     content = {}
 end
 --WordWrap(str, int)

@@ -43,7 +43,6 @@ function PLUGIN:GetCmdData(netuser, cmd ,args)
 	cmdData['cmd'] = cmd
 	if #args then cmdData['args'] = args end
 	if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
-	print(cmdData.netuser)
 	return cmdData
 end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -62,22 +61,22 @@ end
 
 function PLUGIN:cmdCharacter(netuser, cmd ,args)
 
-	for _,v in pairs(args) do args[v] = args[v]:lower() end
-	locaelr()  cmdData = self:GetCmdData(netuser, cmd ,args)
+	--for _,v in pairs(args) do args[v] = args[v]:lower() end
+	local cmdData = self:GetCmdData(netuser, cmd ,args)
 
 	if not args[1] then
 		char:Character( cmdData )
 	elseif args[1] == 'skills' then
 		char:CharacterSkills( cmdData )
 	elseif args[1] == 'attr' then
-		if #args == 4 and args[2] == 'add' then
-			char:CharacterAddAttributes( cmdData )
+		if #args == 4 and args[2] == 'train' then
+			char:CharacterAttributesTrain( cmdData )
 		elseif #args == 1 then
 			char:CharacterAttributes( cmdData )
 		end
 	elseif args[1] == 'perks' then
-		if #args == 4 and args[2] == 'add' then
-			char:CharacterPerksAdd( cmdData )
+		if #args == 4 and args[2] == 'train' then
+			char:CharacterPerksTrain( cmdData )
 		elseif #args == 1 then
 			char:CharacterPerks( cmdData )
 		end

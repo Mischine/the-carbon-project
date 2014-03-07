@@ -106,9 +106,9 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+        --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-        combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
+        --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 2 then
        rust.BroadcastChat('------------pve vs client------------')
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
@@ -116,7 +116,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-        combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
+        --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
        rust.BroadcastChat('------------client vs pve------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
@@ -124,7 +124,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+        --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         -- combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end
   rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
@@ -151,7 +151,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
     --SET UP COMBATDATA
     local combatData = {['dmg']={}}
     combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
-
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
     if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char.User[rust.GetUserID(dmg.attacker.client.netUser)] end
@@ -165,6 +164,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
             combatData['npcData'] = core.Config.npc[string.gsub(dmg.victim.networkView.name,'%(Clone%)', '')]
         end
     end
+
     if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
         combatData['scenario'] = 1 --client vs client
     elseif dmg.victim.controllable and not dmg.attacker.controllable then
@@ -172,6 +172,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
     elseif dmg.attacker.controllable and not dmg.victim.controllable then
         combatData['scenario'] = 3 --client vs npc
     end
+
     --BEGIN BATTLE SYSTEM
     if combatData.scenario == 1 then
         combatData.netuserData.stats.kills.pvp = combatData.netuserData.stats.kills.pvp+1
@@ -188,6 +189,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
         combatData.netuserData.stats.kills.pve.total = combatData.netuserData.stats.kills.pve.total+1
         char:GiveXp( combatData, xp)
     end
+
 end
 -----------------------------------------------------------------
 function PLUGIN:WeaponSkill (combatData)
