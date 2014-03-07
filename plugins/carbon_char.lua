@@ -5,7 +5,6 @@ PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
-
     --LOAD/CREATE CHAR FILE
     self.UserFile = util.GetDatafile( 'carbon_char' )
     local dat_txt = self.UserFile:GetText()

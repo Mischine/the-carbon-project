@@ -32,7 +32,6 @@ function PLUGIN:PostInit()
     -- Prof
     self:AddChatCommand( 'prof', self.cmdProf )
 
-
     -- Statistics (stats)
 
 end
@@ -43,8 +42,8 @@ function PLUGIN:GetCmdData(netuser, cmd ,args)
 	cmdData['netuser'] = netuser
 	cmdData['cmd'] = cmd
 	if #args then cmdData['args'] = args end
-	if lang.Text[args[1]][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[args[1]][cmdData.netuserData.lang] end
-
+	if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
+	print(cmdData.netuser)
 	return cmdData
 end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -62,8 +61,10 @@ end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 function PLUGIN:cmdCharacter(netuser, cmd ,args)
+
 	for _,v in pairs(args) do args[v] = args[v]:lower() end
-	local cmdData = self:GetCmdData(netuser, cmd ,args)
+	locaelr()  cmdData = self:GetCmdData(netuser, cmd ,args)
+
 	if not args[1] then
 		char:Character( cmdData )
 	elseif args[1] == 'skills' then
@@ -180,7 +181,7 @@ function PLUGIN:cmdCall( netuser, cmd, args )
 end
 function PLUGIN:cmdWar( netuser, cmd, args )
     if not args[1] then rust.Notice( netuser, '/war "GuildTag" ' ) return end
-    guild:GuildWar( netuser )
+    guild:GuildWar( netuser, args )
 end
 function PLUGIN:cmdRank( netuser, cmd ,args )
     guild:GuildRank( netuser, cmd, args )
