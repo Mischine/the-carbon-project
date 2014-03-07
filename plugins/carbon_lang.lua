@@ -37,9 +37,9 @@ function PLUGIN:SetLocalization()
 			    ['stamina'] = 'Stamina',
 			    ['intellect'] = 'Intellect',
 	            ['cmds_c_attr'] = {'add   [#]   [str|agi|sta|int]'},
-	            ['toomuchap']='You can\'t train above 10 points in a specific attribute field',
+	            ['toomuchap']='You can\'t train above 10 points in a specific attribute field!',
 	            ['cmds_c_attr_train'] = {'[#]   [str|agi|sta|int]'},
-                ['insufficientap']='Insufficient attribute points!',
+                ['insufficientap']='You don\'t have enough attribute points!',
 
             },
             ['russian'] = {

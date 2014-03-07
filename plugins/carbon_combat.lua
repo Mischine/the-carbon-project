@@ -67,7 +67,7 @@ end
 --]]
 
 
-function PLUGIN:ModifyDamage (takedamage, dmg)
+function PLUGIN:CombatDamage (takedamage, dmg)
 
     --rust.BroadcastChat('INITIAL DAMAGE: ' .. tostring(dmg.amount))
     --SET UP COMBATDATA
