@@ -109,9 +109,7 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
-
     elseif combatData.scenario == 2 then
-
        rust.BroadcastChat('------------pve vs client------------')
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
@@ -124,10 +122,10 @@ function PLUGIN:ModifyDamage (takedamage, dmg)
         combatData.dmg.amount = self:WeaponSkill(combatData)
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
-        --combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
+        combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-        -- dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+        -- combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end
   rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
     dmg.amount = combatData.dmg.amount

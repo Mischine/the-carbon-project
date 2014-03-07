@@ -6,8 +6,6 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
-
-
 function PLUGIN:PostInit()
     self:AddChatCommand( 'language', self.lang )
 
@@ -38,7 +36,17 @@ function PLUGIN:PostInit()
     -- Statistics (stats)
 
 end
+function PLUGIN:GetCmdData(netuser, cmd ,args)
+	local cmdData = {}
+	cmdData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+	cmdData['netuserData'] = char.User[rust.GetUserID(netuser)]
+	cmdData['netuser'] = netuser
+	cmdData['cmd'] = cmd
+	if #args then cmdData['args'] = args end
+	if lang.Text[args[1]][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[args[1]][cmdData.netuserData.lang] end
 
+	return cmdData
+end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                 PROFFESIONS COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -52,18 +60,50 @@ end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                 CHARACTER COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 function PLUGIN:cmdCharacter(netuser, cmd ,args)
-    local netuserID = rust.GetUserID( netuser )
-    local netuserData = char.User[netuserID]
-    if not args[1] then
-        local netuserData = char.User[netuserID]
-        char:InfoCharacter( netuserData )
-    end
+	for _,v in pairs(args) do args[v] = args[v]:lower() end
+	local cmdData = self:GetCmdData(netuser, cmd ,args)
+	if not args[1] then
+		char:Character( cmdData )
+	elseif args[1] == 'skills' then
+		char:CharacterSkills( cmdData )
+	elseif args[1] == 'attr' then
+		if #args == 4 and args[2] == 'add' then
+			char:CharacterAddAttributes( cmdData )
+		elseif #args == 1 then
+			char:CharacterAttributes( cmdData )
+		end
+	elseif args[1] == 'perks' then
+		if #args == 4 and args[2] == 'add' then
+			char:CharacterPerksAdd( cmdData )
+		elseif #args == 1 then
+			char:CharacterPerks( cmdData )
+		end
+	elseif args[1] == 'class' then
+		if #args == 3 and args[2] == 'select' then
+			char:CharacterClassSelect( cmdData )
+		elseif #args == 1 then
+			char:CharacterClass( cmdData )
+		end
+	elseif args[1] == 'reset' then
+		if #args == 1 then
+			char:CharacterReset( cmdData )
+		elseif #args == 2 and args[2] == 'perks' then
+			char:CharacterResetPerks( cmdData )
+		elseif #args == 2 and args[2] == 'attr' then
+			char:CharacterResetAttributes( cmdData )
+		elseif #args == 2 and args[2] == 'class' then
+			char:CharacterResetClass( cmdData )
+		end
+	else
+		--TODO: ADD ERROR
+	end
 end
 function PLUGIN:cmdSkills(netuser, cmd ,args)
     if not args[1] then
         local netuserData = char.User[netuserID]
-        char:InfoSkills( netuserData )
+
     end
 end
 function PLUGIN:cmdAttributes(netuser, cmd ,args)
@@ -90,11 +130,7 @@ function PLUGIN:cmdReset(netuser, cmd ,args)
         char:InfoSkills( netuserData )
     end
 end
-
-
-
-
-    -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                    GUILD COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 function PLUGIN:cmdGuild(netuser, cmd ,args)
@@ -149,19 +185,9 @@ end
 function PLUGIN:cmdRank( netuser, cmd ,args )
     guild:GuildRank( netuser, cmd, args )
 end
-function PLUGIN:cmdVault( netuser, cmd, args ) 
+function PLUGIN:cmdVault( netuser, cmd, args )
     guild:GuildVault( netuser, cmd, args )
 end
-
-
-
-
-
-
-
-
-
-
 function PLUGIN:lang(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
     local netuserData = char.User[netuserID]
