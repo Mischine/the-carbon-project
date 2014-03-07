@@ -22,7 +22,7 @@ function PLUGIN:Init()
 
     self:AddChatCommand( 'destroy', self.destroy )
 
-    -- self.TimerCall = timer.Repeat( 5, function() self:CallTimer() end)
+    self.TimerCall = timer.Repeat( 5, function() self:CallTimer() end)
 end
 
 function PLUGIN:destroy(netuser, cmd ,args)
@@ -401,7 +401,6 @@ function PLUGIN:GuildCall( netuser, cmd, args )
         table.insert(content.list, ' ' )
         table.insert(content.list, 'Active Calls' )
         for k, v in pairs( data.activecalls) do
-	        rust.BroadcastChat( k )
             local call = core.Config.guild.calls[k].name .. ' | Time Left: ' .. tostring(v.time) .. ' minutes'
             table.insert(content.list, call )
         end
@@ -886,15 +885,17 @@ end
 
 function PLUGIN:CallTimer()
     for k, v in pairs(self.Guild) do
-        for y,z in pairs(self.Guild[k].activecalls) do
-            z.time = z.time - 1
-            if z.time <= 0 then
-                self:sendGuildMsg(k, 'CALL ENDED', '::::::::::::' .. y .. ' has ended! ::::::::::::' )
-                self.Guild[k].activecalls[y] = nil
-                self:GuildSave()
-            end
-        end
-        self:GuildSave()
+	    if self.Guild[k].activecalls then
+	        for y,z in pairs(self.Guild[k].activecalls) do
+	            z.time = z.time - 1
+	            if z.time <= 0 then
+	                self:sendGuildMsg(k, 'CALL ENDED', '::::::::::::' .. y .. ' has ended! ::::::::::::' )
+	                self.Guild[k].activecalls[y] = nil
+	                self:GuildSave()
+	            end
+	        end
+	        self:GuildSave()
+		end
     end
 end
 
