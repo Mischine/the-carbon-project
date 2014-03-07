@@ -851,7 +851,6 @@ function PLUGIN:GiveGXP( guild, xp )
     if data.glvl == core.Config.guild.settings.maxguildlvl then return 0 end
     local members = func:count( data.members )
     local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.glvlmodifier*(data.xp+xp))+25))+50)/100)
-    rust.BroadcastChat( tostring( calcLvl ))
     if( calcLvl ~= data.glvl ) then
         -- level up | check if allowed.
         if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then

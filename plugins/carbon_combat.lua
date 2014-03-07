@@ -33,38 +33,30 @@ end
         end
     end
     --]]
-local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
-typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
-function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
-    -- rust.BroadcastChat('OnProcessDamageEvent')
-    local combatData = {['dmg']={}}
-    combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
 
-    if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
-    if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
-    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char.User[rust.GetUserID(dmg.attacker.client.netUser)] end
-    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char.User[rust.GetUserID(dmg.victim.client.netUser)] end
+local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "status", nil, System.Int32 )
+local LifeStatus_IsAlive = 0
+local LifeStatus_IsDead = 2
+local LifeStatus_WasKilled = 1
+local LifeStatus_Failed = -1
+-- TODO Find a fix for this...
+--[[
+	Okay, so. it does NOT stop one hit kills. And as far as I know, we cant now. Because this is a FieldGetter, and I need to set a value.
+	 Also, the weapon dmg on just hits work fine! The problem is that I cannot put their lifestatus to Alive. Because the damn bug.
+	 http://forum.rustoxide.com/threads/enum-structurematerialtype.1673/#post-19844
+	 Check that for some info. If I do dmg.status = 0 than it spasims out. Trying to load the enum will crash the plugin. I dont know dude...
+	 i've tried alot. But the more I add to test, the more buggier it gets. We need to find out how to do this, and by we I mean you. xD You're the dmg expert.
+	 Btw I also let it return the combatData cus then we can do specific thing here.
 
-    if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
-	    combatData['scenario'] = 1 --client vs client
-	    dmg = self:WeaponSkill(combatData)
-    elseif dmg.attacker.controllable and not dmg.victim.controllable then
-	    combatData['scenario'] = 3 --client vs npc
-	    dmg = self:WeaponSkill(combatData)
-    end
-	if dmg == 0 then    -- Block attack
-		local netuser = combatData.netuser
-		dmg.status = LifeStatus.IsAlive
-		dmg.amount = 0
-		if not spamNet[weaponData.name .. netuser.displayName] then
-			self:Notice( netuser,'⊗','You are not proficient with this weapon!',5)
-			spamNet[combatData.weapon .. netuser.displayName] = true
-			timer.Once(6, function() spamNet[combatData.weapon .. netuser.displayName] = nil end)
-		end
-	end
-	return dmg
+	 Oh and they still die at 25 hp. Because I cant bring their status back to life. if I could it would be easy to counter that.
+	 if dmg.amount > takedamage.health then
+	    damage.status = 0
+	 end
+ ]]
+function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+    local dmg, combatData = self:CombatDamage( takedamage, damage )
 end
---]]
+
 
 
 function PLUGIN:CombatDamage (takedamage, dmg)
@@ -128,7 +120,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
   rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
     dmg.amount = combatData.dmg.amount
     combatData = {}
-    return dmg
+    return dmg, combatData
 end
 
 function PLUGIN:GuildAttack(combatData)
@@ -191,7 +183,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
 end
 -----------------------------------------------------------------
 function PLUGIN:WeaponSkill (combatData)
-
     if (not combatData.netuserData.skills[combatData.weapon.name]) then
         char.User[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
         char:UserSave()

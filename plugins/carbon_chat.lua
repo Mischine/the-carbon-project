@@ -132,6 +132,7 @@ function PLUGIN:OnLocalChat( netuser, _, args )
     end
 end
 
+--[[
 -- About the same code as for the local chat commands
 function PLUGIN:OnUserChat( netuser, name, message )
     if ( core.Config.settings ) and ( core.Config.settings['ENABLE_LOCAL_CHAT'] ) then
@@ -173,3 +174,4 @@ function PLUGIN:OnUserChat( netuser, name, message )
         end
     end
 end
+]]

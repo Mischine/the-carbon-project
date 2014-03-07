@@ -202,6 +202,7 @@ function PLUGIN:OnUserConnect( netuser )
 end
 
 --PLUGIN:OnUserChat
+--[[
 function PLUGIN:OnUserChat(netuser, name, msg)
     if ( msg:sub( 1, 1 ) ~= '/' ) then
         local tempstring = string.lower( msg )
@@ -220,6 +221,7 @@ function PLUGIN:OnUserChat(netuser, name, msg)
         end
     end
 end
+]]
 
 -- CONFIG UPDATE AND SAVE
 function PLUGIN:ConfigSave()
