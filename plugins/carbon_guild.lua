@@ -22,7 +22,7 @@ function PLUGIN:Init()
 
     self:AddChatCommand( 'destroy', self.destroy )
 
-    self.TimerCall = timer.Repeat( 5, function() self:CallTimer() end)
+    self.TimerCall = timer.Repeat( 60, function() self:CallTimer() end)
 end
 
 function PLUGIN:destroy(netuser, cmd ,args)
