@@ -98,6 +98,7 @@ function PLUGIN:CharacterAttributes(cmdData)
     func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 end
 function PLUGIN:CharacterAttributesTrain(cmdData)
+	cmdData.args[3] = tonumber(cmdData.args[3])
 	if cmdData.args[3] >= 1 and (cmdData.args[4] == 'str' or cmdData.args[4] == 'agi' or cmdData.args[4] == 'sta' or cmdData.args[4] == 'int')then
 		if cmdData.netuserData.ap >= cmdData.args[3] then
 			if cmdData.netuserData.attributes[ cmdData.args[4] ]+tonumber(args[3])<=10 then
@@ -107,14 +108,14 @@ function PLUGIN:CharacterAttributesTrain(cmdData)
 				self:CharacterAttributes(cmdData)
 			else
 				local content = {
-					['msg']=cmdData.txt.toomuchap,
+					['msg']=cmdData.txt['toomuchap'],
 					['cmds']=cmdData.txt['cmds_c_attr_train'],
 				}
 				func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 			end
 		elseif cmdData.netuserData.ap < cmdData.args[3] then
 			local content = {
-				['msg'] = cmdData.txt.insufficientap,
+				['msg'] = cmdData.txt['insufficientap'],
 				['cmds']=cmdData.txt['cmds_c_attr_train'],
 			}
 			func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return

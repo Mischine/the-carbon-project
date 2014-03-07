@@ -37,7 +37,6 @@ end
 --[[
 function PLUGIN:OnProcessDamageEvent( takedamage, dmg )
     rust.BroadcastChat('OnProcessDamageEvent')
-
     if dmg.extraData then
         weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)]
         rust.BroadcastChat(weaponData.name)
@@ -178,7 +177,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
         combatData.netuserData.stats.kills.pvp = combatData.netuserData.stats.kills.pvp+1
         char:GiveDp( combatData, math.floor(combatData.vicuserData.xp*core.Config.settings.dppercent/100))
     elseif combatData.scenario == 2 then
-        char:GiveDp( combatData, math.floor(combatData.netuserData.xp*core.Config.settings.dppercent/100))
+        char:GiveDp( combatData, math.floor(combatData.vicuserData.xp*core.Config.settings.dppercent/100))
     elseif combatData.scenario == 3 then
         local xp = math.floor(combatData.npcData.xp*core.Config.settings.xpmodifier)
         if (not combatData.netuserData.stats.kills.pve[combatData.npcData.name]) then
