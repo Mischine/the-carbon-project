@@ -34,6 +34,9 @@ end
     end
     --]]
 
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
+typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
+
 local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "status", nil, System.Int32 )
 local LifeStatus_IsAlive = 0
 local LifeStatus_IsDead = 2
