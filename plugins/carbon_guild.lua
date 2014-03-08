@@ -1084,8 +1084,8 @@ function PLUGIN:GuildAttackMods( combatData )
         local vicguilddata = self:getGuildData( vicguild )                              -- gets vicguild data
         if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
         local mod = self:hasCall( guilddata, 'rally' )
-    rust.BroadcastChat( 'Mod:'..tostring( mod ))
         if (not mod ) then return combatData.dmg.amount end
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat( 'rally' .. tostring(combatData.dmg.amount * ( mod + 1 )))
         combatData.dmg.amount = combatData.dmg.amount * ( mod + 1 )
         return combatData.dmg.amount
@@ -1096,6 +1096,7 @@ function PLUGIN:GuildAttackMods( combatData )
         local mod = self:hasCall( guilddata, 'cotw' )                                       -- check for call COTW.
         if not mod then return combatData.dmg.amount end                                -- if not, return dmg
         combatData.dmg.amount = combatData.dmg.amount * (mod + 1)                       -- if so, modify dmg
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat(tostring(combatData.dmg.amount) )
         return combatData.dmg.amount                                                    -- return dmg
     else
@@ -1114,6 +1115,7 @@ function PLUGIN:GuildDefendMods( combatData )
         if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
         local mod = self:hasCall( vicguilddata, 'syg' )
         if (not mod ) then return combatData.dmg.amount end
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat( 'syg' .. tostring(combatData.dmg.amount * (1 - mod)) )
         combatData.dmg.amount = combatData.dmg.amount * (1 - mod )
         return combatData.dmg.amount
@@ -1124,6 +1126,7 @@ function PLUGIN:GuildDefendMods( combatData )
         local mod = self:hasCall( guilddata, 'cotw' )                                       -- check for call COTW.
         if not mod then return combatData.dmg.amount end                                -- if not, return dmg
         combatData.dmg.amount = combatData.dmg.amount * (1 - mod)                       -- if so, modify dmg
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
         rust.BroadcastChat(tostring(combatData.dmg.amount) )
         return combatData.dmg.amount                                                    -- return dmg
     else
