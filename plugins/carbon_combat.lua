@@ -72,11 +72,9 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData['scenario'] = 3 --client vs npc
     end
 
-
-
     --BEGIN BATTLE SYSTEM
     if combatData.scenario == 1 then
-	    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs client------------' ) end
        rust.BroadcastChat('------------client vs client------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
@@ -87,7 +85,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 2 then
-	    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------pve vs client------------' ) end
        rust.BroadcastChat('------------pve vs client------------')
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
@@ -96,7 +94,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
-	    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs pve------------' ) end
        rust.BroadcastChat('------------client vs pve------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
@@ -113,18 +111,18 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 end
 
 function PLUGIN:GuildAttack(combatData)
-	-- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:GuildAttack----' ) end
     rust.BroadcastChat('----PLUGIN:GuildAttack----')
     combatData.dmg.amount = guild:GuildAttackMods( combatData )
-    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     return combatData.dmg.amount
 end
 
 function PLUGIN:GuildDefend(combatData)
-	-- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:GuildDefend----' ) end
     rust.BroadcastChat('----PLUGIN:GuildDefend----')
     combatData.dmg.amount = guild:GuildDefendMods( combatData )
-    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     return combatData.dmg.amount
 end
 -----------------------------------------------------------------
@@ -188,7 +186,6 @@ function PLUGIN:WeaponSkill (combatData)
             timer.Once(6, function() spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = nil end)
         end
     end
-    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     return combatData.dmg.amount
 end
 function PLUGIN:DmgModifier (combatData)
