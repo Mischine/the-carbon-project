@@ -13,7 +13,7 @@ end
 function PLUGIN:cmdMail( netuser, cmd ,args )
     if( not args[1] ) then                              -- /mail        to check your inbox
         local netuserID = rust.GetUserID( netuser )
-        if( not char.User[ netuserID ].mail ) then
+        if( not char[ netuserID ].mail ) then
             local content = {['msg'] ='You have no new mail!',['header'] ='Inbox from: ' .. util.QuoteSafe(netuser.displayName),['cmds']={'read','send','del','clear','help'}}
             func:TextBox(netuser,content,cmd,args)
         return end
@@ -24,8 +24,8 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
             ['list'] = {},
             ['cmds']={'read','send','del','clear','help'}
         }
-        for k, v in pairs( char.User[ netuserID ].mail ) do
-            if( not char.User[ netuserID ].mail[ k ].read ) then
+        for k, v in pairs( char[ netuserID ].mail ) do
+            if( not char[ netuserID ].mail[ k ].read ) then
                 table.insert(content.list, '[ ' .. tostring( k ) .. ' ] | [ NEW ] Mail from: ' .. v.from )
             else
                 table.insert(content.list, '[ ' .. tostring( k ) .. ' ] | Mail from: ' .. v.from )
@@ -76,8 +76,8 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
         if( not args[2] ) then rust.SendChatToUser( netuser, 'Mail', '/mail read [id]' ) return end
         local netuserID = rust.GetUserID( netuser )
         local ID = tostring( args[2] )
-        if(( not char.User[ netuserID ].mail ) or ( not char.User[ netuserID ].mail[ ID ] )) then rust.Notice( netuser, 'Mail ID not found! ID: ' .. ID ) return end
-        local mail = char.User[ netuserID ].mail[ ID ]
+        if(( not char[ netuserID ].mail ) or ( not char[ netuserID ].mail[ ID ] )) then rust.Notice( netuser, 'Mail ID not found! ID: ' .. ID ) return end
+        local mail = char[ netuserID ].mail[ ID ]
 
         local content = {
             ['msg'] = mail.msg,
@@ -85,21 +85,21 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
             ['subheader'] ='Date         : ' .. mail.date,
         }
         func:TextBox(netuser,content,cmd,args)
-        char.User[ netuserID ].mail[ ID ].read = true
+        char[ netuserID ].mail[ ID ].read = true
     elseif( action == 'del' ) then                              -- /mail del [id]           Delete specific message
         if( not args[2] ) then rust.SendChatToUser( netuser, 'Mail', '/mail del [id]' ) return end
         local ID = tostring( args[2] )
         local netuserID = rust.GetUserID( netuser )
-        if(( not char.User[ netuserID ].mail ) or ( not char.User[ netuserID ].mail[ ID ] )) then rust.Notice( netuser, 'Mail ID not found! ID: ' .. ID ) return end
-        char.User[ netuserID ].mail[ID] = nil
-        local count = func:count( char.User[ netuserID ].mail )
-        if ( count <= 0 ) then char.User[ netuserID ].mail = nil end
+        if(( not char[ netuserID ].mail ) or ( not char[ netuserID ].mail[ ID ] )) then rust.Notice( netuser, 'Mail ID not found! ID: ' .. ID ) return end
+        char[ netuserID ].mail[ID] = nil
+        local count = func:count( char[ netuserID ].mail )
+        if ( count <= 0 ) then char[ netuserID ].mail = nil end
         rust.Notice( netuser, 'Mail ID ' .. ID .. ' succesfully deleted!' )
         char:UserSave()
     elseif( action == 'clear' ) then                            -- /mail clear              Clears whole inbox
         local netuserID = rust.GetUserID( netuser )
-        if( char.User[ netuserID ].mail ) then
-            char.User[ netuserID ].mail = nil
+        if( char[ netuserID ].mail ) then
+            char[ netuserID ].mail = nil
             rust.Notice( netuser, 'Mail cleared!' )
         else
             rust.Notice( netuser, 'No mail found!' )
@@ -130,14 +130,14 @@ function PLUGIN:sendMail( toplayerID, fromplayername, date, msg, guild )
     mail.read = false
     if ( guild ) then mail.guild = guild end
     -- get mail unique mail id
-    if( not char.User[ toplayerID ].mail ) then char.User[ toplayerID ].mail = {} end
+    if( not char[ toplayerID ].mail ) then char[ toplayerID ].mail = {} end
     local i = 0
-    while ( char.User[ toplayerID ].mail[ tostring( i ) ]) do
+    while ( char[ toplayerID ].mail[ tostring( i ) ]) do
         i = i + 1
     end
-    char.User[ toplayerID ].mail[tostring( i )] = mail
+    char[ toplayerID ].mail[tostring( i )] = mail
     -- If online, send inventory notice.
-    local name = char.User[ toplayerID ].name
+    local name = char[ toplayerID ].name
     local b, netuser = rust.FindNetUsersByName( name )
     if ( b ) then rust.InventoryNotice( netuser, 'New mail from: ' .. util.QuoteSafe( fromplayername )) end
     -- Save

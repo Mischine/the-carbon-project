@@ -173,7 +173,7 @@ end
 
 --PLUGIN:findIDByName
 function PLUGIN:findIDByName( name )
-    for k,v in pairs( char.User ) do
+    for k,v in pairs( char ) do
         if ( v.name == name ) then return k end
     end
     return false
@@ -215,6 +215,23 @@ function PLUGIN:Roll(a,b,c)
     else
         return result
     end
+end
+-- DATA UPDATE AND SAVE
+function PLUGIN:Save(name, dir)
+	print('Saving: ' .. name)
+	self[name ..'File']:SetText( json.encode( self[name], { indent = true } ) )
+	self[name ..'File']:Save()
+end
+function PLUGIN:Load(filename)
+		self.ConfigFile = util.GetDatafile( 'carbon_cfg' )
+	local cfg_txt = self.ConfigFile:GetText()
+	if (cfg_txt ~= '') then
+		print( 'Carbon cfg file loaded!' )
+		self.Config = json.decode( cfg_txt )
+	else
+		print( 'Creating carbon cfg file...' )
+		self:SetDefaultConfig()
+	end
 end
 -------------------------------------------------------------------------------
 -- NEW FUNCTIONS
@@ -482,3 +499,4 @@ function PLUGIN:TakeOver(netuser, cmd, args)
         end
     end
 end
+

@@ -48,7 +48,7 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
         else
             rust.Notice( netuser, 'Multiple users found with the name: ' .. util.QuoteSafe( targname ) )
         end
-        return end
+    return end
     -- Get guildtag
     local tag = guild:getGuildTag( netuser )
     local displayname = netuser.displayName .. ' [whispers]'

@@ -265,12 +265,12 @@ function PLUGIN:GuildMembers( netuser, args )
                 rust.SendChatToUser(netuser,' ','║ XP contributed         :' .. v.xpcon )
                 rust.SendChatToUser(netuser,' ','║ Money contributed  :' .. v.moncon )
                 rust.SendChatToUser(netuser,' ','║ ' )
-                rust.SendChatToUser(netuser,' ','║ Level: ' .. char.User[ k ].lvl )
+                rust.SendChatToUser(netuser,' ','║ Level: ' .. char[ k ].lvl )
                 rust.SendChatToUser(netuser,' ','║ Attributes: ' )
-                rust.SendChatToUser(netuser,' ','║     str   : ' .. char.User[ k ].attributes.str )
-                rust.SendChatToUser(netuser,' ','║     agi   : ' .. char.User[ k ].attributes.agi )
-                rust.SendChatToUser(netuser,' ','║     sta  : ' .. char.User[ k ].attributes.sta )
-                rust.SendChatToUser(netuser,' ','║     int   : ' .. char.User[ k ].attributes.int )
+                rust.SendChatToUser(netuser,' ','║     str   : ' .. char[ k ].attributes.str )
+                rust.SendChatToUser(netuser,' ','║     agi   : ' .. char[ k ].attributes.agi )
+                rust.SendChatToUser(netuser,' ','║     sta  : ' .. char[ k ].attributes.sta )
+                rust.SendChatToUser(netuser,' ','║     int   : ' .. char[ k ].attributes.int )
                 rust.SendChatToUser(netuser,' ','╟────────────────────────')
                 rust.SendChatToUser(netuser,' ','║ ⌘ ' )
                 rust.SendChatToUser(netuser,' ','╚════════════════════════')
@@ -302,8 +302,8 @@ function PLUGIN:GuildAccept( netuser )
         entry.moncon = 0
         entry.xpcon = 0
         self.Guild[ guild ].members[ netuserID ] = entry
-        char.User[ netuserID ][ 'guild' ] = guild
-        self:sendGuildMsg( guild, char.User[ netuserID ].name , 'has joined the guild! =)' )
+        char[ netuserID ][ 'guild' ] = guild
+        self:sendGuildMsg( guild, char[ netuserID ].name , 'has joined the guild! =)' )
         self.Guild.temp[ netuserID ] = nil
         char:UserSave()
         self:GuildSave()
@@ -316,7 +316,7 @@ function PLUGIN:GuildLeave( netuser,args )
     if( not args[2] ) then rust.Notice( netuser, '/g leave [guildtag] ' ) return end
     local netuserID = rust.GetUserID( netuser )
     self.Guild[ guild ].members[ netuserID ] = nil
-    char.User[ netuserID ].guild = nil
+    char[ netuserID ].guild = nil
     self:sendGuildMsg( guild, netuser.displayName, 'has left the guild! =(' )
     local count = func:count( self.Guild[ guild ].members )
     if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. ' has been disbanned!' ) end
@@ -338,7 +338,7 @@ function PLUGIN:GuildKick( netuser,args )
     rust.Notice(netuser,  'Kicked ' .. targname .. ' from ' .. guild )
     mail:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
     self.Guild[ guild ].members[ targuserID ] = nil
-    char.User[ targuserID ].guild = nil
+    char[ targuserID ].guild = nil
     char:UserSave()
     self:GuildSave()
 end
@@ -942,7 +942,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
     entry.vault[ 'cap' ] = 0                                                                                        -- Current capacity of the vault
     entry.unlockedcalls = {}                                                                                        -- calls are unlocked at certain Guild lvls ( Max: 10 )
     entry.activecalls = {}                                                                                          -- Add complete table to Guilds file
-    char.User[ netuserID ][ 'guild' ] = name                                                                        -- calls are activated by the perks command
+    char[ netuserID ][ 'guild' ] = name                                                                        -- calls are activated by the perks command
     timer.Once( 1, function()
         rust.SendChatToUser( netuser, core.sysname, 'Creating Guild...' )
         timer.Once( 3, function()rust.SendChatToUser( netuser, core.sysname, 'Creating guild nameplates...' ) end )
@@ -1209,7 +1209,7 @@ end
 function PLUGIN:delGuild( guild )
     -- Delete guild from userdata.
     for k, v in pairs( self.Guild[ guild ].members ) do
-        char.User[ k ].guild = nil
+        char[ k ].guild = nil
     end
     char:UserSave()
     -- Delete guild from self.Guild
@@ -1221,7 +1221,7 @@ end
 function PLUGIN:getGuild( netuser )
     local userID = rust.GetUserID( netuser )
     local guild = false
-    if( char.User[ userID ].guild ) then guild = char.User[ userID ].guild end
+    if( char[ userID ].guild ) then guild = char[ userID ].guild end
     return guild
 end
 
@@ -1286,14 +1286,14 @@ function PLUGIN:CanOpenDoor( netuser, door )
     if (ownerID == userID) then rust.Notice( netuser, 'Entered your own house! ') return true end
 
     -- if not get guilds
-    local b, ownernetuser = rust.FindNetUsersByName( char.User[ ownerID ].name )
+    local b, ownernetuser = rust.FindNetUsersByName( char[ ownerID ].name )
     if( not b ) then return end
     local ownerGuild = self:getGuild( ownernetuser )
     local userGuild = self:getGuild( netuser )
     if not ( ownerGuild and userGuild ) then return end
 
     -- Check if in same guild
-    if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. char.User[ ownerID ].name .. '\'s house! ') return true end
+    if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. char[ ownerID ].name .. '\'s house! ') return true end
 end
 
 -- GUILD UPDATE AND SAVE

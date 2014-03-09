@@ -5,17 +5,6 @@ PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
-    --LOAD/CREATE CHAR FILE
-    self.UserFile = util.GetDatafile( 'carbon_char' )
-    local dat_txt = self.UserFile:GetText()
-    if (dat_txt ~= '') then
-        print( 'Carbon dat file loaded!' )
-        self.User = json.decode( dat_txt )
-    else
-        print( 'Creating carbon dat file...' )
-        self.User = {}
-        self:UserSave()
-    end
 
     self:AddChatCommand( 'c', self.cmdCarbon )
 end
@@ -158,7 +147,7 @@ end
 -- CARBON CHAT COMMANDS
 function PLUGIN:cmdCarbon(netuser,cmd,args)
     local netuserID = rust.GetUserID( netuser )
-    local netuserData = self.User[netuserID]
+    local netuserData = self[netuserID]
     for k,v in ipairs(args)do args[k]=tostring(args[k]) end
 
     if(#args==0)then
@@ -335,7 +324,7 @@ end
 --PLUGIN:getLvl
 function PLUGIN:getLvl( netuser )
     local netuserID = rust.GetUserID( netuser )
-    local lvl = self.User[ netuserID ].lvl
+    local lvl = self[ netuserID ].lvl
     return lvl
 end
 
@@ -399,18 +388,84 @@ end
 function PLUGIN:SetDpPercentById(netuserID, percent)
     if (percent >= 0 and percent <= 100) then
         if (percent == 0) then
-            self.User[netuserID].dp = math.floor(self.User[netuserID].dp + self.User[netuserID].xp)
+            self[netuserID].dp = math.floor(self[netuserID].dp + self[netuserID].xp)
         else
-            self.User[netuserID].dp = math.floor(self.User[netuserID].dp + (self.User[netuserID].xp * percent / 100))
+            self[netuserID].dp = math.floor(self[netuserID].dp + (self[netuserID].xp * percent / 100))
         end
         self:UserSave()
     end
 end
 
+function PLUGIN:GetUserData( netuser )
+
+	local netuserID = tostring(rust.GetUserID( netuser ) )
+	local data = self:Load( netuserID )
+
+	if (not data ) then -- if not, creates one
+		-- Check name
+		data = {}
+		data.id = netuserID
+		data.name = netuser.displayName
+		data.prevnames = {}
+		data.lang = 'english'
+		data.lvl = 0
+		data.xp = 0
+		data.pp = 0
+		data.dp = 0
+		data.ap = 0
+		data.dmg = 1
+		data.ut = 0 --the amount of times this user has untrained his/her attributes.
+		data.attributes = {['str']=0,['agi']=0,['sta']=0,['int']=0 }
+		data.buffs = {}
+		data.skills = {}
+		data.perks = {}
+		data.crafting = false
+		data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
+		data.prof = {
+			['Engineer']={['lvl']=0,['xp']=0,['maxlvl']=70},        -- Disabled on default : When unlocked you get lvl 1
+			['Medic']={['lvl']=0,['xp']=0,['maxlvl']=70},           -- Disabled on default : When unlocked you get lvl 1
+			['Carpenter']={['lvl']=1,['xp']=0,['maxlvl']=70},
+			['Armorsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
+			['Weaponsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
+			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
+			['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
+		}
+		self[netuserID] = data
+		self:Save(netuserID)
+	end
+
+	if netuser.displayName ~= data.name then
+		-- check new name
+		table.insert( data.prevnames, data.name )
+		data.name = netuser.displayName
+		self:Save( netuserID )
+	end
+	return data
+end
+
+-- DATA UPDATE AND SAVE
+function PLUGIN:Save(netuserID)
+	print('Saving: ' .. netuserID)
+	self.CharFile:SetText( json.encode( self[ netuserID ], { indent = true } ) )
+	self.CharFile:Save()
+end
+-- DATA UPDATE AND SAVE
+function PLUGIN:Load( netuserID )
+	local data
+	self.CharFile = util.GetDatafile( netuserID )
+	local txt = self.CharFile:GetText()
+	if txt ~= "" then
+		data = json.decode( txt )
+		return data
+	end
+	return false
+end
+
+--[[
 -- PLUGIN:GetUserData
 function PLUGIN:GetUserData( netuser )
     local netuserID = rust.GetUserID( netuser )
-    local data = self.User[ netuserID ] -- checks if data exist
+    local data = self[ netuserID ] -- checks if data exist
     if (not data ) then -- if not, creates one
         data = {}
         data.id = netuserID
@@ -438,7 +493,7 @@ function PLUGIN:GetUserData( netuser )
             ['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
             ['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
             }
-        self.User[ netuserID ] = data
+        self[ netuserID ] = data
         self:UserSave()
     end
     return data
@@ -448,13 +503,14 @@ end
 -- DATA UPDATE AND SAVE
 function PLUGIN:UserSave()
     print('Saving user data.')
-    self.UserFile:SetText( json.encode( self.User, { indent = true } ) )
-    self.UserFile:Save()
+    selfFile:SetText( json.encode( self, { indent = true } ) )
+    selfFile:Save()
     self:UserUpdate()
     func.spamNet = {}
 end
 function PLUGIN:UserUpdate()
-    self.UserFile = util.GetDatafile( 'carbon_char' )
-    local txt = self.UserFile:GetText()
-    self.User = json.decode ( txt )
+    selfFile = util.GetDatafile( 'carbon_char' )
+    local txt = selfFile:GetText()
+    self = json.decode ( txt )
 end
+--]]

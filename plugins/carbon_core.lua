@@ -187,10 +187,10 @@ function PLUGIN:OnUserConnect( netuser )
 
     -- Check mail
     local netuserID = rust.GetUserID( netuser )
-    if( not char.User[ netuserID ] ) then return end
-    if ( char.User[ netuserID ].mail ) then
+    if( not char[ netuserID ] ) then return end
+    if ( char[ netuserID ].mail ) then
         local i = 0
-        for k, v in pairs( char.User[ netuserID ].mail ) do
+        for k, v in pairs( char[ netuserID ].mail ) do
             if( not v.read ) then i = i + 1 end
         end
         if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
@@ -198,7 +198,7 @@ function PLUGIN:OnUserConnect( netuser )
     rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
 
     -- Reset crafting:
-    char.User[ netuserID ].crafting = false
+    char[ netuserID ].crafting = false
 end
 
 --PLUGIN:OnUserChat

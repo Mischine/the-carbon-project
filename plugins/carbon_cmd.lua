@@ -38,7 +38,7 @@ end
 function PLUGIN:GetCmdData(netuser, cmd ,args)
 	local cmdData = {}
 	cmdData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
-	cmdData['netuserData'] = char.User[rust.GetUserID(netuser)]
+	cmdData['netuserData'] = char[rust.GetUserID(netuser)]
 	cmdData['netuser'] = netuser
 	cmdData['cmd'] = cmd
 	if #args then cmdData['args'] = args end
@@ -101,31 +101,31 @@ function PLUGIN:cmdCharacter(netuser, cmd ,args)
 end
 function PLUGIN:cmdSkills(netuser, cmd ,args)
     if not args[1] then
-        local netuserData = char.User[netuserID]
+        local netuserData = char[netuserID]
 
     end
 end
 function PLUGIN:cmdAttributes(netuser, cmd ,args)
     if not args[1] then
-        local netuserData = char.User[netuserID]
+        local netuserData = char[netuserID]
         char:InfoSkills( netuserData )
     end
 end
 function PLUGIN:cmdPerks(netuser, cmd ,args)
     if not args[1] then
-        local netuserData = char.User[netuserID]
+        local netuserData = char[netuserID]
         char:InfoSkills( netuserData )
     end
 end
 function PLUGIN:cmdAdd(netuser, cmd ,args)
     if not args[1] then
-        local netuserData = char.User[netuserID]
+        local netuserData = char[netuserID]
         char:InfoSkills( netuserData )
     end
 end
 function PLUGIN:cmdReset(netuser, cmd ,args)
     if not args[1] then
-        local netuserData = char.User[netuserID]
+        local netuserData = char[netuserID]
         char:InfoSkills( netuserData )
     end
 end
@@ -134,7 +134,7 @@ end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 function PLUGIN:cmdGuild(netuser, cmd ,args)
     -- Get Language & Data
-    local netuserData = char.User[rust.GetUserID( netuser )]
+    local netuserData = char[rust.GetUserID( netuser )]
     local lang = netuserData.lang   --the language is included in the netuserData B)~   -- Will implement later. This is gonna fuck up the outlining tho
     if not args[1] then
         guild:GuildIntro( netuser )
@@ -189,7 +189,7 @@ function PLUGIN:cmdVault( netuser, cmd, args )
 end
 function PLUGIN:lang(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
-    local netuserData = char.User[netuserID]
+    local netuserData = char[netuserID]
     if args[1] then
         if args[1] == 'english' or args[1] == 'russian' then
             netuserData.lang = tostring(args[1])
@@ -209,7 +209,7 @@ end
 --[[
 function PLUGIN:xp(netuser, cmd, args)
     local netuserID = rust.GetUserID( netuser )
-    local netuserData = char.User[netuserID]
+    local netuserData = char[netuserID]
     local a = netuserData.lvl+1 --level +1
     local ab = netuserData.lvl --level
     local b = core.Config.settings.lvlmodifier

@@ -64,19 +64,19 @@ end
 
 function PLUGIN:Parry(combatData)
     --CRITICAL HIT CHECK
-    if( char.User[ combatData.netuserData.id ].buffs[ 'ParryCrit' ]) then
+    if( char[ combatData.netuserData.id ].buffs[ 'ParryCrit' ]) then
         combatData.dmg.amount = combatData.dmg.amount * 2
         rust.InventoryNotice( combatData.netuser, 'Critical Hit!' )
-        char.User[ combatData.netuserData.id ].buffs[ 'ParryCrit' ] = nil
+        char[ combatData.netuserData.id ].buffs[ 'ParryCrit' ] = nil
     end
 end
 
 --PLUGIN:GiveTimedBuff
 function PLUGIN:GiveTimedBuff( vicuserID, time, buff )
-    if not char.User[ vicuserID ].buffs['ParryCrit'] then
-        char.User[ vicuserID ].buffs['ParryCrit']=true
+    if not char[ vicuserID ].buffs['ParryCrit'] then
+        char[ vicuserID ].buffs['ParryCrit']=true
         timer.Once( time, function()
-            if( char.User[ vicuserID ].buffs[ buff ] ) then char.User[ vicuserID ].buffs[ buff ] = nil end
+            if( char[ vicuserID ].buffs[ buff ] ) then char[ vicuserID ].buffs[ buff ] = nil end
         end )
     end
 end

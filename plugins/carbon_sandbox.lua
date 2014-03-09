@@ -61,7 +61,7 @@ function PLUGIN:ControllerProbe(netuser, cmd, args)
             return false
         end
     end
-    
+
     --local controllable = vicuser.playerClient.controllable
     local controllable = netuser.playerClient.controllable
     local Character = controllable:GetComponent( "Character" )
@@ -85,8 +85,8 @@ function PLUGIN:ControllerProbe(netuser, cmd, args)
     --rust.SendChatToUser(netuser, tostring(idchar.lockMovement))
     --rust.SendChatToUser(netuser, tostring(idchar.lockLook))
 
-    
-    
+
+
 end
 function PLUGIN:test( netuser, cmd, args)
 --[[
@@ -182,7 +182,7 @@ function PLUGIN:cmdHelp( netuser, cmd, args)
     elseif( args[1] == 'guilds' ) then
         local netuserID = rust.GetUserID( netuser )
         local req = 'CareX: "Yea dude, to bad you need a level 10 character to start a guild!"'
-        if char.User[ netuserID ].lvl >= 10 then req = 'CareX: "Yea brah, go start your own guild now! Only 25 silver! And reign the solar system with your lightsaber..."' end
+        if char[ netuserID ].lvl >= 10 then req = 'CareX: "Yea brah, go start your own guild now! Only 25 silver! And reign the solar system with your lightsaber..."' end
         local content = {
             ['msg'] ='Guilds? Hell yea! Mischa: "Sooooo... w-w-what can I do... n-n-now we have guilds?" CareX: "Well good sir, you can ' ..
                     'slay chickens together, make your own guild house, which everyone in the guild can access ofcourse. ' ..

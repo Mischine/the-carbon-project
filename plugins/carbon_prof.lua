@@ -44,13 +44,13 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
     if not inv then rust.Notice( netuser, 'Inventory not found, report to a GM. Unable to craft.') return false end
     if( self.craft[ blueprint.resultItem.name ] ) then
         local netuserID = rust.GetUserID( netuser )
-        if char.User[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
-        char.User[ netuserID ].crafting = true
+        if char[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
+        char[ netuserID ].crafting = true
         local data = self.craft[ blueprint.resultItem.name ]
-        if not data then rust.Notice( netuser, 'No data found...' ) char.User[ netuserID ].crafting = false return false end
-        local craftdata = char.User[ netuserID ].prof[ data.prof ]
-        if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char.User[ netuserID ].crafting = false return false end
-        local a,b,c=craftdata.lvl, char.User[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
+        if not data then rust.Notice( netuser, 'No data found...' ) char[ netuserID ].crafting = false return false end
+        local craftdata = char[ netuserID ].prof[ data.prof ]
+        if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char[ netuserID ].crafting = false return false end
+        local a,b,c=craftdata.lvl, char[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
         local crit, failed = false,false
 
         local roll = func:Roll(true, 100)
@@ -100,7 +100,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                                 end
                             end
                         end
-                    else rust.Notice(netuser, "Dont cheat bro. You just lost your mats.") char.User[ netuserID ].crafting = false return false end
+                    else rust.Notice(netuser, "Dont cheat bro. You just lost your mats.") char[ netuserID ].crafting = false return false end
                     if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
                 end
 
@@ -117,11 +117,11 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                 if failed then xp = math.floor(xp / 2) rust.Notice( netuser, 'Crafting failure!' ) end
                 timer.Once(2, function()
                     xp = self:AddCraftXP( netuser, data.prof, xp )
-                    if xp == 0 then char.User[ netuserID ].crafting = falsereturn end
+                    if xp == 0 then char[ netuserID ].crafting = falsereturn end
                     rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
                 end)
                 char:UserSave()
-                char.User[ netuserID ].crafting = false
+                char[ netuserID ].crafting = false
             end
         end )
         return false
@@ -179,7 +179,7 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
         else
             local netuserID = rust.GetUserID( netuser )
             local data = self.craft[ itemname ]
-            local a,b,c=data.req, char.User[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
+            local a,b,c=data.req, char[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
 
             local content = {
                 ['list']=
@@ -192,7 +192,7 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
                     'XP                           : ' .. data.xp.min .. ' - ' .. data.xp.max,
                 }
             }
-            local craftdata = char.User[ netuserID ].prof[ data.prof ]
+            local craftdata = char[ netuserID ].prof[ data.prof ]
             if data.req <= craftdata.lvl then
                 table.insert( content.list, 'Fail chance           : ' .. tostring(math.floor(e+0.5)) .. '%' )
                 table.insert( content.list, 'Critical chance     : ' .. tostring(math.floor((100 - d)+0.5)) .. '%' )
@@ -225,7 +225,7 @@ function PLUGIN:OnBlueprintUse( blueprint, item )
         local netuserID = rust.GetUserID( netuser )
         local data = self.craft[ blueprint.resultItem.name ]
         if not data then rust.Notice( netuser, 'No data found...' ) return false end
-        local craftdata = char.User[ netuserID ].prof[ data.prof ]
+        local craftdata = char[ netuserID ].prof[ data.prof ]
         if( craftdata.lvl < data.req ) then
             rust.Notice( netuser, 'You cannot research this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!')
         return false end
@@ -244,7 +244,7 @@ function PLUGIN:InfoProf( netuser, cmd ,args )
     local content = {
         ['list']={}
     }
-    for k, v in pairs( char.User[rust.GetUserID( netuser )].prof) do
+    for k, v in pairs( char[rust.GetUserID( netuser )].prof) do
         if v.lvl >= 1 then
             local a = v.lvl+1 --level +1
             local ab = v.lvl --level
