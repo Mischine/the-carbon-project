@@ -74,14 +74,6 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
     rust.Notice( netuser, 'Message send!' )
 end
 
--- Returns the distance between two 3 dimensional points
-function PLUGIN:Distance3D ( x1, y1, z1, x2, y2, z2 )
-    local xd = x2 - x1
-    local yd = y2 - y1
-    local zd = z2 - z1
-    return self.SquareRoot( xd * xd + yd * yd + zd * zd )
-end
-
 -- Returns the distance between two 2 dimensional points (we don't need this one, just included it for the lulz)
 -- function PLUGIN:Distance2D ( x1, y1, x2, y2 )
 -- local xd = x2 - x1
@@ -119,7 +111,7 @@ function PLUGIN:OnLocalChat( netuser, _, args )
             if ( coords2 ) and ( coords2.x ) and ( coords2.y ) and ( coords2.z ) then
 
                 -- Check if the player in the loop is near the message sender
-                if ( self:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= self.Distance ) then
+                if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= self.Distance ) then
 
                     -- Send the message the message to the player
                     rust.SendChatToUser( users[ i ], netuser.displayName, "(LOCAL): " .. message )

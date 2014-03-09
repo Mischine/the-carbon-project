@@ -233,6 +233,14 @@ function PLUGIN:Load(filename)
 		self:SetDefaultConfig()
 	end
 end
+
+-- Returns the distance between two 3 dimensional points
+function PLUGIN:Distance3D ( x1, y1, z1, x2, y2, z2 )
+	local xd = x2 - x1
+	local yd = y2 - y1
+	local zd = z2 - z1
+	return self.SquareRoot( xd * xd + yd * yd + zd * zd )
+end
 -------------------------------------------------------------------------------
 -- NEW FUNCTIONS
 function PLUGIN:Poison(netuser, cmd, args)
