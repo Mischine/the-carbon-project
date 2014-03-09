@@ -303,7 +303,11 @@ rust.BroadcastChat( 'In range' )
 	xp = ( xp *  mod ) / i
 	local y = 1
 	while allcombatData[y] do
-		char:GiveXP( allcombatData[i], xp, false )
+		if allcombatData[y].netuser == combatData.netuser then
+			char:GiveXP( combatData, xp, true )
+		else
+			char:GiveXP( allcombatData[i], xp, false )
+		end
 		y = y + 1
 	end
 end
