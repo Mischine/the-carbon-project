@@ -50,8 +50,8 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
-    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char.User[rust.GetUserID(dmg.attacker.client.netUser)] end
-    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char.User[rust.GetUserID(dmg.victim.client.netUser)] end
+    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
+    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char[rust.GetUserID(dmg.victim.client.netUser)] end
     if dmg.bodyPart ~= nil then if(dmg.bodyPart:GetType().Name == "BodyPart" and _GetNiceName(dmg.bodyPart) ~= nil) then combatData['bodyPart'] = _GetNiceName(dmg.bodyPart) end end
     if combatData.netuser then combatData['debug'] = combatData.netuser.displayName elseif (not (combatData.netuser) and (combatData.vicuser )) then combatData['debug'] = combatData.vicuser.displayName end
     local npc = core.Config.npc
@@ -134,8 +134,8 @@ function PLUGIN:OnKilled (takedamage, dmg)
     combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
-    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char.User[rust.GetUserID(dmg.attacker.client.netUser)] end
-    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char.User[rust.GetUserID(dmg.victim.client.netUser)] end
+    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
+    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char[rust.GetUserID(dmg.victim.client.netUser)] end
     local npc = core.Config.npc
     for k,v in pairs(npc) do
         if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
@@ -175,7 +175,7 @@ end
 -----------------------------------------------------------------
 function PLUGIN:WeaponSkill (combatData)
     if (not combatData.netuserData.skills[combatData.weapon.name]) then
-        char.User[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
+        char[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
         char:UserSave()
     end
     if combatData.weapon.lvl > combatData.netuserData.skills[combatData.weapon.name].lvl then
@@ -409,7 +409,7 @@ end
             if not dmg.damageTypes then return dmg end
             if (char:GetUserData(dmg.victim.client.netUser)) then
                 local vicuser = dmg.victim.client.netUser
-                local vicuserData = char.User[rust.GetUserID(vicuser)]
+                local vicuserData = char[rust.GetUserID(vicuser)]
                 local npcData = core.Config.npc[string.gsub(tostring(dmg.attacker.networkView.name), '%(Clone%)', '')]
 
                 if debugr == true then rust.BroadcastChat('---------------BEGIN PVE VS ME---------------') end
@@ -455,7 +455,7 @@ end
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
             local netuser = dmg.attacker.client.netUser
-            local netuserData = char.User[rust.GetUserID(netuser)]
+            local netuserData = char[rust.GetUserID(netuser)]
             local npcData = core.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
 
             if (not netuserData.skills[tostring(dmg.extraData.dataBlock.name)]) then
@@ -509,10 +509,10 @@ function PLUGIN:OnKilled (takedamage, dmg)
     -----------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
         local vicuser = dmg.victim.client.netUser
-        local vicuserData = char.User[rust.GetUserID(vicuser)]
+        local vicuserData = char[rust.GetUserID(vicuser)]
         if(dmg.victim.client and dmg.attacker.client) then
             local netuser = dmg.attacker.client.netUser
-            local netuserData = char.User[rust.GetUserID(netuser)]
+            local netuserData = char[rust.GetUserID(netuser)]
             if (netuser ~= vicuser) then
                 netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
                 char:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*core.Config.settings.dppercent/100))
@@ -531,7 +531,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
         if (takedamage:GetComponent( npcController )) then
             local npcData = core.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
             local netuser = dmg.attacker.client.netUser
-            local netuserData = char.User[rust.GetUserID(netuser)]
+            local netuserData = char[rust.GetUserID(netuser)]
             local xp = math.floor(npcData.xp*core.Config.settings.xpmodifier)
             if (not netuserData.stats.kills.pve[npcData.name]) then
                 netuserData.stats.kills.pve[npcData.name] = 1
@@ -550,7 +550,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
 		local sleepreId = self:SleeperPos(coord)
         if(sleepreId ~= nil) then
             core.Config.sleepers.pos[sleepreId] = nil
-            char.GiveXp( actorUser, tonumber(math.floor(char.User[sleepreId].xp*core.Config.settings.sleeperxppercent/100)))
+            char.GiveXp( actorUser, tonumber(math.floor(char[sleepreId].xp*core.Config.settings.sleeperxppercent/100)))
             self:setXpPercentById(sleepreId, tonumber(100-core.Config.settings.sleeperxppercent-core.Config.settings.dppercent))
         end
 	end
@@ -609,9 +609,9 @@ end
 --PLUGIN:critCheck
 function PLUGIN:critCheck(weaponData, netuser, netuserData, damage)
 
-    if( char.User[ netuserData.id ].buffs[ 'ParryCrit' ]) then
+    if( char[ netuserData.id ].buffs[ 'ParryCrit' ]) then
         damage = damage * 2
-        char.User[ netuserData.id ].buffs[ 'ParryCrit' ] = nil
+        char[ netuserData.id ].buffs[ 'ParryCrit' ] = nil
         return damage
     end
     if (netuserData.attributes.agi>0) then
