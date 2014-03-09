@@ -201,6 +201,14 @@ function PLUGIN:OnUserConnect( netuser )
     char[ netuserID ].crafting = false
 end
 
+function PLUGIN:OnUserDisconnect( netplayer )
+	local netuser = rust.NetUserFromNetPlayer(netplayer)
+	local netuserID = tostring(rust.GetUserID( netuser ) )
+	char[netuserID] = nil
+	if char[ netuserID ] then print( 'Still exist' ) else print( 'Deleted' ) end
+end
+
+
 --PLUGIN:OnUserChat
 --[[
 function PLUGIN:OnUserChat(netuser, name, msg)
