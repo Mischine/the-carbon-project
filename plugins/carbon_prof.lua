@@ -26,8 +26,7 @@ local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotg
     "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag"}
 function PLUGIN:OnStartCrafting( inv, blueprint, amount )
-	rust.BroadcastChat( tostring(inv))
-	local netuser = rust.NetUserFromNetPlayer( inv.networkViewOwner )
+    local netuser = rust.NetUserFromNetPlayer( inv.networkViewOwner )
     local inv = rust.GetInventory( netuser )
     if not inv then rust.Notice( netuser, 'Inventory not found, report to a GM. Unable to craft.') return false end
     if( self.craft[ blueprint.resultItem.name ] ) then
