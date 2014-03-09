@@ -193,10 +193,9 @@ function PLUGIN:OnUserConnect( netuser )
     end
     --]]
     local data = char:GetUserData( netuser ) -- asks for dat.
-    data.name = netuser.displayName
     if not data.reg then
 	    self.tmpusers[ netuser.displayName ] = netuser
-	    rust.SendChatToUser( netuser, 'Please register with /register' )
+	    rust.Notice( netuser, 'Please register with /register' )
     end
 
 
