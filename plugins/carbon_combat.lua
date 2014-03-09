@@ -15,53 +15,32 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 
-    --[[
-    if dmg.attacker.client.netUser then
-        if weaponData then
-            local weaponData = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] or nil
-            local netuser = dmg.attacker.client.netUser
-            local netuserData = char[rust.GetUserID(netuser)]
-            if weaponData.lvl > netuserData.lvl then
-                dmg.amount = 0
-                if not spam[weaponData.name .. netuserData.id] then
-                    func:Notice(netuser,'⊗','You are not proficient with this weapon!',5)
-                    spam[weaponData.name .. netuserData.id] = weaponData.name .. netuserData.id
-                end
-                timer.Once(6, function() spam[weaponData.name .. netuserData.id] = nil end)
-                return dmg
-            end
-        end
-    end
-    --]]
-
-local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp-firstpass" )
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )
 typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
-
-local StatusIntGetter = util.GetFieldGetter( Rust.DamageEvent, "status", nil, System.Int32 )
-local LifeStatus_IsAlive = 0
-local LifeStatus_IsDead = 2
-local LifeStatus_WasKilled = 1
-local LifeStatus_Failed = -1
--- TODO Find a fix for this...
---[[
-	Okay, so. it does NOT stop one hit kills. And as far as I know, we cant now. Because this is a FieldGetter, and I need to set a value.
-	 Also, the weapon dmg on just hits work fine! The problem is that I cannot put their lifestatus to Alive. Because the damn bug.
-	 http://forum.rustoxide.com/threads/enum-structurematerialtype.1673/#post-19844
-	 Check that for some info. If I do dmg.status = 0 than it spasims out. Trying to load the enum will crash the plugin. I dont know dude...
-	 i've tried alot. But the more I add to test, the more buggier it gets. We need to find out how to do this, and by we I mean you. xD You're the dmg expert.
-	 Btw I also let it return the combatData cus then we can do specific thing here.
-
-	 Oh and they still die at 25 hp. Because I cant bring their status back to life. if I could it would be easy to counter that.
-	 if dmg.amount > takedamage.health then
-	    damage.status = 0
-	 end
- ]]
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-    local dmg, combatData = self:CombatDamage( takedamage, damage )
+	local combatData                                        -- Define combatData so that it wont turn global. I cant local it in the if statement, cus then I cannot use it outside of it.
+	local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
+	local status = damage.status                            -- Getting the damage.
+	rust.BroadcastChat( 'Health: ' .. takedamage.health )
+	if not ( status == LifeStatus.IsDead ) then             -- Prevent calculating even if they're dead. Less CPU usage. BETTAH PERFORMANCE!
+        dmg, combatData = self:CombatDamage( takedamage, damage )
+	end
+	if ((combatData.bodyPart) and ( not combatData.npcData )) then
+		rust.BroadcastChat( combatData.bodyPart )
+	end
+	if dmg.amount <= 0 then                                 -- Checks if they're proficient with the weapon.
+		dmg.status = LifeStatus.IsAlive
+		rust.BroadcastChat( cancelagro )                    -- Gives no errors, but cancels the whole function. So the NPC wont agro || Can be removed if you wont like it.
+	elseif status == LifeStatus.WasKilled then
+		if dmg.amount < takedamage.health then              -- Revive when they are not actually dead. So they wont die with 25 hp. =) | I think even will counter headshots.
+		    dmg.status = LifeStatus.IsAlive
+		end
+	end
 end
 
 
-
+local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
+local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 function PLUGIN:CombatDamage (takedamage, dmg)
 
     --rust.BroadcastChat('INITIAL DAMAGE: ' .. tostring(dmg.amount))
@@ -71,8 +50,10 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
-    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
-    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char[rust.GetUserID(dmg.victim.client.netUser)] end
+    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char.User[rust.GetUserID(dmg.attacker.client.netUser)] end
+    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char.User[rust.GetUserID(dmg.victim.client.netUser)] end
+    if dmg.bodyPart ~= nil then if(dmg.bodyPart:GetType().Name == "BodyPart" and _GetNiceName(dmg.bodyPart) ~= nil) then combatData['bodyPart'] = _GetNiceName(dmg.bodyPart) end end
+    if combatData.netuser then combatData['debug'] = combatData.netuser.displayName elseif (not (combatData.netuser) and (combatData.vicuser )) then combatData['debug'] = combatData.vicuser.displayName end
     local npc = core.Config.npc
     for k,v in pairs(npc) do
         if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
@@ -93,6 +74,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
     --BEGIN BATTLE SYSTEM
     if combatData.scenario == 1 then
+	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs client------------' ) end
        rust.BroadcastChat('------------client vs client------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
@@ -103,6 +85,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 2 then
+	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------pve vs client------------' ) end
        rust.BroadcastChat('------------pve vs client------------')
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
@@ -111,6 +94,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         --combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
+	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs pve------------' ) end
        rust.BroadcastChat('------------client vs pve------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
@@ -120,21 +104,25 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         -- combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
   rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
     dmg.amount = combatData.dmg.amount
-    combatData = {}
     return dmg, combatData
 end
 
 function PLUGIN:GuildAttack(combatData)
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:GuildAttack----' ) end
     rust.BroadcastChat('----PLUGIN:GuildAttack----')
     combatData.dmg.amount = guild:GuildAttackMods( combatData )
+    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     return combatData.dmg.amount
 end
 
 function PLUGIN:GuildDefend(combatData)
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:GuildDefend----' ) end
     rust.BroadcastChat('----PLUGIN:GuildDefend----')
     combatData.dmg.amount = guild:GuildDefendMods( combatData )
+    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     return combatData.dmg.amount
 end
 -----------------------------------------------------------------
@@ -146,8 +134,8 @@ function PLUGIN:OnKilled (takedamage, dmg)
     combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
-    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
-    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char[rust.GetUserID(dmg.victim.client.netUser)] end
+    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char.User[rust.GetUserID(dmg.attacker.client.netUser)] end
+    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char.User[rust.GetUserID(dmg.victim.client.netUser)] end
     local npc = core.Config.npc
     for k,v in pairs(npc) do
         if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
@@ -187,7 +175,7 @@ end
 -----------------------------------------------------------------
 function PLUGIN:WeaponSkill (combatData)
     if (not combatData.netuserData.skills[combatData.weapon.name]) then
-        char[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
+        char.User[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
         char:UserSave()
     end
     if combatData.weapon.lvl > combatData.netuserData.skills[combatData.weapon.name].lvl then
@@ -201,6 +189,7 @@ function PLUGIN:WeaponSkill (combatData)
     return combatData.dmg.amount
 end
 function PLUGIN:DmgModifier (combatData)
+	-- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat('----PLUGIN:DmgModifier----')
     if combatData.scenario == 1 then
         if combatData.weapon then
@@ -224,18 +213,22 @@ function PLUGIN:DmgModifier (combatData)
             combatData.dmg.amount = combatData.dmg.amount * combatData.npcData.dmg
         end
     end
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
 function PLUGIN:DmgRandomizer(combatData)
+	-- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat('----PLUGIN:DmgRandomizer----')
     local seed = func:GetTimeMilliSeconds()
     math.randomseed(seed)
     combatData.dmg.amount = math.random(combatData.dmg.amount*.5,combatData.dmg.amount)
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
 function PLUGIN:Attack(combatData)
+	-- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat('----PLUGIN:Attack----')
     if combatData.scenario == 1 then
         --ATTACKER DP DMG MODIFIERS
@@ -286,10 +279,12 @@ function PLUGIN:Attack(combatData)
             end
         end
     end
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
 function PLUGIN:CritCheck(combatData)
+	-- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat('----PLUGIN:CritCheck----')
     if combatData.scenario == 1 then
         if (combatData.netuserData.attributes.agi>0) then
@@ -330,6 +325,7 @@ function PLUGIN:CritCheck(combatData)
             end
         end
     end
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
@@ -413,7 +409,7 @@ end
             if not dmg.damageTypes then return dmg end
             if (char:GetUserData(dmg.victim.client.netUser)) then
                 local vicuser = dmg.victim.client.netUser
-                local vicuserData = char[rust.GetUserID(vicuser)]
+                local vicuserData = char.User[rust.GetUserID(vicuser)]
                 local npcData = core.Config.npc[string.gsub(tostring(dmg.attacker.networkView.name), '%(Clone%)', '')]
 
                 if debugr == true then rust.BroadcastChat('---------------BEGIN PVE VS ME---------------') end
@@ -459,7 +455,7 @@ end
     for i, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
             local netuser = dmg.attacker.client.netUser
-            local netuserData = char[rust.GetUserID(netuser)]
+            local netuserData = char.User[rust.GetUserID(netuser)]
             local npcData = core.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
 
             if (not netuserData.skills[tostring(dmg.extraData.dataBlock.name)]) then
@@ -513,10 +509,10 @@ function PLUGIN:OnKilled (takedamage, dmg)
     -----------------CLIENT VS CLIENT
     if (takedamage:GetComponent( 'HumanController' )) then
         local vicuser = dmg.victim.client.netUser
-        local vicuserData = char[rust.GetUserID(vicuser)]
+        local vicuserData = char.User[rust.GetUserID(vicuser)]
         if(dmg.victim.client and dmg.attacker.client) then
             local netuser = dmg.attacker.client.netUser
-            local netuserData = char[rust.GetUserID(netuser)]
+            local netuserData = char.User[rust.GetUserID(netuser)]
             if (netuser ~= vicuser) then
                 netuserData.stats.kills.pvp = netuserData.stats.kills.pvp+1
                 char:GiveDp( vicuser, vicuserData, math.floor(vicuserData.xp*core.Config.settings.dppercent/100))
@@ -535,7 +531,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
         if (takedamage:GetComponent( npcController )) then
             local npcData = core.Config.npc[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
             local netuser = dmg.attacker.client.netUser
-            local netuserData = char[rust.GetUserID(netuser)]
+            local netuserData = char.User[rust.GetUserID(netuser)]
             local xp = math.floor(npcData.xp*core.Config.settings.xpmodifier)
             if (not netuserData.stats.kills.pve[npcData.name]) then
                 netuserData.stats.kills.pve[npcData.name] = 1
@@ -554,7 +550,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
 		local sleepreId = self:SleeperPos(coord)
         if(sleepreId ~= nil) then
             core.Config.sleepers.pos[sleepreId] = nil
-            char.GiveXp( actorUser, tonumber(math.floor(char[sleepreId].xp*core.Config.settings.sleeperxppercent/100)))
+            char.GiveXp( actorUser, tonumber(math.floor(char.User[sleepreId].xp*core.Config.settings.sleeperxppercent/100)))
             self:setXpPercentById(sleepreId, tonumber(100-core.Config.settings.sleeperxppercent-core.Config.settings.dppercent))
         end
 	end
@@ -613,9 +609,9 @@ end
 --PLUGIN:critCheck
 function PLUGIN:critCheck(weaponData, netuser, netuserData, damage)
 
-    if( char[ netuserData.id ].buffs[ 'ParryCrit' ]) then
+    if( char.User[ netuserData.id ].buffs[ 'ParryCrit' ]) then
         damage = damage * 2
-        char[ netuserData.id ].buffs[ 'ParryCrit' ] = nil
+        char.User[ netuserData.id ].buffs[ 'ParryCrit' ] = nil
         return damage
     end
     if (netuserData.attributes.agi>0) then
