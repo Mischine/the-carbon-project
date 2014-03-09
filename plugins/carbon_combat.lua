@@ -42,19 +42,24 @@ end
 local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 function PLUGIN:CombatDamage (takedamage, dmg)
-
     --rust.BroadcastChat('INITIAL DAMAGE: ' .. tostring(dmg.amount))
-    --SET UP COMBATDATA
-    local combatData = {['dmg']={}}
-    combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+	--SET UP COMBATDATA
+	local combatData = {['dmg']={}}
+	combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
 
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
+
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
+
     if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
+
     if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char[rust.GetUserID(dmg.victim.client.netUser)] end
+
     if dmg.bodyPart ~= nil then if(dmg.bodyPart:GetType().Name == "BodyPart" and _GetNiceName(dmg.bodyPart) ~= nil) then combatData['bodyPart'] = _GetNiceName(dmg.bodyPart) end end
+
     if combatData.netuser then combatData['debug'] = combatData.netuser.displayName elseif (not (combatData.netuser) and (combatData.vicuser )) then combatData['debug'] = combatData.vicuser.displayName end
-    local npc = core.Config.npc
+
+	local npc = core.Config.npc
     for k,v in pairs(npc) do
         if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
             combatData['npcData'] = core.Config.npc[string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')]
@@ -129,9 +134,10 @@ end
 --http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 function PLUGIN:OnKilled (takedamage, dmg)
 
-    --SET UP COMBATDATA
-    local combatData = {['dmg']={}}
-    combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+	--SET UP COMBATDATA
+	local combatData = {['dmg']={}}
+	combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
     if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
