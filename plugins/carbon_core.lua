@@ -21,7 +21,17 @@ function PLUGIN:Init()
 
     self.rnd = 0
     timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
+
+    self.tmpusers = {}
+    -- self.UnregTimer = timer.Repeat( 60, function() self:UnregBC() end)
 end
+
+function PLUGIN:UnregBC()
+	for k,v in pairs( ) do
+
+	end
+end
+
 function PLUGIN:LoadLibrary()
     call = cs.findplugin("carbon_call")
     char = cs.findplugin("carbon_char")
@@ -184,6 +194,11 @@ function PLUGIN:OnUserConnect( netuser )
     --]]
     local data = char:GetUserData( netuser ) -- asks for dat.
     data.name = netuser.displayName
+    if not data.reg then
+	    self.tmpusers[ netuser.displayName ] = netuser
+	    rust.SendChatToUser( netuser, 'Please register with /register' )
+    end
+
 
     -- Check mail
     local netuserID = rust.GetUserID( netuser )

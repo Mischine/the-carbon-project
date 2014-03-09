@@ -276,6 +276,7 @@ function PLUGIN:GetUserData( netuser )
 		data.id = netuserID
 		data.name = netuser.displayName
 		data.prevnames = {}
+		data.reg = false
 		data.lang = 'english'
 		data.lvl = 0
 		data.xp = 0
@@ -313,9 +314,13 @@ end
 
 -- DATA UPDATE AND SAVE
 function PLUGIN:Save(netuserID)
-	print('Saving: ' .. netuserID)
-	self.CharFile:SetText( json.encode( self[ netuserID ], { indent = true } ) )
-	self.CharFile:Save()
+	if self[ netuserID ].reg then
+		print('Saving: ' .. netuserID)
+		self.CharFile:SetText( json.encode( self[ netuserID ], { indent = true } ) )
+		self.CharFile:Save()
+	else
+
+	end
 end
 -- DATA UPDATE AND SAVE
 function PLUGIN:Load( netuserID )
