@@ -169,9 +169,13 @@ function PLUGIN:OnKilled (takedamage, dmg)
             combatData.netuserData.stats.kills.pve[combatData.npcData.name] = combatData.netuserData.stats.kills.pve[combatData.npcData.name]+1
         end
         combatData.netuserData.stats.kills.pve.total = combatData.netuserData.stats.kills.pve.total+1
-        char:GiveXp( combatData, xp)
+	    local pdata = party:getParty( combatData.netuser )
+        if pdata then
+	        party:DistributeXP( combatData, pdata, xp )
+        else
+            char:GiveXp( combatData, xp, true)
+        end
     end
-
 end
 -----------------------------------------------------------------
 function PLUGIN:WeaponSkill (combatData)

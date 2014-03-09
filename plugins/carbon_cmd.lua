@@ -51,7 +51,8 @@ end
 
 function PLUGIN:Party( netuser, cmd, args )
 	if not args[1] then
-		if party:hasParty(netuser) then
+		local pdata = party:hasParty( netuser )
+		if pdata then
 			party:PartyOverView( netuser, cmd, args )
 		else
 			party:PartyInfo(netuser, cmd, args )
