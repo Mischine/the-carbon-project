@@ -305,7 +305,7 @@ function PLUGIN:GuildAccept( netuser )
         char[ netuserID ][ 'guild' ] = guild
         self:sendGuildMsg( guild, char[ netuserID ].name , 'has joined the guild! =)' )
         self.Guild.temp[ netuserID ] = nil
-        char:UserSave()
+        char:Save(netuserID)
         self:GuildSave()
     end
 end
@@ -321,7 +321,7 @@ function PLUGIN:GuildLeave( netuser,args )
     local count = func:count( self.Guild[ guild ].members )
     if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. ' has been disbanned!' ) end
     self:GuildSave()
-    char:UserSave()
+    char:Save(netuserID)
 end
 
 function PLUGIN:GuildKick( netuser,args )
@@ -339,7 +339,7 @@ function PLUGIN:GuildKick( netuser,args )
     mail:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
     self.Guild[ guild ].members[ targuserID ] = nil
     char[ targuserID ].guild = nil
-    char:UserSave()
+    char:Save(targuserID)
     self:GuildSave()
 end
 
@@ -684,6 +684,7 @@ function PLUGIN:GuildVault( netuser, cmd, args )
             local guilddata = self:getGuildData( guild )
             local itemname = tostring(args[2])
             local datablock = rust.GetDatablockByName( itemname )
+            local netuserID = rust.GetUserID( netuser )
             if not datablock then rust.Notice( netuser, itemname .. ' does not exist!') return end
             if not guilddata.vault.items[ itemname ] then rust.Notice( netuser, 'Guild vault does not have ' .. itemname .. ' stored!' ) return end
             local amount = tonumber(args[3])
@@ -698,7 +699,7 @@ function PLUGIN:GuildVault( netuser, cmd, args )
             self:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has withdrawed: ' .. tostring( amount ) .. 'x ' .. itemname .. ' ::::::::::::::' )
             guilddata.vault.cap = guilddata.vault.cap - amount
             self:GuildSave()
-            char:UserSave()
+            char:Save(netuserID)
         else
             local content = {
                 ['msg'] ='To withdraw /vault withdraw "ItemName" [amount] OR /g vault withdraw money Gold Silver Copper',
@@ -952,7 +953,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         timer.Once( 18, function()rust.SendChatToUser( netuser, tostring( '[' .. tag .. '] ' .. name ), 'Your guild has been created!' ) end )
         timer.Once( 19, function()
             self.Guild[ name ] = entry                                                                                  -- Add guild to userdata.
-            char:UserSave()
+            char:Save(netuserID)
             self:GuildSave() end)
     end )
 end
@@ -1212,9 +1213,10 @@ end
 function PLUGIN:delGuild( guild )
     -- Delete guild from userdata.
     for k, v in pairs( self.Guild[ guild ].members ) do
+	    self:Load( k )
         char[ k ].guild = nil
+	    self:Save( k )
     end
-    char:UserSave()
     -- Delete guild from self.Guild
     self.Guild[ guild ] = nil
     self:GuildSave()

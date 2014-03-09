@@ -95,7 +95,7 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
         local count = func:count( char[ netuserID ].mail )
         if ( count <= 0 ) then char[ netuserID ].mail = nil end
         rust.Notice( netuser, 'Mail ID ' .. ID .. ' succesfully deleted!' )
-        char:UserSave()
+        char:Save(netuserID)
     elseif( action == 'clear' ) then                            -- /mail clear              Clears whole inbox
         local netuserID = rust.GetUserID( netuser )
         if( char[ netuserID ].mail ) then
@@ -128,6 +128,7 @@ function PLUGIN:sendMail( toplayerID, fromplayername, date, msg, guild )
     mail.date = date
     mail.msg = msg
     mail.read = false
+    self:Load( toplayerID )
     if ( guild ) then mail.guild = guild end
     -- get mail unique mail id
     if( not char[ toplayerID ].mail ) then char[ toplayerID ].mail = {} end
@@ -141,5 +142,6 @@ function PLUGIN:sendMail( toplayerID, fromplayername, date, msg, guild )
     local b, netuser = rust.FindNetUsersByName( name )
     if ( b ) then rust.InventoryNotice( netuser, 'New mail from: ' .. util.QuoteSafe( fromplayername )) end
     -- Save
-    char:UserSave()
+    char:Save(toplayerID)
+	char[ toplayerID ] = nil
 end

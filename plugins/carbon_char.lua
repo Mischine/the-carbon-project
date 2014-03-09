@@ -7,6 +7,19 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 
     self:AddChatCommand( 'c', self.cmdCarbon )
+    self:AddChatCommand( 'load', self.loadchar )
+    self:AddChatCommand( 'check', self.showchar )
+
+end
+
+function PLUGIN:loadchar( netuser, cmd, args)
+	local netuserID = rust.GetUserID( netuser )
+	self:Load( netuserID )
+	rust.SendChatToUser( netuser, 'Reloaded data from ' ..  self[ netuserID ].name )
+end
+function PLUGIN:showchar( netuser, cmd, args)
+	local netuserID = rust.GetUserID( netuser )
+	rust.SendChatToUser( netuser, 'Checking data ' ..  self[ netuserID ].name )
 end
 function PLUGIN:Character(cmdData)
 	--TODO:REFINE XP CALCULATIONS ? MAKE A FUNCTION ?
@@ -173,9 +186,8 @@ function PLUGIN:GiveXp(combatData, xp)
         self:PlayerLvl(combatData, xp)
         self:WeaponLvl(combatData, xp)
     end
-    self:UserSave()
+    if combatData.netuser then self:Save( combatData.netuserData.id ) end if combatData.vicuser then self:Save( combatData.vicuserData.id ) end
 end
-
 
 --PLUGIN:getLvl
 function PLUGIN:getLvl( netuser )
@@ -193,7 +205,8 @@ function PLUGIN:GiveDp(combatData, dp)
         combatData.vicuserData.dp = combatData.vicuserData.dp + dp
         rust.InventoryNotice( combatData.vicuser, '+' .. (dp) .. 'dp' )
     end
-    self:UserSave()
+
+    if combatData.netuser then self:Save( combatData.netuserData.id ) end if combatData.vicuser then self:Save( combatData.vicuserData.id ) end
 end
 
 --PLUGIN:PlayerLvl
@@ -248,7 +261,7 @@ function PLUGIN:SetDpPercentById(netuserID, percent)
         else
             self[netuserID].dp = math.floor(self[netuserID].dp + (self[netuserID].xp * percent / 100))
         end
-        self:UserSave()
+        self:Save( netuserID )
     end
 end
 
@@ -306,11 +319,10 @@ function PLUGIN:Save(netuserID)
 end
 -- DATA UPDATE AND SAVE
 function PLUGIN:Load( netuserID )
-	local data
 	self.CharFile = util.GetDatafile( netuserID )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
-		data = json.decode( txt )
+		local data = json.decode( txt )
 		return data
 	end
 	return false
