@@ -67,12 +67,10 @@ function PLUGIN:PartyCreate( netuser, cmd, args )
 		['int'] = data.attributes.int,
 		['xpcon'] = 0
 	}
-
 	local i = 0
 	while self.Party[tostring(i)] do
 		i = i + 1
 	end
-
 	pdata.id = tostring(i)
 	self.Party[tostring(i)] = pdata
 	char[ rust.GetUserID( netuser )]['party'] = tostring(i)
@@ -84,7 +82,9 @@ function PLUGIN:PartyInvite( netuser, cmd, args )
 	if not args[2] then rust.SendChatToUser( netuser, core.sysname, '/party invite "Name" ' ) return end
 	local pdata = self:getParty( netuser )
 	if not pdata then rust.Notice( netuser, 'You\'re not in a party!' ) return end
-	if pdata.members[ rust.GetUserID(netuser)].rank ~= 'leader' then rust.Notice( netuser, 'You cannot invite anyone!' ) return end
+	if not pdata.public then
+		if pdata.members[ rust.GetUserID(netuser)].rank ~= 'leader' then rust.Notice( netuser, 'You cannot invite anyone!' ) return end
+	end
 	local slots = 5
 	for _,v in pairs( pdata.members ) do
 		slots = slots + (v.int * 0.5)
@@ -160,21 +160,55 @@ function PLUGIN:PartyKick( netuser, cmd, args )
 end
 
 function PLUGIN:PartyMembers( netuser, cmd, args )
-
+	local pdata = self:getParty( netuser )
+	if not pdata then rust.Notice( netuser, 'you\'re not in a party!' ) return end
+	local content = {
+		['header'] = 'Party Members:',
+		['list'] = {}
+	}
+	for _,v in pairs( pdata.members ) do
+		local b, _ = rust.FindNetUsersByName( v.name )
+		local status = 'Online'
+		if not b then status = 'Offline' end
+		table.insert( content.list, v.name .. ' Status: ' .. status .. ' || Xp contributed: ' .. tostirng( v.xpcon ))
+	end
+	func:TextBox(netuser,content,cmd,args)
 end
 
+-- /party set true/false
 function PLUGIN:PartySet( netuser, cmd, args )
-
+	local pdata = self:getParty( netuser )
+	if not pdata then rust.Notice( netuser, 'you\'re not in a party!' ) return end
+	if pdata.members[ rust.GetUserID(netuser)].rank ~= 'leader' then rust.Notice( netuser, 'You cannot change party status.' ) return end
+	if not args[2] then rust.SendChatToUser( netuser, '/party set true/false' ) return end
+	if args[2]:lower() == 'true' then
+		pdata.public = true
+		local msg = '::::::::::: ' .. netuser.displayName .. ' has set public to true! :::::::::::'
+		self:sendPartyMsg( 'STATUS', pdata.members, msg )
+	elseif args[2]:lower() == 'false' then
+		pdata.public = false
+		local msg = '::::::::::: ' .. netuser.displayName .. ' has set public to false! :::::::::::'
+		self:sendPartyMsg( 'STATUS', pdata.members, msg )
+	else
+		rust.SendChatToUser( netuser, '/party set true/false' )
+	end
+	self:PartySave()
 end
 
 function PLUGIN:PartyLeave( netuser, cmd, args )
-	local count = func:count( self.Guild[ guild ].members )
-	if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. ' has been disbanned!' ) end
+	local pdata = self:getParty( netuser )
+	if not pdata then rust.Notice( netuser, 'you\'re not in a party!' ) return end
+	pdata.members[ rust.GetUserID( netuser )] = nil
+	pdata.totalmem = pdata.totalmem - 1
+	self:sendPartyMsg( netuser.displayName, '::::::::::: ' .. pdata.members, ' has left the party :::::::::::' )
+	local count = func:count( pdata.members )
+	if ( count == 0 ) then self.Party[ pdata.id ] = nil rust.Notice( netuser, 'Party has been disbanned!' ) end
+	self:PartySave()
 end
-function PLUGIN:PartySet( netuser, cmd, args )
+
+function PLUGIN:PartyJoin( netuser, cmd, args )
 
 end
-
 function PLUGIN:PartyOverView( netuser, cmd, args )
 
 end
