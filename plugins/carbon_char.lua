@@ -11,7 +11,15 @@ function PLUGIN:Init()
     self:AddChatCommand( 'check', self.showchar )
 
 end
+function PLUGIN:PostInit()
+	local users = rust.GetAllNetUsers()
 
+	for _, v in pairs( users ) do
+		local netuserID = tostring(rust.GetUserID( v ) )
+		self:GetUserData( v )
+
+	end
+end
 function PLUGIN:loadchar( netuser, cmd, args)
 	local netuserID = rust.GetUserID( netuser )
 	self:Load( netuserID )
@@ -21,11 +29,15 @@ function PLUGIN:showchar( netuser, cmd, args)
 	local netuserID = rust.GetUserID( netuser )
 	rust.SendChatToUser( netuser, 'Checking data ' ..  self[ netuserID ].name )
 end
+
 function PLUGIN:Character(cmdData)
 	--TODO:REFINE XP CALCULATIONS ? MAKE A FUNCTION ?
-	local a=cmdData.netuserData.lvl
-	local b=core.Config.settings.lvlmodifier
-	local c=((a+1)*a+1+a+1)/b*100-(a+1)*100-(((a-1)*a-1+a-1)/b*100-(a-1)*100)-100 -- amount needed for current level total
+
+	local a=cmdData.netuserData.lvl -- current level
+	local b=core.Config.settings.lvlmodifier --level modifier
+	local bb=(1*1+1)/b*100-(1)*100
+	rust.BroadcastChat(tostring(bb))
+	local c=((a+1)*a+1+a+1)/b*100-(a+1)*100-(((a-1)*a-1+a-1)/b*100-(a-1)*100)-100 -- total needed to level
 	local d=cmdData.netuserData.xp-((a-1)*a-1+a-1)/b*100-(a-1)*100-100
 	local e=math.floor(d/c*100+0.5)
 	local f=c-d
@@ -111,7 +123,7 @@ function PLUGIN:CharacterAttributesTrain(cmdData)
 				cmdData.netuserData.ap=cmdData.netuserData.ap - cmdData.args[3]
 				cmdData.netuserData.attributes[ cmdData.args[4] ] = cmdData.netuserData.attributes[ cmdData.args[4] ] + cmdData.args[3]
 				rust.InventoryNotice(cmdData.netuser, '+' .. tostring(cmdData.args[3]) .. cmdData.args[4])
-				self:UserSave()
+				self:Save(cmdData.netuserData.id)
 				self:CharacterAttributes(cmdData)
 			else
 				local content = {
@@ -278,7 +290,7 @@ function PLUGIN:GetUserData( netuser )
 		data.prevnames = {}
 		data.reg = false
 		data.lang = 'english'
-		data.lvl = 0
+		data.lvl = 1
 		data.xp = 0
 		data.pp = 0
 		data.dp = 0
