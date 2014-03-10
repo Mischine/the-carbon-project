@@ -168,7 +168,7 @@ function PLUGIN:CharacterResetClass(cmdData)
 	--TODO: ADD CHAR RESET CLASS COMMAND
 end
 
-function PLUGIN:GiveXp(combatData, xp)
+function PLUGIN:GiveXp(combatData, xp, weplvl )
 
     local guildname = guild:getGuild( combatData.netuser )
     if( guildname ) then
@@ -184,19 +184,19 @@ function PLUGIN:GiveXp(combatData, xp)
         rust.InventoryNotice( combatData.netuser, '-' .. (combatData.netuserData.dp - xp) .. 'dp' )
     elseif (combatData.netuserData.dp<=0) then
         combatData.netuserData.xp = combatData.netuserData.xp+xp
-        combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp
+        if weplvl then combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp end
         rust.InventoryNotice( combatData.netuser, '+' .. xp .. 'xp' )
         self:PlayerLvl(combatData, xp)
-        self:WeaponLvl(combatData, xp)
+        if weplvl then self:WeaponLvl(combatData, xp) end
     else
         local xp = xp-combatData.netuserData.dp
         combatData.netuserData.xp = combatData.netuserData.xp+xp
-        combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp
+        if weplvl then combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp end
         combatData.netuserData.dp = 0
         rust.InventoryNotice( combatData.netuser, '-' .. combatData.netuserData.dp .. 'dp' )
         rust.InventoryNotice( combatData.netuser, '+' .. xp .. 'xp' )
         self:PlayerLvl(combatData, xp)
-        self:WeaponLvl(combatData, xp)
+        if weplvl then self:WeaponLvl(combatData, xp) end
     end
     if combatData.netuser then self:Save( combatData.netuserData.id ) end if combatData.vicuser then self:Save( combatData.vicuserData.id ) end
 end

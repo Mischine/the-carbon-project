@@ -32,9 +32,61 @@ function PLUGIN:PostInit()
     -- Prof
     self:AddChatCommand( 'prof', self.cmdProf )
 
+	-- Party
+    self:AddChatCommand( 'party', self.Party )
+    self:AddChatCommand( 'p', self.PartyChat )
+
     -- Statistics (stats)
 
 end
+
+--[[
+    /party list         -- List of partys available ( which are set to public and not private
+    /party invite       -- Invite a player
+    /party kick         -- kicks a player
+    /party members      -- Check the players in party
+    /party set          -- Set your party to private or public | Default is public
+
+ ]]
+
+function PLUGIN:Party( netuser, cmd, args )
+	if not args[1] then
+		local pdata = party:hasParty( netuser )
+		if pdata then
+			party:PartyOverView( netuser, cmd, args )
+		else
+			party:PartyInfo(netuser, cmd, args )
+		end
+	end
+	local cmd = args[1]:lower()
+	if cmd == 'create' then
+		party:PartyCreate( netuser, cmd, args )
+	elseif cmd == 'list' then
+		party:PartyList(netuser, cmd, args )
+	elseif cmd == 'invite' then
+		party:PartyInvite(netuser, cmd, args )
+	elseif cmd == 'accept' then
+		party:PartyAccept( netuser, cmd ,args )
+	elseif cmd == 'kick' then
+		party:PartyKick(netuser, cmd, args )
+	elseif cmd == 'leave' then
+		party:PartyLeave( netuser, cmd, args )
+	elseif cmd == 'members' then
+		party:PartyMembers(netuser, cmd, args )
+	elseif cmd == 'join' then
+		party:PartyJoin( netuser, cmd, args )
+	elseif cmd == 'set' then
+		party:PartySet(netuser, cmd, args )
+	else
+		party:PartyInfo(netuser, cmd, args )
+	end
+end
+
+function PLUGIN:PartyChat( netuser, cmd, args )
+	party:cmdPartyChat( netuser, cmd, args )
+end
+
+
 function PLUGIN:GetCmdData(netuser, cmd ,args)
 	local cmdData = {}
 	cmdData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
