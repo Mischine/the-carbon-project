@@ -11,23 +11,32 @@ function PLUGIN:Init()
     self:AddChatCommand( 'check', self.showchar )
 
 end
+
 function PLUGIN:PostInit()
 	local users = rust.GetAllNetUsers()
 
 	for _, v in pairs( users ) do
 		local netuserID = tostring(rust.GetUserID( v ) )
 		self:GetUserData( v )
-
 	end
 end
+
 function PLUGIN:loadchar( netuser, cmd, args)
 	local netuserID = rust.GetUserID( netuser )
-	self:Load( netuserID )
-	rust.SendChatToUser( netuser, 'Reloaded data from ' ..  self[ netuserID ].name )
+	local data = self:Load( tostring( netuserID ))
+	if data then
+		rust.SendChatToUser( netuser, 'Reloaded data for ' ..  data.name )
+	else
+		rust.SendChatToUser( netuser, 'Failed to reload your data. Please report this to an admin.' )
+	end
 end
 function PLUGIN:showchar( netuser, cmd, args)
-	local netuserID = rust.GetUserID( netuser )
-	rust.SendChatToUser( netuser, 'Checking data ' ..  self[ netuserID ].name )
+	local netuserID = tostring(rust.GetUserID( netuser ))
+	if self[ netuserID ] then
+		rust.SendChatToUser( netuser, core.sysname, 'Checking data ' ..  self[ netuserID ].name )
+	else
+		rust.SendChatToUser( netuser, core.sysname, 'Player data not loaded! Please report this to an admin.' )
+	end
 end
 
 function PLUGIN:Character(cmdData)
@@ -123,7 +132,7 @@ function PLUGIN:CharacterAttributesTrain(cmdData)
 				cmdData.netuserData.ap=cmdData.netuserData.ap - cmdData.args[3]
 				cmdData.netuserData.attributes[ cmdData.args[4] ] = cmdData.netuserData.attributes[ cmdData.args[4] ] + cmdData.args[3]
 				rust.InventoryNotice(cmdData.netuser, '+' .. tostring(cmdData.args[3]) .. cmdData.args[4])
-				self:Save(cmdData.netuserData.id)
+				self:Save(cmdData.netuserData.id, cmdData.netuser )
 				self:CharacterAttributes(cmdData)
 			else
 				local content = {
@@ -178,7 +187,6 @@ function PLUGIN:GiveXp(combatData, xp, weplvl )
             timer.Once( 3 , function() rust.InventoryNotice( combatData.netuser, '+' .. gxp .. 'gxp' )  end)
         end
     end
-
     if (combatData.netuserData.dp>xp) then
         combatData.netuserData.dp = combatData.netuserData.dp - xp
         rust.InventoryNotice( combatData.netuser, '-' .. (combatData.netuserData.dp - xp) .. 'dp' )
@@ -198,7 +206,7 @@ function PLUGIN:GiveXp(combatData, xp, weplvl )
         self:PlayerLvl(combatData, xp)
         if weplvl then self:WeaponLvl(combatData, xp) end
     end
-    if combatData.netuser then self:Save( combatData.netuserData.id ) end if combatData.vicuser then self:Save( combatData.vicuserData.id ) end
+    if combatData.netuser then self:Save( combatData.netuserData.id, combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuserData.id, combatData.vicuser ) end
 end
 
 --PLUGIN:getLvl
@@ -218,7 +226,7 @@ function PLUGIN:GiveDp(combatData, dp)
         rust.InventoryNotice( combatData.vicuser, '+' .. (dp) .. 'dp' )
     end
 
-    if combatData.netuser then self:Save( combatData.netuserData.id ) end if combatData.vicuser then self:Save( combatData.vicuserData.id ) end
+    if combatData.netuser then self:Save( combatData.netuserData.id, combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuserData.id, combatData.vicuser ) end
 end
 
 --PLUGIN:PlayerLvl
@@ -283,12 +291,13 @@ function PLUGIN:GetUserData( netuser )
 	local data = self:Load( netuserID )
 
 	if (not data ) then -- if not, creates one
-		-- Check name
 		data = {}
 		data.id = netuserID
 		data.name = netuser.displayName
 		data.prevnames = {}
 		data.reg = false
+		data.swear = 0
+		data.chat = 'local'
 		data.lang = 'english'
 		data.lvl = 1
 		data.xp = 0
@@ -312,34 +321,30 @@ function PLUGIN:GetUserData( netuser )
 			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
 			['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
 		}
-		self:Save(netuserID)
-	end
-	if netuser.displayName ~= data.name then
-		-- check new name
-		table.insert( data.prevnames, data.name )
-		data.name = netuser.displayName
-		self:Save( netuserID )
+		self:Save(netuserID, netuser)
 	end
 	self[netuserID] = data
 	return data
 end
 
 -- DATA UPDATE AND SAVE
-function PLUGIN:Save(netuserID)
+function PLUGIN:Save(netuserID, netuser )
 	if self[ netuserID ].reg then
-		print('Saving: ' .. netuserID)
-		self.CharFile:SetText( json.encode( self[ netuserID ], { indent = true } ) )
+		self.CharFile:SetText( json.encode( self[ tostring(netuserID) ], { indent = true } ) )
 		self.CharFile:Save()
-	else
-
+		if netuser then
+			rust.InventoryNotice( netuser, 'Saving progress...' )
+		end
 	end
 end
+
 -- DATA UPDATE AND SAVE
 function PLUGIN:Load( netuserID )
-	self.CharFile = util.GetDatafile( netuserID )
+	self.CharFile = util.GetDatafile( tostring( netuserID ) )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
 		local data = json.decode( txt )
+		rust.BroadcastChat( tostring( netuserID ) .. ' has been loaded!' )
 		return data
 	end
 	return false

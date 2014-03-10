@@ -16,6 +16,15 @@ function PLUGIN:Init()
         print( 'Creating carbon cfg file...' )
         self:SetDefaultConfig()
     end
+    self.RegFile = util.GetDatafile( 'carbon_reg' )
+    local reg_txt = self.RegFile:GetText()
+    if (reg_txt ~= '') then
+        print( 'Carbon cfg file loaded!' )
+        self.Reg = json.decode( reg_txt )
+    else
+        print( 'Creating carbon_reg' )
+	    self.Reg = {}
+    end
 
     self.sysname = self.Config.settings.sysname
 
@@ -23,12 +32,24 @@ function PLUGIN:Init()
     timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
 
     self.tmpusers = {}
-    -- self.UnregTimer = timer.Repeat( 60, function() self:UnregBC() end)
+    self.UnregTimer = timer.Repeat( 60, function() self:UnregBC() end)
 end
 
 function PLUGIN:UnregBC()
-	for k,v in pairs( ) do
-
+	local content = {
+		['header'] = 'Register to The Carbon Project',
+		['msg'] = 'Please be sure to register. When you\'re registered your progress will be saved. Else it wont. \nTo register type /register',
+		['suffix'] = 'Be sure to check out: www.tempusforge.com for more information about The Carbon Project.'
+	}
+	local cmd = 'register'
+	local args = {}
+	args[1] = 'Unregistered user'
+	local netusers = rust.GetAllNetUsers()
+	for _, netuser in pairs( netusers ) do
+		local id = rust.GetUserID( netusers )
+		local data = char[ id ]
+		if not data then return end
+		if not data.reg then func:TextBox(netuser,content,cmd,args)	end
 	end
 end
 
@@ -50,6 +71,8 @@ function PLUGIN:LoadLibrary()
     stats = cs.findplugin("carbon_stats")
     lang = cs.findplugin("carbon_lang")
     cmd = cs.findplugin("carbon_cmd")
+    donate = cs.findplugin("carbon_donate")
+    vote = cs.findplugin("carbon_vote")
     oxidecore = cs.findplugin("oxidecore")
 
     a = cs.findplugin("carbon_a")
@@ -182,9 +205,9 @@ end
 
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
 function PLUGIN:OnUserConnect( netuser )
-    print(tostring(netuser.displayName .. ' has connected.'))
+    print(util.QuoteSafe(netuser.displayName .. ' has connected.'))
+    -- self:AlphaTXT( netuser ) --  [Oxide] carbon_sandbox: [string "util.stl"]:171: attempt to index local 'str' (a nil value)
     --[[
-    self:AlphaTXT( netuser )
     if netuser.displayName:find'%W' then
         rust.SendChatToUser( netuser, ' ', ' ' )
         rust.SendChatToUser( netuser, '**ALERT**', 'Your name must be alphanumeric( numbers and letters )! Please change your name. You\'ll be kicked' )
@@ -193,58 +216,101 @@ function PLUGIN:OnUserConnect( netuser )
     end
     --]]
     local data = char:GetUserData( netuser ) -- asks for dat.
-    if not data.reg then
-	    self.tmpusers[ netuser.displayName ] = netuser
-	    rust.Notice( netuser, 'Please register with /register' )
-    end
-
-
-    -- Check mail
-    local netuserID = rust.GetUserID( netuser )
-    if( not char[ netuserID ] ) then return end
-    if ( char[ netuserID ].mail ) then
-        local i = 0
-        for k, v in pairs( char[ netuserID ].mail ) do
-            if( not v.read ) then i = i + 1 end
-        end
-        if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
-    end
+    if( data ) then
+	    if ( data.mail ) then
+	        local i = 0
+	        for _, v in pairs( data.mail ) do
+	            if( not v.read ) then i = i + 1 end
+	        end
+	        if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
+	    end
+	    if not data.reg then
+		    for k, _ in pairs( self.Reg ) do
+			    if netuser.displayName == k then
+				    rust.SendChatToUser( netuser, 'Your name is already used. Please change your name. You will be kicked.' )
+				    timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
+				    return
+			    end
+		    end
+		    for k, _ in pairs( self.tmpusers ) do
+			    if netuser.displayName == k then
+				    rust.SendChatToUser( netuser, 'Your name is already used. Please change your name. You will be kicked.' )
+				    timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
+				    return
+			    end
+		    end
+		    self.tmpusers[ netuser.displayName ] = netuser
+		    rust.Notice( netuser, 'Please register with /register' )
+	    end
+	    if data.reg then
+		    if data.name ~= netuser.displayName then
+			    rust.SendChatToUser( netuser, 'Please revert your name back to: ' .. data.name .. '. You will be kicked.' )
+			    timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
+			    print( data.name .. '( ' .. data.id .. ' ) has logged in with a different name: ' .. netuser.displayName )
+		    end
+	    end
+	    data.crafting = false
+	end
     rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
-
-    -- Reset crafting:
-    char[ netuserID ].crafting = false
 end
 
 function PLUGIN:OnUserDisconnect( netplayer )
 	local netuser = rust.NetUserFromNetPlayer(netplayer)
 	local netuserID = tostring(rust.GetUserID( netuser ) )
+	rust.BroadcastChat( netuser.displayName .. ' has left the server!' )
+	if not char[netuserID].reg then
+		if self.tmpusers[netuser.displayName] then
+			self.tmpusers[ netuser.displayName] = nil
+			char[ netuserID ] = nil
+		return end
+	end
+	char:Save( netuserID, netuser )
 	char[netuserID] = nil
-	if char[ netuserID ] then print( 'Still exist' ) else print( 'Deleted' ) end
 end
 
+-- ------------------------------------------
+-- /register To register to be able to save
+-- ------------------------------------------
+function PLUGIN:cmdRegister( netuser, cmd ,args )
+	local netuserID = rust.GetUserID( netuser )
+	local data = char[ netuserID ]
+	if not data then rust.Notice( netuser, 'Could not find userdata. Try relogging.' ) return end
+	if data.reg then rust.Notice( netuser, 'You\'re already registered.' ) return end
+	local name = netuser.displayName:lower()
+	local found = false
+	for _,v in pairs( self.reg ) do
+		string.find( name, v )
+		local found = true
+	end
+	if found then
+		local content = {
+			['header'] = 'Unsuccesfull',
+			['msg'] = 'Registration failed, your name is already used. Please choose a different name. \nInfo:',
+			['list'] = {'Name: ' .. netuser.displayName .. '( Already Used )' ,'ID: ' .. tostring(netuserID),},
+			['suffix'] = 'Be sure to check out: www.tempusforge.com'
+		}
+		func:TextBox(netuser,content,cmd,args)
+	return end
+	self.Reg[ netuserID ] = netuser.displayName
+	local content = {
+		['header'] = 'Succesfull!',
+		['msg'] = 'You have registered succesfully to The Carbon Project. Your progress will now be safed. \nRegistration info:',
+		['list'] = {'Name: ' .. netuser.displayName ,'ID: ' .. tostring(netuserID),},
+		['suffix'] = 'Be sure to check out: www.tempusforge.com'
+	}
+	func:TextBox(netuser,content,cmd,args)
+	data.reg = true
+	char:Save( netuserID, netuser )
+	core:SaveReg()
+	print( netuser.displayName .. ' has registered with ID: ' .. tostring( netuserID ) )
+end
 
---PLUGIN:OnUserChat
+function PLUGIN:SaveReg()
+	self.RegFile:SetText( json.encode( self.Reg, { indent = true } ) )
+	self.RegFile:Save()
+end
+
 --[[
-function PLUGIN:OnUserChat(netuser, name, msg)
-    if ( msg:sub( 1, 1 ) ~= '/' ) then
-        local tempstring = string.lower( msg )
-        for _, v in ipairs( self.Config.settings.censor.chat ) do
-            local found = string.find( tempstring, v )
-            if ( found ) then
-                rust.Notice( netuser, 'Dont swear!' )
-                return false
-            end
-        end
-        local tag = guild:getGuildTag( netuser )
-        if tag then
-            name = tag .. ' ' .. name
-            rust.BroadcastChat( name, msg )
-            return false
-        end
-    end
-end
-]]
-
 -- CONFIG UPDATE AND SAVE
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
@@ -256,3 +322,4 @@ function PLUGIN:ConfigUpdate()
     local txt = self.ConfigFile:GetText()
     self.Config = json.decode ( txt )
 end
+]]

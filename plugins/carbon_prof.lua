@@ -107,7 +107,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                     if xp == 0 then char[ netuserID ].crafting = falsereturn end
                     rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
                 end)
-                char:Save(netuserID)
+                char:Save(netuserID, netuser )
                 char[ netuserID ].crafting = false
             end
         end )
@@ -148,7 +148,7 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
         local args = {}
         if not found then content.msg = 'There are no new researches available.' end
         func:TextBox(netuser,content,cmd,args) return
-        char:Save( netuserID )
+        char:Save( netuserID, netuser )
     end
     craftdata.xp = craftdata.xp + xp
     return xp

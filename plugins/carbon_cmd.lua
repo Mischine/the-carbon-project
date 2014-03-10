@@ -10,13 +10,12 @@ function PLUGIN:PostInit()
     self:AddChatCommand( 'language', self.lang )
 
     -- Character
-    self:AddChatCommand( 'c', self.cmdCharacter ) -- will show level, xp to go (w/bar), dp, available commands >
-    self:AddChatCommand( 'skills', self.cmdSkills ) --only lists your skills and levels w/ bar also inspect by name individually will show bonus damage.
-    self:AddChatCommand( 'attr', self.cmdAttributes ) --lists your attributes and point availability.
-    self:AddChatCommand( 'perks', self.cmdPerks ) --shows current perks and levels w/ bar also inspect by name individually will show perk description.
-    self:AddChatCommand( 'add', self.cmdAdd ) --used to add points to perks or attributes i.e. /add 1 str or /add 1 parry
-    self:AddChatCommand( 'reset', self.cmdReset ) --used to reset perks, attr, class or prestige profession
-
+    self:AddChatCommand( 'c', self.cmdCharacter )       -- will show level, xp to go (w/bar), dp, available commands >
+    self:AddChatCommand( 'skills', self.cmdSkills )     --only lists your skills and levels w/ bar also inspect by name individually will show bonus damage.
+    self:AddChatCommand( 'attr', self.cmdAttributes )   --lists your attributes and point availability.
+    self:AddChatCommand( 'perks', self.cmdPerks )       --shows current perks and levels w/ bar also inspect by name individually will show perk description.
+    self:AddChatCommand( 'add', self.cmdAdd )           --used to add points to perks or attributes i.e. /add 1 str or /add 1 parry
+    self:AddChatCommand( 'reset', self.cmdReset )       --used to reset perks, attr, class or prestige profession
 
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
@@ -34,34 +33,82 @@ function PLUGIN:PostInit()
 
 	-- Party
     self:AddChatCommand( 'party', self.Party )
-    self:AddChatCommand( 'p', self.PartyChat )
+
+    -- Chat channels
+    self:AddChatCommand( 'p', self.ChannelParty )
+    self:AddChatCommand( 'g', self.ChannelGuild )
+    self:AddChatCommand( 'l', self.ChannelLocal )
+    self:AddChatCommand( 't', self.ChannelTrade )
+    self:AddChatCommand( 'r', self.ChannelRecruit )
+    self:AddChatCommand( 'z', self.ChannelZone )
 
     -- Statistics (stats)
 
+	-- Other
+    self:AddChatCommand( 'register', self.Register )
+    self:AddChatCommand( 'w', self.Whisper )
 end
 
---[[
-    /party list         -- List of partys available ( which are set to public and not private
-    /party invite       -- Invite a player
-    /party kick         -- kicks a player
-    /party members      -- Check the players in party
-    /party set          -- Set your party to private or public | Default is public
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                 CHANNELS COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+function PLUGIN:ChannelParty( netuser, _, _ )
+	local data = char:GetUserData( netuser )
+	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
+	local pdata = party:getParty( netuser )
+	if not pdata then rust.Notice( netuser, 'You\'re not in a party!' ) return end
+	data.channel = 'party'
+	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in party chat. ::::::::::' )
+	char:Save( data.id, netuser )
+end
 
- ]]
+function PLUGIN:ChannelGuild( netuser, _, _ )
+	local data = char:GetUserData( netuser )
+	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
+	local guild = guild:getGuild( netuser )
+	if not guild then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
+	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in guild chat. ::::::::::' )
+	char:Save( data.id, netuser )
+end
 
+function PLUGIN:ChannelLocal( netuser, _, _ )
+	local data = char:GetUserData( netuser )
+	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
+	data.channel = 'local'
+
+	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in local chat. ::::::::::' )
+	char:Save( data.id, netuser )
+end
+
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                 WHISPER COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+function PLUGIN:Whisper( netuser, cmd, args)
+	chat:cmdWhisper( netuser, cmd, args )
+end
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                 REGISTER COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+function PLUGIN:Register( netuser, cmd, args )
+	core:cmdRegister( netuser, cmd ,args )
+end
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                 PARTY COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 function PLUGIN:Party( netuser, cmd, args )
 	if not args[1] then
-		local pdata = party:hasParty( netuser )
+		local pdata = party:getParty( netuser )
 		if pdata then
-			party:PartyOverView( netuser, cmd, args )
+			party:PartyOverView( netuser, cmd, args )   -- TESTED
 		else
-			party:PartyInfo(netuser, cmd, args )
+			party:PartyInfo(netuser, cmd, args )        -- TESTED
 		end
+		return
 	end
 	local cmd = args[1]:lower()
-	if cmd == 'create' then
+	if cmd == 'create' then                             -- TESTED
 		party:PartyCreate( netuser, cmd, args )
-	elseif cmd == 'list' then
+	elseif cmd == 'list' then                           -- TESTED
 		party:PartyList(netuser, cmd, args )
 	elseif cmd == 'invite' then
 		party:PartyInvite(netuser, cmd, args )
@@ -69,23 +116,18 @@ function PLUGIN:Party( netuser, cmd, args )
 		party:PartyAccept( netuser, cmd ,args )
 	elseif cmd == 'kick' then
 		party:PartyKick(netuser, cmd, args )
-	elseif cmd == 'leave' then
+	elseif cmd == 'leave' then                          -- TESTED
 		party:PartyLeave( netuser, cmd, args )
-	elseif cmd == 'members' then
+	elseif cmd == 'members' then                        -- TESTED
 		party:PartyMembers(netuser, cmd, args )
 	elseif cmd == 'join' then
 		party:PartyJoin( netuser, cmd, args )
-	elseif cmd == 'set' then
+	elseif cmd == 'set' then                            -- TESTED
 		party:PartySet(netuser, cmd, args )
-	else
+	else                                                -- TESTED
 		party:PartyInfo(netuser, cmd, args )
 	end
 end
-
-function PLUGIN:PartyChat( netuser, cmd, args )
-	party:cmdPartyChat( netuser, cmd, args )
-end
-
 
 function PLUGIN:GetCmdData(netuser, cmd ,args)
 	local cmdData = {}

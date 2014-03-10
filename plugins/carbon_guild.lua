@@ -303,9 +303,9 @@ function PLUGIN:GuildAccept( netuser )
         entry.xpcon = 0
         self.Guild[ guild ].members[ netuserID ] = entry
         char[ netuserID ][ 'guild' ] = guild
-        self:sendGuildMsg( guild, char[ netuserID ].name , 'has joined the guild! =)' )
+        chat:sendGuildMsg( guild, char[ netuserID ].name , 'has joined the guild! =)' )
         self.Guild.temp[ netuserID ] = nil
-        char:Save(netuserID)
+        char:Save(netuserID, netuser)
         self:GuildSave()
     end
 end
@@ -317,11 +317,11 @@ function PLUGIN:GuildLeave( netuser,args )
     local netuserID = rust.GetUserID( netuser )
     self.Guild[ guild ].members[ netuserID ] = nil
     char[ netuserID ].guild = nil
-    self:sendGuildMsg( guild, netuser.displayName, 'has left the guild! =(' )
+    chat:sendGuildMsg( guild, netuser.displayName, 'has left the guild! =(' )
     local count = func:count( self.Guild[ guild ].members )
     if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. ' has been disbanned!' ) end
     self:GuildSave()
-    char:Save(netuserID)
+    char:Save(netuserID, netuser)
 end
 
 function PLUGIN:GuildKick( netuser,args )
@@ -339,7 +339,7 @@ function PLUGIN:GuildKick( netuser,args )
     mail:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
     self.Guild[ guild ].members[ targuserID ] = nil
     char[ targuserID ].guild = nil
-    char:Save(targuserID)
+    char:Save(targuserID, netuser)
     self:GuildSave()
 end
 
@@ -365,7 +365,7 @@ function PLUGIN:GuildCall( netuser, cmd, args )
             self:GuildWithdraw( netuser.displayName, guild, g, s, 0 )
             data.activecalls[ call ] = {}
             data.activecalls[ call ][ 'time' ] = 240
-            self:sendGuildMsg( guild, 'INCOMING CALL', '::::::::: ' .. call .. ' is activated! :::::::::' )
+            chat:sendGuildMsg( guild, 'INCOMING CALL', '::::::::: ' .. call .. ' is activated! :::::::::' )
             self:GuildSave()
             return
         end
@@ -521,7 +521,7 @@ function PLUGIN:GuildRank( netuser, cmd, args )
             local guild = self:getGuild( netuser )
             if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild! ' ) return end
             if( not self:hasAbility( netuser, guild, 'canrank' ) ) then rust.Notice(netuser, 'You\'re not permitted to add ranks.' ) return end
-            if ( args[2] == "Assasin" ) then rust.Notice( netuser, 'You cannot delete rank Assasin!' ) return end
+            if ( args[2] == "Assassin" ) then rust.Notice( netuser, 'You cannot delete rank Assassin!' ) return end
             if ( args[2] == "Leader" ) then rust.Notice( netuser, 'You cannot delete rank Leader!' ) return end
             if( self.Guild[ guild ].ranks[tostring(args[2])]) then
                 self.Guild[ guild ].ranks[tostring(args[2])] = nil
@@ -546,7 +546,7 @@ function PLUGIN:GuildRank( netuser, cmd, args )
             }
             func:TextBox(netuser,content,cmd,args)
         elseif( args[2] and args[3] and args[4] ) then
-            if ( args[2] == "Assasin" ) then rust.Notice( netuser, 'You cannot edit rank Assasin!' ) return end
+            if ( args[2] == "Assassin" ) then rust.Notice( netuser, 'You cannot edit rank Assassin!' ) return end
             if ( not self.Guild[guild].ranks[tostring(args[2])] ) then rust.Notice( netuser, 'Rank: ' .. tostring(args[2]).. ' doesn\'t exist!' ) return end
             if ( tonumber(args[3]) > 7 ) then rust.Notice( netuser, 'This rank abillity is not found. Chooose between 1 - 7' ) return end
             if(( args[4] == 'true' ) or ( args[4] == 'false' )) then
@@ -696,10 +696,10 @@ function PLUGIN:GuildVault( netuser, cmd, args )
             guilddata.vault.items[ itemname ] = guilddata.vault.items[ itemname ] - amount
             if guilddata.vault.items[ itemname ] == 0 then guilddata.vault.items[ itemname ] = nil end
             inv:AddItemAmount( datablock, amount )
-            self:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has withdrawed: ' .. tostring( amount ) .. 'x ' .. itemname .. ' ::::::::::::::' )
+            chat:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has withdrawed: ' .. tostring( amount ) .. 'x ' .. itemname .. ' ::::::::::::::' )
             guilddata.vault.cap = guilddata.vault.cap - amount
             self:GuildSave()
-            char:Save(netuserID)
+            char:Save(netuserID, netuser )
         else
             local content = {
                 ['msg'] ='To withdraw /vault withdraw "ItemName" [amount] OR /g vault withdraw money Gold Silver Copper',
@@ -736,7 +736,7 @@ function PLUGIN:GuildVault( netuser, cmd, args )
             data.vault.cap = core.Config.guild.vault[ tostring(data.vault.lvl + 1)].cap
             self:GuildWithdraw( netuser.displayName, guild, g, 0, 0 )
             local msg = '::::::::::: has upgraded the vault to level ' .. data.vault.lvl .. ' :::::::::::'
-            self:sendGuildMsg( guild, netuser.displayName, msg )
+            chat:sendGuildMsg( guild, netuser.displayName, msg )
             self:GuildSave()
         end
     else
@@ -838,8 +838,8 @@ function PLUGIN:engageWar( guild, guild2, netuser )
     if( (guild) and (guild2) ) then
         table.insert( self.Guild[ guild ].war, guild2 )
         table.insert( self.Guild[ guild2 ].war, guild1 )
-        self:sendGuildMsg( guild, 'WAR', guild .. ' is now at war with ' .. guild2 .. '!' )
-        self:sendGuildMsg( guild2, 'WAR', guild2 .. ' is now at war with ' .. guild .. '!' )
+        chat:sendGuildMsg( guild, 'WAR', guild .. ' is now at war with ' .. guild2 .. '!' )
+        chat:sendGuildMsg( guild2, 'WAR', guild2 .. ' is now at war with ' .. guild .. '!' )
     else
         rust.Notice( netuser, 'Invalid input.' )
     end
@@ -856,7 +856,7 @@ function PLUGIN:GiveGXP( guild, xp )
         if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
             data.xp = data.xp + xp
             data.glvl = calcLvl
-            self:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(calcLvl) .. ' reached! ::::::::::::::::' )
+            chat:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(calcLvl) .. ' reached! ::::::::::::::::' )
             self:GuildSave()
             self:CallUnlock(guild)
             return xp
@@ -878,7 +878,7 @@ function PLUGIN:CallUnlock( guild )
         if data.glvl == v.requirements.glvl then
             -- unlocked!
             table.insert( data.unlockedcalls, k )
-            self:sendGuildMsg( guild, 'CALL UNLOCK!', v.name .. ' is now unlocked!' )
+            chat:sendGuildMsg( guild, 'CALL UNLOCK!', v.name .. ' is now unlocked!' )
             self:GuildSave()
         end
     end
@@ -890,7 +890,7 @@ function PLUGIN:CallTimer()
 	        for y,z in pairs(self.Guild[k].activecalls) do
 	            z.time = z.time - 1
 	            if z.time <= 0 then
-	                self:sendGuildMsg(k, 'CALL ENDED', '::::::::::::' .. y .. ' has ended! ::::::::::::' )
+	                chat:sendGuildMsg(k, 'CALL ENDED', '::::::::::::' .. y .. ' has ended! ::::::::::::' )
 	                self.Guild[k].activecalls[y] = nil
 	                self:GuildSave()
 	            end
@@ -923,7 +923,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         ['Co-Leader']={'caninvite','cankick','canvault','canwar','cancall'},
         ['War-Leader']={'canwar'},
         ['Quartermaster']={'canvault'},
-        ['Assasin']={},
+        ['Assassin']={},
         ['Member']={}
     }
     entry.members = {}                                                                                              -- Members
@@ -953,7 +953,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         timer.Once( 18, function()rust.SendChatToUser( netuser, tostring( '[' .. tag .. '] ' .. name ), 'Your guild has been created!' ) end )
         timer.Once( 19, function()
             self.Guild[ name ] = entry                                                                                  -- Add guild to userdata.
-            char:Save(netuserID)
+            char:Save(netuserID, netuser)
             self:GuildSave() end)
     end )
 end
@@ -1009,7 +1009,7 @@ function PLUGIN:StoreItems( netuser, itemname, amount, guilddata )
     self:GuildSave()
     local guild = self:getGuild( netuser )
     if i > 0 then
-        self:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has deposit: ' .. tostring( i ) .. 'x ' .. itemname .. ' ::::::::::::::' )
+        chat:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has deposit: ' .. tostring( i ) .. 'x ' .. itemname .. ' ::::::::::::::' )
     end
 end
 
@@ -1045,7 +1045,7 @@ function PLUGIN:GuildDeposit( name, guild, g, s, c )
         guilddata.vault.money.s = guilddata.vault.money.s - 100
     end
     local msg = ':::::::::::::: has donated [ Gold: ' .. g .. ' ] [ Silver: ' .. s .. ' ] [ Copper: ' .. c .. ' ] ::::::::::::::'
-    self:sendGuildMsg( guild, name, msg )
+    chat:sendGuildMsg( guild, name, msg )
     self:GuildSave()
 end
 
@@ -1071,19 +1071,29 @@ function PLUGIN:GuildWithdraw( name, guild, g, s, c )
         guilddata.vault.money.g = guilddata.vault.money.g - 1
     end
     local msg = ':::::::::::::: has withdrawed [ Gold: ' .. g .. ' ] [ Silver: ' .. s .. ' ] [ Copper: ' .. c .. ' ] ::::::::::::::'
-    self:sendGuildMsg( guild, name, msg )
+    chat:sendGuildMsg( guild, name, msg )
     self:GuildSave()
 end
 
 function PLUGIN:GuildAttackMods( combatData )
     if combatData.scenario == 1 then                                                -- Client vs Client
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
-        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        if not guild then
+	        if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'No guild found' ) end
+	        return combatData.dmg.amount end                              -- if not guild, return dmg
         local guilddata = self:getGuildData( guild )                                    -- gets guild data
         local vicguild = self:getGuild( combatData.vicuser )                            -- check victems guild
         if not vicguild then return combatData.dmg.amount end                           -- if not vicguild, return dmg
         local vicguilddata = self:getGuildData( vicguild )                              -- gets vicguild data
         if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
+        local Assassin = self:hasRank( combatData.netuser ,guilddata, 'Assassin' )
+        if( Assassin ) and ( combatData.weapon.type == 'm' )then
+	        -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Assassinated ' .. combatData.vicuserData.name ) end
+	        combatData.dmg.amount = 110
+	        rust.Notice( combatData.vicuser, combatData.netuserData.name .. ' has assassinated you!' )
+	        rust.Notice( combatData.vicuser, 'You\'ve assassinated ' .. combatData.vicuserData.name )
+	        return combatData.dmg.amount
+        end
         local mod = self:hasCall( guilddata, 'rally' )
         if (not mod ) then return combatData.dmg.amount end
     -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
@@ -1092,7 +1102,9 @@ function PLUGIN:GuildAttackMods( combatData )
         return combatData.dmg.amount
     elseif combatData.scenario == 3 then                                            -- Client vs NPC
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
-        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        if not guild then
+	        if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'No guild found' ) end
+	        return combatData.dmg.amount end                              -- if not guild, return dmg
         local guilddata = self:getGuildData( guild )                                    -- gets guild data
         local mod = self:hasCall( guilddata, 'cotw' )                                       -- check for call COTW.
         if not mod then return combatData.dmg.amount end                                -- if not, return dmg
@@ -1108,7 +1120,9 @@ end
 function PLUGIN:GuildDefendMods( combatData )
     if combatData.scenario == 1 then                                                -- Client vs Client
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
-        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        if not guild then
+	        if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'No guild found' ) end
+	        return combatData.dmg.amount end
         local guilddata = self:getGuildData( guild )                                    -- gets guild data
         local vicguild = self:getGuild( combatData.vicuser )                            -- check victems guild
         if not vicguild then return combatData.dmg.amount end                           -- if not vicguild, return dmg
@@ -1122,7 +1136,9 @@ function PLUGIN:GuildDefendMods( combatData )
         return combatData.dmg.amount
     elseif combatData.scenario == 2 then                                            -- NPC vs CLient
         local guild = self:getGuild( combatData.vicuser )                               -- check attackers guild
-        if not guild then return combatData.dmg.amount end                              -- if not guild, return dmg
+        if not guild then
+	        if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'No guild found' ) end
+	        return combatData.dmg.amount end                              -- if not guild, return dmg
         local guilddata = self:getGuildData( guild )                                    -- gets guild data
         local mod = self:hasCall( guilddata, 'cotw' )                                       -- check for call COTW.
         if not mod then return combatData.dmg.amount end                                -- if not, return dmg
@@ -1170,43 +1186,6 @@ end
 function PLUGIN:getGuildMembers( guild )
     local members = self.Guild[ guild ].members
     return members
-end
-
-function PLUGIN:cmdGuildChat( netuser, cmd, args )
-    local guild = self:getGuild( netuser )
-    if not guild then rust.Notice( netuser, 'CANNOT COMPUTE.' ) return end
-    rust.Broadcast( guild )
-end
-
---[[
-function PLUGIN:cmdGuildChat( netuser, cmd, args )
-    rust.BroadcastChat( tostring(netuser))
-    local guild = self:getGuild( netuser )
-    if not guild then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
-    local i = 1
-    local msg = ''
-    while ( i <= #args ) do
-        msg = msg .. ' ' .. args[i]
-        i = i + 1
-    end
-    local tempstring = string.lower( msg )
-    for k, v in ipairs( core.Config.settings.censor.chat ) do
-        local found = string.find( tempstring, v )
-        if ( found ) then
-            rust.Notice( netuser, 'Dont swear!' )
-            return
-        end
-    end
-    self:sendGuildMsg(guild, netuser.displayName, msg )
-end
---]]
---PLUGIN:sendGuildMsg
-function PLUGIN:sendGuildMsg( guild, name, msg )
-    local guilddata = self:getGuildData( guild )
-    for k,v in pairs( self.Guild[ guild ].members ) do
-        local b, targuser = rust.FindNetUsersByName( v.name )
-        if( b ) then rust.SendChatToUser( targuser, name .. '  [G]' , msg ) end
-    end
 end
 
 --PLUGIN:delGuild

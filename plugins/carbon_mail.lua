@@ -6,7 +6,7 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 
-    self:AddChatCommand( 'mail', self.cmdMail )
+    --self:AddChatCommand( 'mail', self.cmdMail )
 end
 
 --PLUGIN:cmdMail
@@ -95,7 +95,7 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
         local count = func:count( char[ netuserID ].mail )
         if ( count <= 0 ) then char[ netuserID ].mail = nil end
         rust.Notice( netuser, 'Mail ID ' .. ID .. ' succesfully deleted!' )
-        char:Save(netuserID)
+        char:Save(netuserID, netuser)
     elseif( action == 'clear' ) then                            -- /mail clear              Clears whole inbox
         local netuserID = rust.GetUserID( netuser )
         if( char[ netuserID ].mail ) then

@@ -103,7 +103,13 @@ function PLUGIN:OnKilled ( takedamage, dmg )
             local npcData = self.EConfig.Rewards[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
             local netuser = dmg.attacker.client.netUser
             local data = self:Convert( math.floor( math.random( npcData.min, npcData.max )))
-            self:AddBalance( netuser, data.g, data.s, data.c )
+            local pdata = party:getParty( netuser )
+            if pdata then
+	            rust.BroadcastChat( 'Has party, begin DistributeBalance' )
+	            party:DistributeBalance( netuser, pdata, data.g, data.s, data.c )
+            else
+                self:AddBalance( netuser, data.g, data.s, data.c )
+            end
             return end --break out of all loops after finding controller type
     end
 end
