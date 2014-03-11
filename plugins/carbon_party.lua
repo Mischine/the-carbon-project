@@ -116,7 +116,7 @@ function PLUGIN:PartyInvite( netuser, cmd, args )
 
 	rust.Notice( targuser, 'You\'ve been invited to party: ' .. pdata.name )
 	local msg = ':::::::::::: ' .. targname .. 'has been invited to the party. ::::::::::::'
-	self:sendPartyMsg( 'INVITE', pdata.members ,msg )
+	chat:cmdPartyChat( netuser , 'INVITE' ,msg )
 	rust.SendChatToUser( targuser, core.sysname, 'To accept the party invite type: /party accept' )
 	self.tmp[ targuser ] = pdata.id
 	timer.Once( 30, function()
@@ -147,7 +147,7 @@ function PLUGIN:PartyAccept( netuser, cmd, args )
 		['xpcon'] = 0
 	}
 	local msg = util.QuoteSafe(netuser.displayName) .. ' has joined the party!'
-	self:sendPartyMsg( netuser.displayName, pdata.members ,msg )
+	chat:cmdPartyChat( netuser, netuser.displayName ,msg )
 	self.tmp[ netuser ] = nil
 	self:PartySave()
 end
@@ -197,12 +197,12 @@ function PLUGIN:PartySet( netuser, cmd, args )
 		if pdata.status == 'public' then rust.Notice( netuser, 'Party status is already public ' ) return end
 		pdata.status = 'public'
 		local msg = '::::::::::: ' .. netuser.displayName .. ' has set the party\'s status to public! :::::::::::'
-		self:sendPartyMsg( 'STATUS', pdata.members, msg )
+		chat:cmdPartyChat( netuser, 'STATUS', msg )
 	elseif args[2]:lower() == 'private' then
 		if pdata.status == 'private' then rust.Notice( netuser, 'Party status is already private ' ) return end
 		pdata.status = 'private'
 		local msg = '::::::::::: ' .. netuser.displayName .. ' has set the party\'s status to private! :::::::::::'
-		self:sendPartyMsg( 'STATUS', pdata.members, msg )
+		chat:cmdPartyChat( netuser, 'STATUS', msg )
 	else
 		local content = {['msg']='To set the status type /party set public/private'}
 		func:TextBoxError(netuser,content,cmd,args)
@@ -219,7 +219,7 @@ function PLUGIN:PartyLeave( netuser, cmd, args )
 			local b, user = rust.FindNetUsersByName( v.name )
 			if( b ) and ( netuser ~= user )then
 				v.rank = 'leader'
-				self:sendPartyMsg( 'PARTY', pdata.members, '::::::::::: '..  v.name .. ' is now the party leader! :::::::::::')
+				chat:cmdPartyChat( netuser, 'PARTY', '::::::::::: '..  v.name .. ' is now the party leader! :::::::::::')
 			break end
 		end
 	end
@@ -228,7 +228,7 @@ function PLUGIN:PartyLeave( netuser, cmd, args )
 	if ( count == 0 ) then
 		self.Party[ pdata.id ] = nil rust.Notice( netuser, 'Party has been disbanned!' )
 	else
-		self:sendPartyMsg( netuser.displayName,  pdata.name, '::::::::::: ' .. netuser.displayName .. ' has left the party :::::::::::' )
+		chat:cmdPartyChat( netuser, 'PARTY',  '::::::::::: ' .. netuser.displayName .. ' has left the party :::::::::::' )
 	end
 	self:PartySave()
 end
@@ -254,7 +254,7 @@ function PLUGIN:PartyJoin( netuser, cmd, args )
 		['xpcon'] = 0
 	}
 	local msg = '::::::::::: ' .. netuser.displayName .. ' has joined the party :::::::::::'
-	self:sendPartyMsg( netuser.displayName, pdata.members, msg )
+	chat:cmdPartyChat( netuser, netuser.displayName, msg )
 	self:PartySave()
 end
 

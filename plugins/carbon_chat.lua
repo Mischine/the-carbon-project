@@ -105,8 +105,8 @@ function PLUGIN:OnUserChat(netuser, name, msg)
 	if ( msg:sub( 1, 1 ) == "/" ) then return end
 	local data = char:GetUserData( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging' ) return false end
-	local guild = guild:getGuild( netuser )
-	if guild then name = tostring( guild.tag .. ' ' .. name ) end
+	local guildname = guild:getGuild( netuser )
+	if guildname then name = tostring( guild:getGuildTag(netuser) .. ' ' .. name ) end
 
 	-- Swear check.
 	for _, v in ipairs( core.Config.settings.censor.chat ) do
@@ -129,8 +129,8 @@ function PLUGIN:OnUserChat(netuser, name, msg)
 	if data.channel == 'local' then            -- Local channel | 30 coords.
 		self:OnLocalChat( netuser, name, msg )
 	elseif data.channel == 'guild' then        -- Guild channel | Only visible to guild
-		if not guild then rust.Notice( netuser, 'Your\'re not in a guild!' ) return false end
-		self:sendGuildMsg(guild, name, msg )
+		if not guildname then rust.Notice( netuser, 'Your\'re not in a guild!' ) return false end
+		self:sendGuildMsg(guildname, name, msg )
 	elseif data.channel == 'party' then        -- Party channel | Only visible to Party
 		self:cmdPartyChat( netuser, name, msg )
 	elseif data.channel == 'trade' then        -- Trade channel | Only visible to people in the same channel || COMING SOON
@@ -179,8 +179,8 @@ function PLUGIN:OnLocalChat( netuser, name, msg )
     end
 end
 
-function PLUGIN:sendGuildMsg( guild, name, msg )
-	local guilddata = self:getGuildData( guild )
+function PLUGIN:sendGuildMsg( guildname, name, msg )
+	local guilddata = guild:getGuildData( guildname )
 	if guilddata then
 		for _,v in pairs( guilddata.members ) do
 			local b, targuser = rust.FindNetUsersByName( v.name )
@@ -190,7 +190,7 @@ function PLUGIN:sendGuildMsg( guild, name, msg )
 end
 
 function PLUGIN:cmdPartyChat( netuser, name, msg )
-	local pdata = self:getParty( netuser)
+	local pdata = party:getParty( netuser)
 	if not pdata then rust.Notice( netuser, 'You\'re not in a party!' ) return end
 	for _,v in pairs( pdata.members ) do
 		local b, targuser = rust.FindNetUsersByName( v.name )
