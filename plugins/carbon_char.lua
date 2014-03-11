@@ -332,25 +332,19 @@ end
 
 -- DATA UPDATE AND SAVE
 function PLUGIN:Save( netuser )
-	print( 'SAVE:' )
 	local netuserID = rust.GetUserID( netuser )
-	print( '2' )
 	if self[ netuserID ].reg then
-		print( '3' )
-		self.CharFile:SetText( json.encode( self[ tostring(netuserID) ], { indent = true } ) )
-		self.CharFile:Save()
-		print( '4' )
+		self.SaveCharFile = util.GetDatafile( tostring( netuserID ) )
+		self.SaveCharFile:SetText( json.encode( self[ tostring(netuserID) ], { indent = true } ) )
+		self.SaveCharFile:Save()
 		if netuser then
-			print( '5' )
 			-- timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving complete...' ) end)
 		end
 	else
 		if netuser then
-			print( '6' )
 			-- timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving failed...' ) end)
 		end
 	end
-	print( '7' )
 end
 
 -- DATA UPDATE AND SAVE
