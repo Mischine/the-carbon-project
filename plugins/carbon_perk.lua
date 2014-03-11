@@ -6,9 +6,9 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
---PLUGIN:perkStoneskin
-function PLUGIN:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage)
-    if ((vicuser) and (vicuser ~= netuser) and (vicuserData.perks.Stoneskin)) then
+
+function PLUGIN:Stoneskin(combatData)
+    if ((combatData.vicuser) and (combatData.vicuser ~= combatData.netuser) and (oodinvicuserData.perks.Stoneskin)) then
         if (vicuserData.perk.Stoneskin.lvl > 0) then
             if (vicuserData.perk.Stoneskin.lvl == 1) then
                 damage = tonumber(damage - (damage*.05))
@@ -31,8 +31,8 @@ function PLUGIN:perkStoneskin(netuser, netuserData, vicuser, vicuserData, damage
     return damage
 end
 
---PLUGIN:perkParry
-function PLUGIN:Parry(vicuser, vicuserData, damage)
+
+function PLUGIN:Parry(combatData)
     if ((vicuser) and (vicuserData.perks.Parry)) then
         if (vicuserData.perks.Parry.lvl > 0) then
             local roll = core.rnd

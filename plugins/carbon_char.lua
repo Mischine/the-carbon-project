@@ -42,6 +42,7 @@ end
 function PLUGIN:Character(cmdData)
 	--TODO:REFINE XP CALCULATIONS ? MAKE A FUNCTION ?
 
+	if cmdData.netuserData.lvl > 1 then local currentLVLxp =
 	local a=cmdData.netuserData.lvl -- current level
 	local b=core.Config.settings.lvlmodifier --level modifier
 	local bb=(1*1+1)/b*100-(1)*100
