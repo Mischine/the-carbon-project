@@ -200,23 +200,25 @@ function PLUGIN:GetTimeMilliSeconds()
     return unix.TotalMilliSeconds
 end
 
-function PLUGIN:Roll(a,b,c)
+function PLUGIN:Roll(a,b)
     local d=self:GetTimeMilliSeconds()
     --math.randomseed(44)
    -- math.randomseed(tonumber(tostring(d):reverse():sub(1,6)))
     math.randomseed(d)
-    rust.BroadcastChat(tostring(d))
     local result = 0
-    if not c then
-        result=math.random(b)
+    if not b then
+        result=math.random(a)
     else
-        result=math.random(b,c)
+        result=math.random(a,b)
     end
+    return result
+	--[[
     if a then
-        return math.floor(result+0.5)
+        return math.floor((result)+0.5)
     else
         return result
     end
+    --]]
 end
 -- DATA UPDATE AND SAVE
 function PLUGIN:Save(name, dir)

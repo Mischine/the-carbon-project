@@ -314,7 +314,6 @@ function PLUGIN:SaveReg()
 	self.RegFile:Save()
 end
 
---[[
 -- CONFIG UPDATE AND SAVE
 function PLUGIN:ConfigSave()
     self.ConfigFile:SetText( json.encode( self.Config, { indent = true } ) )
@@ -326,4 +325,3 @@ function PLUGIN:ConfigUpdate()
     local txt = self.ConfigFile:GetText()
     self.Config = json.decode ( txt )
 end
-]]
