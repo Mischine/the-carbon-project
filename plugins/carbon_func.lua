@@ -197,13 +197,14 @@ function PLUGIN:GetTimeMilliSeconds()
     local epoch = System.DateTime.Parse[1]( "1970-01-01 00:00:00" ):ToLocalTime()
     local now = System.DateTime.Now
     local unix = now:Subtract( epoch )
-	rust.BroadcastChat(tostring(unix.TotalMilliSeconds))
     return unix.TotalMilliSeconds
 end
 
 function PLUGIN:Roll(a,b,c)
     local d=self:GetTimeMilliSeconds()
-    math.randomseed(d)
+    math.randomseed(tonumber(tostring(d):reverse():sub(1,6)))
+    --math.randomseed(d)
+    rust.BroadcastChat(tostring(d))
     local result = 0
     if not c then
         result=math.random(b)
