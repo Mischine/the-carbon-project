@@ -250,8 +250,9 @@ function PLUGIN:OnUserConnect( netuser )
 		    end
 	    end
 	    data.crafting = false
+	    cmd:ChannelLocal( netuser )
 	end
-    rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
+    rust.BroadcastChat( netuser.displayName .. ' has joined the server!')
 end
 
 function PLUGIN:OnUserDisconnect( netplayer )

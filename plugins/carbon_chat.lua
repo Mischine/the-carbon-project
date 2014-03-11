@@ -58,14 +58,16 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
     end
     -- Checking msg for language
     local tempstring = string.lower( msg )
-    for k, v in ipairs( core.Config.settings.censor.chat ) do
+    for _, v in ipairs( core.Config.settings.censor.chat ) do
         local found = string.find( tempstring, v )
         if ( found ) then
 	        local data = char[ tostring(rust.GetUserID( netuser ))]
             rust.BroadcastChat( netuser.displayName, 'I\'m a naughty person.' )
             data.swear = data.swear + 1
+	        tabe.insert(data.sweartbl, v )
 	        local netuserID = rust.GetUserID( netuser )
-            if data.swear >= 10 then rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' ) char:Save( netuserID, netuser) end
+            if data.swear >= 10 then rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' ) end
+	        char:Save( netuserID )
             return
         end
     end
@@ -112,10 +114,9 @@ function PLUGIN:OnUserChat(netuser, name, msg)
 		if ( found ) then
 			rust.BroadcastChat( netuser.displayName, 'Dont swear.' )
 			data.swear = data.swear + 1
-			if data.swear >= 10 then
-				rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' )
-				char:Save( netuserID, netuser )
-			end
+			tabe.insert(data.sweartbl, v )
+			if data.swear >= 10 then rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' ) end
+			char:Save( netuserID )
 			return false
 		end
 	end

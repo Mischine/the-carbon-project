@@ -33,7 +33,7 @@ end
 function PLUGIN:showchar( netuser, cmd, args)
 	local netuserID = tostring(rust.GetUserID( netuser ))
 	if self[ netuserID ] then
-		rust.SendChatToUser( netuser, core.sysname, 'Checking data ' ..  self[ netuserID ].name )
+		rust.SendChatToUser( netuser, core.sysname, 'Checking data for:' ..  self[ netuserID ].name )
 	else
 		rust.SendChatToUser( netuser, core.sysname, 'Player data not loaded! Please report this to an admin.' )
 	end
@@ -297,7 +297,8 @@ function PLUGIN:GetUserData( netuser )
 		data.prevnames = {}
 		data.reg = false
 		data.swear = 0
-		data.chat = 'local'
+		data.sweartbl = {}
+		data.channel = 'local'
 		data.lang = 'english'
 		data.lvl = 1
 		data.xp = 0
@@ -333,7 +334,11 @@ function PLUGIN:Save(netuserID, netuser )
 		self.CharFile:SetText( json.encode( self[ tostring(netuserID) ], { indent = true } ) )
 		self.CharFile:Save()
 		if netuser then
-			rust.InventoryNotice( netuser, 'Saving progress...' )
+			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving complete...' ) end)
+		end
+	else
+		if netuser then
+			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving failed...' ) end)
 		end
 	end
 end

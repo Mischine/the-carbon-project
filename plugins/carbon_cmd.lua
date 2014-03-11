@@ -20,12 +20,11 @@ function PLUGIN:PostInit()
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
     self:AddChatCommand( 'vault', self.cmdVault )       -- TESTED
-    self:AddChatCommand( 'gl', self.cmdChat )
     self:AddChatCommand( 'members', self.cmdMembers )   -- TESTED
     self:AddChatCommand( 'ginvite', self.cmdInvite )    -- TESTED
     self:AddChatCommand( 'gkick', self.cmdKick )        -- TESTED
     self:AddChatCommand( 'rank', self.cmdRank )         -- TESTED
-    self:AddChatCommand( 'war', self.cmdWar )
+    self:AddChatCommand( 'war', self.cmdWar )           -- TESTED
     self:AddChatCommand( 'call', self.cmdCall )         -- TESTED
 
     -- Prof
@@ -38,9 +37,10 @@ function PLUGIN:PostInit()
     self:AddChatCommand( 'p', self.ChannelParty )
     self:AddChatCommand( 'g', self.ChannelGuild )
     self:AddChatCommand( 'l', self.ChannelLocal )
-    self:AddChatCommand( 't', self.ChannelTrade )
-    self:AddChatCommand( 'r', self.ChannelRecruit )
-    self:AddChatCommand( 'z', self.ChannelZone )
+    -- self:AddChatCommand( 't', self.ChannelTrade )
+    -- self:AddChatCommand( 'r', self.ChannelRecruit )
+    -- self:AddChatCommand( 'z', self.ChannelZone )
+    self:AddChatCommand( 'ch', self.Channel )
 
     -- Statistics (stats)
 
@@ -52,6 +52,12 @@ end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                 CHANNELS COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+function PLUGIN:Channel( netuser, cmd ,args )
+	local data = char:GetUserData( netuser )
+	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
+	rust.SendChatToUser( netuser, 'Your current channel is ' .. data.channel )
+end
+
 function PLUGIN:ChannelParty( netuser, _, _ )
 	local data = char:GetUserData( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
@@ -67,6 +73,7 @@ function PLUGIN:ChannelGuild( netuser, _, _ )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
 	local guild = guild:getGuild( netuser )
 	if not guild then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
+	data.channel = 'guild'
 	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in guild chat. ::::::::::' )
 	char:Save( data.id, netuser )
 end
@@ -75,7 +82,6 @@ function PLUGIN:ChannelLocal( netuser, _, _ )
 	local data = char:GetUserData( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
 	data.channel = 'local'
-
 	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in local chat. ::::::::::' )
 	char:Save( data.id, netuser )
 end
