@@ -208,7 +208,9 @@ function PLUGIN:GiveXp(combatData, xp, weplvl )
         self:PlayerLvl(combatData, xp)
         if weplvl then self:WeaponLvl(combatData, xp) end
     end
+    print( 'Saving' )
     if combatData.netuser then self:Save( combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuser ) end
+    print( 'After saving' )
 end
 
 --PLUGIN:getLvl

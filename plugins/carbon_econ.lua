@@ -73,6 +73,7 @@ local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotg
     "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
 
 function PLUGIN:OnKilled ( takedamage, dmg )
+	print( 'Start Econ OnKilled' )
     if ( takedamage:GetComponent( "HumanController" )) then
         local victim = takedamage:GetComponent( "HumanController" )
         if ( victim ) then

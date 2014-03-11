@@ -1254,32 +1254,6 @@ function PLUGIN:isRival( guild1, guild2 )
     return war
 end
 
--- GUILD DOOR ACCESS! TODO Fix this damn guild door.
-local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
-function PLUGIN:CanOpenDoor( netuser, door )
-
-    -- Get and validate the deployable
-    local deployable = door:GetComponent( "DeployableObject" )
-    if (not deployable) then return end
-
-    -- Get the owner ID and the user ID
-    local ownerID = tostring( DeployableObjectOwnerID( deployable ) )
-    local userID = rust.GetUserID( netuser )
-
-    -- check if user is owner.
-    if (ownerID == userID) then return true end
-
-    -- if not get guilds
-    local b, ownernetuser = rust.FindNetUsersByName( char[ ownerID ].name )
-    if( not b ) then return end
-    local ownerGuild = self:getGuild( ownernetuser )
-    local userGuild = self:getGuild( netuser )
-    if not ( ownerGuild and userGuild ) then return end
-
-    -- Check if in same guild
-    if ( userGuild == ownerGuild ) then rust.Notice( netuser, char[ ownerID ].name .. '\'s house! ') return true end
-end
-
 -- GUILD UPDATE AND SAVE
 function PLUGIN:GuildSave()
     self.GuildFile:SetText( json.encode( self.Guild, { indent = true } ) )

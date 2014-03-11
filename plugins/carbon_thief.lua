@@ -13,7 +13,11 @@ function PLUGIN:Init()
 end
 
 function PLUGIN:ThiefInfo( netuser, cmd, args )
-
+	local content = {
+		['header'] = 'You\'re now a Thief!',
+		['msg'] = 'A thief is a versatile class, capable of sneaky combat and nimble tricks. The thief is stealthy and agile, and currently the only class capable of finding and disarming many traps and picking locks. The rogue also has the ability to "sneak attack" or "backstab" enemies who are caught off-guard or taken by surprise, inflicting extra damage. The thief class is the only class able to walk in stealth mode undetectable by enemy hordes and other players.',
+	}
+	func:TextBox(netuser, content, cmd, args)
 end
 
 function PLUGIN:SpecThief( netuser, cmd, args )
@@ -25,7 +29,7 @@ function PLUGIN:SpecThief( netuser, cmd, args )
 		['header'] = 'You\'re now a Thief!',
 		['msg'] = 'A thief is a versatile class, capable of sneaky combat and nimble tricks. The thief is stealthy and agile, and currently the only class capable of finding and disarming many traps and picking locks. The rogue also has the ability to "sneak attack" or "backstab" enemies who are caught off-guard or taken by surprise, inflicting extra damage. The thief class is the only class able to walk in stealth mode undetectable by enemy hordes and other players.',
 	}
-	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args)
+	func:TextBox(netuser, content, cmd, args)
 end
 
 function PLUGIN:Steal( netuser, cmd, args )
@@ -101,7 +105,7 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local invitem3 = inv:AddItemAmount( pants, 1, pref )
 	local invitem4 = inv:AddItemAmount( boots, 1, pref )
 	rust.InventoryNotice( netuser, '+ Stealth' )
-	-- char:Save( netuser )
+	char:Save( netuser )
 end
 
 function PLUGIN:Unstealth( netuser )
@@ -119,9 +123,6 @@ function PLUGIN:Unstealth( netuser )
 	if not inv then rust.Notice( netuser, 'Inventory not found, try again!' ) return end
 	local pref = rust.InventorySlotPreference( InventorySlotKind.Armor, false, InventorySlotKindFlags.Armor )
 
-	-- char:set_lockMovement(false)
-	-- rust.SendChatToUser(netuser, 'Movement: ' .. tostring(idchar.lockMovement))
-
 	inv:RemoveItem( 36 )inv:RemoveItem( 37 )inv:RemoveItem( 38 )inv:RemoveItem( 39 )
 	if self.stealth[ netuserID ] then
 		for _, v in pairs ( self.stealth[netuserID] ) do
@@ -130,10 +131,8 @@ function PLUGIN:Unstealth( netuser )
 		end
 	end
 	rust.InventoryNotice( netuser, '- Stealth' )
-	-- char:Save( netuser )
+	char:Save( netuser )
 end
-
-
 
 function PLUGIN:hasStealth( netuser )
 	local data = char:GetUserData( netuser )
@@ -141,9 +140,8 @@ function PLUGIN:hasStealth( netuser )
 	if data.stealth then return true else return false end
 end
 
-function PLUGIN:isThief( netuser, cmd, args )
+function PLUGIN:isThief( netuser )
 	local data = char:GetUserData( netuser )
 	if not data then return false end
 	if data.class == 'thief' then return true else return false end
 end
-

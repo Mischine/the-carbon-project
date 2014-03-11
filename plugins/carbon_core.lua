@@ -309,6 +309,39 @@ function PLUGIN:cmdRegister( netuser, cmd ,args )
 	print( netuser.displayName .. ' has registered with ID: ' .. tostring( netuserID ) )
 end
 
+-- GUILD DOOR ACCESS! TODO Fix this damn guild door.
+local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
+function PLUGIN:CanOpenDoor( netuser, door )
+
+	-- Get and validate the deployable
+	local deployable = door:GetComponent( "DeployableObject" )
+	if (not deployable) then return end
+
+	-- Get the owner ID and the user ID
+	local ownerID = tostring( DeployableObjectOwnerID( deployable ) )
+	local userID = rust.GetUserID( netuser )
+
+	-- check if user is owner.
+	if (ownerID == userID) then return true end
+
+	-- if not, get guilds
+	local guildname = guild:getGuild( netuser )
+	if guildname then
+		local guilddata = guild:getGuildData( guildname )
+		if guilddata then
+			for k, v in pairs( guild.members ) do
+				if (k == ownerID) then rust.Notice( netuser, 'Entered ' .. v.name .. '\'s house.' ) return true end
+			end
+		end
+	end
+
+	if thief:isThief( netuser ) then
+		local inv = rust.GetInventory( netuser )
+		if not inv then return end
+
+	end
+end
+
 function PLUGIN:SaveReg()
 	self.RegFile:SetText( json.encode( self.Reg, { indent = true } ) )
 	self.RegFile:Save()
