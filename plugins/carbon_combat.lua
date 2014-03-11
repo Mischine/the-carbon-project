@@ -34,7 +34,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	--local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
 	local status = tostring( damage.status )
 	if ( status ~= IsDead ) then                            -- Prevent calculating even if they're dead. Less CPU usage. BETTAH PERFORMANCE!
-        dmg, combatData = self:ModifyDamage( takedamage, damage )
+        dmg, combatData = self:CombatDamage( takedamage, damage )
 	end
 
 	if ((combatData.bodyPart) and ( not combatData.npc )) then
@@ -50,13 +50,12 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 			dmg.status = LifeStatus.IsAlive
 		end
 	end
-	return damage
 end
 
 
 local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
-function PLUGIN:ModifyDamage (takedamage, dmg)
+function PLUGIN:CombatDamage (takedamage, dmg)
     --rust.BroadcastChat('INITIAL DAMAGE: ' .. tostring(dmg.amount))
     --SET UP COMBATDATA
     --local combatData = {['dmg']={}}
