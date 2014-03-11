@@ -69,7 +69,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
 	local npc = core.Config.npc
 
-    for k,v in pairs(npc) do
+    for k,v in pairs(npc) do 
         if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
             combatData['npc'] = core.Config.npc[string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')]
         end
