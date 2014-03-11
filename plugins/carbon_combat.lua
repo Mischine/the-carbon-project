@@ -323,7 +323,7 @@ function PLUGIN:CritCheck(combatData)
     rust.BroadcastChat('----PLUGIN:CritCheck----')
     if combatData.scenario == 1 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(100)
+            local roll = func:Roll(false,100)
             if combatData.dmg.damageTypes == 4 then
                 if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
@@ -338,7 +338,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 2 then
         if (combatData.npc.attributes.agi>0) then
-            local roll = func:Roll(100)
+            local roll = func:Roll(false,100)
             if (combatData.npc.attributes.agi+math.random(combatData.vicuserData.lvl-1,combatData.vicuserData.lvl+1))*.002 >= roll then
                 combatData.dmg.amount = combatData.dmg.amount * 2
                 rust.InventoryNotice( vicuser, 'Critically Wounded!' )
@@ -346,7 +346,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 3 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(100)
+            local roll = func:Roll(false,100)
             if combatData.dmg.damageTypes == 4 then
                 if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
