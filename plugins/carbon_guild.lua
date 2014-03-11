@@ -305,7 +305,7 @@ function PLUGIN:GuildAccept( netuser )
         char[ netuserID ][ 'guild' ] = guild
         chat:sendGuildMsg( guild, char[ netuserID ].name , 'has joined the guild! =)' )
         self.Guild.temp[ netuserID ] = nil
-        char:Save(netuserID, netuser)
+        char:Save( netuser )
         self:GuildSave()
     end
 end
@@ -321,7 +321,7 @@ function PLUGIN:GuildLeave( netuser,args )
     local count = func:count( self.Guild[ guild ].members )
     if ( count == 0 ) then self.Guild[ guild ] = nil rust.Notice( netuser, guild .. ' has been disbanned!' ) end
     self:GuildSave()
-    char:Save(netuserID, netuser)
+    char:Save( netuser )
 end
 
 function PLUGIN:GuildKick( netuser,args )
@@ -339,7 +339,7 @@ function PLUGIN:GuildKick( netuser,args )
     mail:sendMail( targuserID, netuser.displayName, date, 'You\'ve been kicked from the guild ' .. guild, guild )
     self.Guild[ guild ].members[ targuserID ] = nil
     char[ targuserID ].guild = nil
-    char:Save(targuserID, netuser)
+    char:Save(netuser)
     self:GuildSave()
 end
 
@@ -699,7 +699,7 @@ function PLUGIN:GuildVault( netuser, cmd, args )
             chat:sendGuildMsg( guild, netuser.displayName, ':::::::::::::: has withdrawed: ' .. tostring( amount ) .. 'x ' .. itemname .. ' ::::::::::::::' )
             guilddata.vault.cap = guilddata.vault.cap - amount
             self:GuildSave()
-            char:Save(netuserID, netuser )
+            char:Save( netuser )
         else
             local content = {
                 ['msg'] ='To withdraw /vault withdraw "ItemName" [amount] OR /g vault withdraw money Gold Silver Copper',
@@ -953,7 +953,7 @@ function PLUGIN:CreateGuild( netuser, name, tag )
         timer.Once( 18, function()rust.SendChatToUser( netuser, tostring( '[' .. tag .. '] ' .. name ), 'Your guild has been created!' ) end )
         timer.Once( 19, function()
             self.Guild[ name ] = entry                                                                                  -- Add guild to userdata.
-            char:Save(netuserID, netuser)
+            char:Save( netuser )
             self:GuildSave() end)
     end )
 end
@@ -1080,7 +1080,7 @@ function PLUGIN:GuildAttackMods( combatData )
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
         if not guild then
 	        if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'No guild found' ) end
-	        return combatData.dmg.amount end                              -- if not guild, return dmg
+	        return combatData.dmg.amount end                                            -- if not guild, return dmg
         local guilddata = self:getGuildData( guild )                                    -- gets guild data
         local vicguild = self:getGuild( combatData.vicuser )                            -- check victems guild
         if not vicguild then return combatData.dmg.amount end                           -- if not vicguild, return dmg
@@ -1088,7 +1088,7 @@ function PLUGIN:GuildAttackMods( combatData )
         if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
         local Assassin = self:hasRank( combatData.netuser ,guilddata, 'Assassin' )
         if( Assassin ) and ( combatData.weapon.type == 'm' )then
-	        -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Assassinated ' .. combatData.vicuserData.name ) end
+	       if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Assassinated ' .. combatData.vicuserData.name ) end
 	        combatData.dmg.amount = 110
 	        rust.Notice( combatData.vicuser, combatData.netuserData.name .. ' has assassinated you!' )
 	        rust.Notice( combatData.vicuser, 'You\'ve assassinated ' .. combatData.vicuserData.name )
@@ -1254,7 +1254,7 @@ function PLUGIN:isRival( guild1, guild2 )
     return war
 end
 
--- GUILD DOOR ACCESS!
+-- GUILD DOOR ACCESS! TODO Fix this damn guild door.
 local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
 function PLUGIN:CanOpenDoor( netuser, door )
 
@@ -1267,7 +1267,7 @@ function PLUGIN:CanOpenDoor( netuser, door )
     local userID = rust.GetUserID( netuser )
 
     -- check if user is owner.
-    if (ownerID == userID) then rust.Notice( netuser, 'Entered your own house! ') return true end
+    if (ownerID == userID) then return true end
 
     -- if not get guilds
     local b, ownernetuser = rust.FindNetUsersByName( char[ ownerID ].name )
@@ -1277,7 +1277,7 @@ function PLUGIN:CanOpenDoor( netuser, door )
     if not ( ownerGuild and userGuild ) then return end
 
     -- Check if in same guild
-    if ( userGuild == ownerGuild ) then rust.Notice( netuser, 'Entered ' .. char[ ownerID ].name .. '\'s house! ') return true end
+    if ( userGuild == ownerGuild ) then rust.Notice( netuser, char[ ownerID ].name .. '\'s house! ') return true end
 end
 
 -- GUILD UPDATE AND SAVE

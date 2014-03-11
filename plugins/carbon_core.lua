@@ -10,7 +10,7 @@ function PLUGIN:Init()
     self.ConfigFile = util.GetDatafile( 'carbon_cfg' )
     local cfg_txt = self.ConfigFile:GetText()
     if (cfg_txt ~= '') then
-        print( 'Carbon cfg file loaded!' )
+        print( 'Carbon_cfg file loaded!' )
         self.Config = json.decode( cfg_txt )
     else
         print( 'Creating carbon cfg file...' )
@@ -19,11 +19,12 @@ function PLUGIN:Init()
     self.RegFile = util.GetDatafile( 'carbon_reg' )
     local reg_txt = self.RegFile:GetText()
     if (reg_txt ~= '') then
-        print( 'Carbon cfg file loaded!' )
+        print( 'Carbon_reg file loaded!' )
         self.Reg = json.decode( reg_txt )
     else
         print( 'Creating carbon_reg' )
 	    self.Reg = {}
+	    self:SaveReg()
     end
 
     self.sysname = self.Config.settings.sysname
@@ -32,7 +33,7 @@ function PLUGIN:Init()
     --timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
 
     self.tmpusers = {}
-    self.UnregTimer = timer.Repeat( 60, function() self:UnregBC() end)
+    -- self.UnregTimer = timer.Repeat( 60, function() self:UnregBC() end)
 end
 
 function PLUGIN:UnregBC()
@@ -74,6 +75,7 @@ function PLUGIN:LoadLibrary()
     donate = cs.findplugin("carbon_donate")
     vote = cs.findplugin("carbon_vote")
     oxidecore = cs.findplugin("oxidecore")
+    thief = cs.findplugin("carbon_thief")
 
     a = cs.findplugin("carbon_a")
     b = cs.findplugin("carbon_b")
@@ -216,6 +218,7 @@ function PLUGIN:OnUserConnect( netuser )
     end
     --]]
     local data = char:GetUserData( netuser ) -- asks for dat.
+    rust.BroadcastChat( data.name .. ' TEST NIGGAH!' )
     if( data ) then
 	    if ( data.mail ) then
 	        local i = 0
@@ -250,8 +253,9 @@ function PLUGIN:OnUserConnect( netuser )
 		    end
 	    end
 	    data.crafting = false
+	    cmd:ChannelLocal( netuser )
 	end
-    rust.BroadcastChat( netuser.displayName .. ' has connected to the server!')
+    rust.BroadcastChat( netuser.displayName .. ' has joined the server!')
 end
 
 function PLUGIN:OnUserDisconnect( netplayer )
@@ -264,7 +268,7 @@ function PLUGIN:OnUserDisconnect( netplayer )
 			char[ netuserID ] = nil
 		return end
 	end
-	char:Save( netuserID, netuser )
+	char:Save( netuser )
 	char[netuserID] = nil
 end
 
@@ -276,9 +280,9 @@ function PLUGIN:cmdRegister( netuser, cmd ,args )
 	local data = char[ netuserID ]
 	if not data then rust.Notice( netuser, 'Could not find userdata. Try relogging.' ) return end
 	if data.reg then rust.Notice( netuser, 'You\'re already registered.' ) return end
-	local name = netuser.displayName:lower()
+	local name = string.lower(netuser.displayName)
 	local found = false
-	for _,v in pairs( self.reg ) do
+	for _,v in pairs( self.Reg ) do
 		string.find( name, v )
 		local found = true
 	end
@@ -300,7 +304,7 @@ function PLUGIN:cmdRegister( netuser, cmd ,args )
 	}
 	func:TextBox(netuser,content,cmd,args)
 	data.reg = true
-	char:Save( netuserID, netuser )
+	char:Save( netuser )
 	core:SaveReg()
 	print( netuser.displayName .. ' has registered with ID: ' .. tostring( netuserID ) )
 end
