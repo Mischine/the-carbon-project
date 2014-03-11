@@ -113,7 +113,7 @@ function PLUGIN:OnUserChat(netuser, name, msg)
 		local tmpstring = msg:lower()
 		local found = string.find( tmpstring, v )
 		if ( found ) then
-			rust.BroadcastChat( netuser.displayName, 'Dont swear.' )
+			rust.Notice( netuser, 'Dont swear.' )
 			data.swear = data.swear + 1
 			tabe.insert(data.sweartbl, v )
 			if data.swear >= 10 then rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' ) end
@@ -133,15 +133,15 @@ function PLUGIN:OnUserChat(netuser, name, msg)
 		self:sendGuildMsg(guildname, name, msg )
 	elseif data.channel == 'party' then        -- Party channel | Only visible to Party
 		self:cmdPartyChat( netuser, name, msg )
-	elseif data.channel == 'trade' then        -- Trade channel | Only visible to people in the same channel || COMING SOON
+	elseif data.channel == 'trade' then        -- Trade channel | Only visible to people in the same channel        || COMING SOON
 		data.channel = 'local'
 		char:Save( netuser )
 		self:OnLocalChat( netuser, name, msg )
-	elseif data.channel == 'recruit' then      -- Recruit channel | Only visible to people in the same channel || COMING SOON
+	elseif data.channel == 'recruit' then      -- Recruit channel | Only visible to people in the same channel      || COMING SOON
 		data.channel = 'local'
 		char:Save( netuser )
 		self:OnLocalChat( netuser, name, msg )
-	elseif data.channel == 'zone' then         -- Zone channel | Only visible to people in the same zone || COMING SOON
+	elseif data.channel == 'zone' then         -- Zone channel | Only visible to people in the same zone            || COMING SOON
 		data.channel = 'local'
 		char:Save( netuser )
 		self:OnLocalChat( netuser, name, msg )

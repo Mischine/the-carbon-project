@@ -218,7 +218,6 @@ function PLUGIN:OnUserConnect( netuser )
     end
     --]]
     local data = char:GetUserData( netuser ) -- asks for dat.
-    rust.BroadcastChat( data.name .. ' TEST NIGGAH!' )
     if( data ) then
 	    if ( data.mail ) then
 	        local i = 0

@@ -56,7 +56,7 @@ end
 local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 function PLUGIN:CombatDamage (takedamage, dmg)
-    --rust.BroadcastChat('INITIAL DAMAGE: ' .. tostring(dmg.amount))
+    dmg.amount = func:Roll(false,dmg.amount*0.97324564353,dmg.amount)
     --SET UP COMBATDATA
     --local combatData = {['dmg']={}}
     --combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
@@ -94,7 +94,11 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs client------------' ) end
        rust.BroadcastChat('------------client vs client------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
-	    if combatData.dmg.amount == 0 then return 0 end
+	   if combatData.dmg.amount == 0 then return 0 end
+	    combatData.dmg.amount = self:PartyCheck( combatData )
+	   if combatData.dmg.amount == 0 then return 0 end
+	    combatData.dmg.amount = self:GuildCheck( combatData )
+	   if combatData.dmg.amount == 0 then return 0 end
         combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
@@ -161,7 +165,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
     --SET UP COMBATDATA
     --local combatData = {['dmg']={}}
     --combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
-
 	local combatData = {}
 
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
@@ -209,6 +212,30 @@ function PLUGIN:OnKilled (takedamage, dmg)
     end
 end
 -----------------------------------------------------------------
+function PLUGIN:PartyCheck( combatData )
+	local NetParty = party:getParty( combatData.netuser )
+	if not NetParty then return combatData.dmg.amount end
+	local VicParty = party:getParty( combatData.vicuser )
+	if not VicParty then return combatData.dmg.amount end
+	if VicParty.id == NetParty.id then
+		rust.Notice( combatData.netuser, combatData.vicuserData.name .. ' is in your party!'  )
+		return 0
+	end
+	return combatData.dmg.amount
+end
+
+function PLUGIN:GuildCheck( combatData )
+	local NetGuild = guild:getGuild( combatData.netuser )
+	if not NetGuild then return combatData.dmg.amount end
+	local VicGuild = guild:getGuild( combatData.vicuser )
+	if not VicGuild then return combatData.dmg.amount end
+	if NetGuild == VicGuild then
+		rust.Notice( combatData.netuser , combatData.vicuserData.name .. ' is in your guild!' )
+		return 0
+	end
+	return combatData.dmg.amount
+end
+
 function PLUGIN:WeaponSkill (combatData)
     if (not combatData.netuserData.skills[combatData.weapon.name]) then
         char[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
@@ -323,7 +350,7 @@ function PLUGIN:CritCheck(combatData)
     rust.BroadcastChat('----PLUGIN:CritCheck----')
     if combatData.scenario == 1 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(false,100)
+            local roll = func:Roll(false, 100)
             if combatData.dmg.damageTypes == 4 then
                 if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
@@ -338,7 +365,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 2 then
         if (combatData.npc.attributes.agi>0) then
-            local roll = func:Roll(false,100)
+            local roll = func:Roll(false, 100)
             if (combatData.npc.attributes.agi+math.random(combatData.vicuserData.lvl-1,combatData.vicuserData.lvl+1))*.002 >= roll then
                 combatData.dmg.amount = combatData.dmg.amount * 2
                 rust.InventoryNotice( vicuser, 'Critically Wounded!' )
@@ -346,7 +373,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 3 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(false,100)
+            local roll = func:Roll(false, 100)
             if combatData.dmg.damageTypes == 4 then
                 if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2

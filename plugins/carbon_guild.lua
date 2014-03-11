@@ -154,7 +154,7 @@ function PLUGIN:GuildInfo( netuser )
     rust.SendChatToUser(netuser,core.sysname,'║ Capacity          :  (' .. data.vault.cap .. '/' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap .. ')   [ ' .. math.floor((data.vault.cap/core.Config.guild.vault[tostring(data.vault.lvl)].cap)*100) .. '% ]   (+' .. core.Config.guild.vault[tostring(data.vault.lvl)].cap-data.vault.cap .. ')' )
     rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor((data.vault.cap/core.Config.guild.vault[tostring(data.vault.lvl)].cap)*100) , 32))
     rust.SendChatToUser(netuser,core.sysname,'║ ')
-    rust.SendChatToUser(netuser,core.sysname,'║ Guild Leader   : ' .. self:getGuildLeader( guild ))
+    -- rust.SendChatToUser(netuser,core.sysname,'║ Guild Leader   : ' .. self:getGuildLeader( guild ))
     rust.SendChatToUser(netuser,core.sysname,'║ Members        : ' .. func:count( data.members ))
     rust.SendChatToUser(netuser,core.sysname,'║ Calls                  : ' .. table.concat( data.unlockedcalls, ', ' ))
     rust.SendChatToUser(netuser,core.sysname,'║ Active Calls    : ' .. table.concat( data.activecalls, ', ' ))
@@ -1086,12 +1086,12 @@ function PLUGIN:GuildAttackMods( combatData )
         if not vicguild then return combatData.dmg.amount end                           -- if not vicguild, return dmg
         local vicguilddata = self:getGuildData( vicguild )                              -- gets vicguild data
         if not self:isRival( guild, vicguild ) then return combatData.dmg.amount end    -- check if they're at war, if not return dmg.
-        local Assassin = self:hasRank( combatData.netuser ,guilddata, 'Assassin' )
+        local Assassin = self:hasRank( combatData.netuser ,guild, 'Assassin' )
         if( Assassin ) and ( combatData.weapon.type == 'm' )then
 	       if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Assassinated ' .. combatData.vicuserData.name ) end
 	        combatData.dmg.amount = 110
 	        rust.Notice( combatData.vicuser, combatData.netuserData.name .. ' has assassinated you!' )
-	        rust.Notice( combatData.vicuser, 'You\'ve assassinated ' .. combatData.vicuserData.name )
+	        rust.Notice( combatData.netuser, 'You\'ve assassinated ' .. combatData.vicuserData.name )
 	        return combatData.dmg.amount
         end
         local mod = self:hasCall( guilddata, 'rally' )

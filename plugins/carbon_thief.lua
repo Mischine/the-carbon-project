@@ -43,9 +43,9 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	if not data then return end
 	if data.stealth then rust.Notice( netuser, 'You\'re already stealth!' ) return end
 	local netuserID = rust.GetUserID( netuser )
-	local char = rust.GetCharacter( netuser )
-	if not char then rust.Notice( netuser ,'No char.' ) return end
-	local IDLocalCharacter = char.idMain:GetComponent( "IDLocalCharacter" )
+	local charid = rust.GetCharacter( netuser )
+	if not charid then rust.Notice( netuser ,'No char.' ) return end
+	local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
 	IDLocalCharacter:set_lockMovement( true )
 	data.stealth = true
 
@@ -56,10 +56,7 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local b, helmet = inv:GetItem( 36 )
 	if b then
 		con = helmet.condition
-		rust.BroadcastChat( tostring(con) )
-		rust.BroadcastChat( tostring( helmet ))
 		helmet = helmet.datablock
-		rust.BroadcastChat( tostring( helmet ))
 		tbl[ 'helmet' ] = {
 			['item'] = helmet,
 			['con'] = con
@@ -69,6 +66,7 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local b, vest = inv:GetItem( 37 )
 	if b then
 		con = vest.condition
+		vest = vest.datablock
 		tbl[ 'vest' ] = {
 			['item'] = vest,
 			['con'] = con
@@ -78,6 +76,7 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local b, pants = inv:GetItem( 38 )
 	if b then
 		con = pants.condition
+		pants = pants.datablock
 		tbl[ 'pants' ] = {
 			['item'] = pants,
 			['con'] = con
@@ -87,6 +86,7 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local b, boots = inv:GetItem( 39 )
 	if b then
 		con = boots.condition
+		boots = boots.datablock
 		tbl[ 'boots' ] = {
 			['item'] = boots,
 			['con'] = con
@@ -105,7 +105,7 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local invitem3 = inv:AddItemAmount( pants, 1, pref )
 	local invitem4 = inv:AddItemAmount( boots, 1, pref )
 	rust.InventoryNotice( netuser, '+ Stealth' )
-	char:Save( netuser )
+	-- char:Save( netuser )
 end
 
 function PLUGIN:Unstealth( netuser )
@@ -113,9 +113,9 @@ function PLUGIN:Unstealth( netuser )
 	if not data then return end
 	-- if not data.stealth then rust.Notice( netuser, 'You\'re not stealth!' ) return end
 	local netuserID = rust.GetUserID( netuser )
-	local char = rust.GetCharacter( netuser )
-	if not char then rust.Notice( netuser ,'No char.' ) return end
-	local IDLocalCharacter = char.idMain:GetComponent( "IDLocalCharacter" )
+	local charid = rust.GetCharacter( netuser )
+	if not charid then rust.Notice( netuser ,'No char.' ) return end
+	local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
 	IDLocalCharacter:set_lockMovement( false )
 	data.stealth = false
 
@@ -131,7 +131,7 @@ function PLUGIN:Unstealth( netuser )
 		end
 	end
 	rust.InventoryNotice( netuser, '- Stealth' )
-	char:Save( netuser )
+	-- char:Save( netuser )
 end
 
 function PLUGIN:hasStealth( netuser )

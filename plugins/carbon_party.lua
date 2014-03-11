@@ -36,7 +36,7 @@ end
 
 function PLUGIN:PartyList( netuser, cmd, args )
 	local content = {
-		['msg'] = 'Here is a list of public parties. To join a party type /join ID.',
+		['msg'] = 'Here is a list of public parties. To join a party type /party join ID.',
 		['list'] = {}
 	}
 	for k,v in pairs( self.Party ) do
@@ -166,6 +166,7 @@ function PLUGIN:PartyKick( netuser, cmd, args )
 	local b, targuser = rust.FindNetUsersByName( targname )
 	if b then rust.SendChatToUser( targuser, 'PARTY', 'You\'ve been kicked out of the party!' ) end
 	pdata.members[ targid ] = nil
+	self:PartySave()
 end
 
 function PLUGIN:PartyMembers( netuser, cmd, args )
@@ -242,7 +243,7 @@ function PLUGIN:PartyJoin( netuser, cmd, args )
 	if not pid then rust.Notice( netuser, 'Invalid ID. ( ' .. tostring(pid) .. ' )' ) return end
 	local pdata = self:getPartyByID( pid )
 	if not pdata then rust.Notice( netuser, 'Party ID does not exist!' ) return end
-	if not pdata.public then rust.Notice( netuser, 'Party is not public!' ) return end
+	if not (pdata.status == 'public' )then rust.Notice( netuser, 'Party is not public!' ) return end
 	if func:count(pdata.members) >= pdata.slots then rust.Notice( netuser, 'Party is full' ) return end
 	local data = char[ rust.GetUserID( netuser )]
 	if not data then rust.Notice(netuser, 'Player data not found! try relogging.' ) return end
@@ -275,9 +276,13 @@ function PLUGIN:PartyOverView( netuser, cmd, args )
 			'Leader                      : ' .. leader,
 			'Total xp gained      : ' .. tostring(pdata.xp),
 			'Available slots       : ' .. tostring(pdata.slots),
-		},
-		['cmds'] = {'create','list','invite','accept','kick','leave','members','join','set'},
+		}
 	}
+	if netuser.displayName == leader then
+		content['cmds'] = {'invite','kick','leave','members','set'}
+	else
+		content['cmds'] = {'leave','members'}
+	end
 	func:TextBox(netuser,content,cmd,args)
 end
 
@@ -285,7 +290,7 @@ function PLUGIN:PartyInfo( netuser, cmd, args )
 	local content = {
 		['header'] = 'Party information',
 		['msg'] = 'The party system in Carbon is easy to use. There are 2 kind of parties. Public and private. For private parties you have to be invited to join. Public parties can be joined by anyone as long as there are enough slots. To find public parties type /party list. ' ,
-		['cmds'] = {'create','list'},
+		['cmds'] = {'create','list', 'join'},
 		['suffix'] = 'Learn more about parties at; www.tempusforge.com'
 	}
 	func:TextBox(netuser,content,cmd,args)
@@ -305,7 +310,7 @@ function PLUGIN:DistributeXP( combatData, pdata, xp )
 		if b then
 			local tc = netuser.playerClient.lastKnownPosition
 			if ( tc ) and ( tc.x ) and ( tc.y ) and ( tc.z ) then
-				if ( func:Distance3D ( c.x, c.y, c.z, tc.x, tc.y, tc.z ) <= 100 ) then
+				if ( func:Distance3D ( c.x, c.y, c.z, tc.x, tc.y, tc.z ) <= 50 ) then
 					local netuserData = char[ rust.GetUserID( netuser )]
 					if netuserData then
 						i = i + 1
@@ -344,7 +349,7 @@ function PLUGIN:DistributeBalance( netuser, pdata, g, s, c )
 		if b then
 			local tc = netuser.playerClient.lastKnownPosition
 			if ( tc ) and ( tc.x ) and ( tc.y ) and ( tc.z ) then
-				if ( func:Distance3D ( co.x, co.y, co.z, tc.x, tc.y, tc.z ) <= 100 ) then
+				if ( func:Distance3D ( co.x, co.y, co.z, tc.x, tc.y, tc.z ) <= 50 ) then
 					i = i + 1
 					netusers[i] = netuser
 					netuser = nil
@@ -377,7 +382,7 @@ function PLUGIN:getParty( netuser )
 end
 
 function PLUGIN:getPartyByID( id )
-	if self.Party[ id ] then return self.Party[ id ] else return false end
+	if self.Party[ tostring(id) ] then rust.BroadcastChat( 'Party found.' ) return self.Party[ tostring(id) ] else rust.BroadcastChat('Party not found.')return false end
 end
 
 

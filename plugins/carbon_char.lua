@@ -228,7 +228,7 @@ function PLUGIN:GiveDp(combatData, dp)
         rust.InventoryNotice( combatData.vicuser, '+' .. (dp) .. 'dp' )
     end
 
-    if combatData.netuser then self:Save( combatData.netuserData.id, combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuserData.id, combatData.vicuser ) end
+    if combatData.netuser then self:Save( combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuser ) end
 end
 
 --PLUGIN:PlayerLvl
