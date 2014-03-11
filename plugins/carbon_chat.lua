@@ -67,7 +67,7 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
 	        tabe.insert(data.sweartbl, v )
 	        local netuserID = rust.GetUserID( netuser )
             if data.swear >= 10 then rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' ) end
-	        char:Save( netuserID )
+	        char:Save( netuser )
             return
         end
     end
@@ -102,21 +102,22 @@ end
 ]]
 
 function PLUGIN:OnUserChat(netuser, name, msg)
-	local data = char[ tostring(rust.GetUserID )]
-	local netuserID = rust.GetUserID( netuser )
-	if not data then rust.Notice( netuser, 'Userdata not found, try relogging' ) return end
-	local guild = guild.getGuild( netuser )
-	if guild then name = tostring( '[' .. guild.tag .. '] ' .. name ) end
+	if ( msg:sub( 1, 1 ) == "/" ) then return end
+	local data = char:GetUserData( netuser )
+	if not data then rust.Notice( netuser, 'Userdata not found, try relogging' ) return false end
+	local guild = guild:getGuild( netuser )
+	if guild then name = tostring( guild.tag .. ' ' .. name ) end
 
 	-- Swear check.
 	for _, v in ipairs( core.Config.settings.censor.chat ) do
-		local found = string.find( tempstring, v )
+		local tmpstring = msg:lower()
+		local found = string.find( tmpstring, v )
 		if ( found ) then
 			rust.BroadcastChat( netuser.displayName, 'Dont swear.' )
 			data.swear = data.swear + 1
 			tabe.insert(data.sweartbl, v )
 			if data.swear >= 10 then rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' ) end
-			char:Save( netuserID )
+			char:Save( netuser )
 			return false
 		end
 	end
@@ -125,28 +126,28 @@ function PLUGIN:OnUserChat(netuser, name, msg)
 	-- COMING SOON
 
 	-- Get chat channel
-	if data.chat == 'local' then            -- Local channel | 30 coords.
+	if data.channel == 'local' then            -- Local channel | 30 coords.
 		self:OnLocalChat( netuser, name, msg )
-	elseif data.chat == 'guild' then        -- Guild channel | Only visible to guild
+	elseif data.channel == 'guild' then        -- Guild channel | Only visible to guild
 		if not guild then rust.Notice( netuser, 'Your\'re not in a guild!' ) return false end
 		self:sendGuildMsg(guild, name, msg )
-	elseif data.chat == 'party' then        -- Party channel | Only visible to Party
+	elseif data.channel == 'party' then        -- Party channel | Only visible to Party
 		self:cmdPartyChat( netuser, name, msg )
-	elseif data.chat == 'trade' then        -- Trade channel | Only visible to people in the same channel || COMING SOON
-		data.chat = 'local'
-		char:Save( rust.GetUserID( netuser ), netuser )
+	elseif data.channel == 'trade' then        -- Trade channel | Only visible to people in the same channel || COMING SOON
+		data.channel = 'local'
+		char:Save( netuser )
 		self:OnLocalChat( netuser, name, msg )
-	elseif data.chat == 'recruit' then      -- Recruit channel | Only visible to people in the same channel || COMING SOON
-		data.chat = 'local'
-		char:Save( rust.GetUserID( netuser ), netuser )
+	elseif data.channel == 'recruit' then      -- Recruit channel | Only visible to people in the same channel || COMING SOON
+		data.channel = 'local'
+		char:Save( netuser )
 		self:OnLocalChat( netuser, name, msg )
-	elseif data.chat == 'zone' then         -- Zone channel | Only visible to people in the same zone || COMING SOON
-		data.chat = 'local'
-		char:Save( rust.GetUserID( netuser ), netuser )
+	elseif data.channel == 'zone' then         -- Zone channel | Only visible to people in the same zone || COMING SOON
+		data.channel = 'local'
+		char:Save( netuser )
 		self:OnLocalChat( netuser, name, msg )
 	else
-		data.chat = 'local'
-		char:Save( rust.GetUserID( netuser ), netuser )
+		data.channel = 'local'
+		char:Save( netuser )
 		self:OnLocalChat( netuser, name, msg )
 	end
 	return false

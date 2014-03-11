@@ -6,7 +6,8 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 
-    self:AddChatCommand( 'c', self.cmdCarbon )
+    self.char = {}
+
     self:AddChatCommand( 'load', self.loadchar )
     self:AddChatCommand( 'check', self.showchar )
 
@@ -42,7 +43,7 @@ end
 function PLUGIN:Character(cmdData)
 	--TODO:REFINE XP CALCULATIONS ? MAKE A FUNCTION ?
 
-	if cmdData.netuserData.lvl > 1 then local currentLVLxp =
+	-- if cmdData.netuserData.lvl > 1 then local currentLVLxp = TODO: Check this Mischa.
 	local a=cmdData.netuserData.lvl -- current level
 	local b=core.Config.settings.lvlmodifier --level modifier
 	local bb=(1*1+1)/b*100-(1)*100
@@ -323,25 +324,33 @@ function PLUGIN:GetUserData( netuser )
 			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
 			['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
 		}
-		self:Save(netuserID, netuser)
 	end
 	self[netuserID] = data
+	self:Save( netuser )
 	return data
 end
 
 -- DATA UPDATE AND SAVE
-function PLUGIN:Save(netuserID, netuser )
+function PLUGIN:Save( netuser )
+	print( 'SAVE:' )
+	local netuserID = rust.GetUserID( netuser )
+	print( '2' )
 	if self[ netuserID ].reg then
+		print( '3' )
 		self.CharFile:SetText( json.encode( self[ tostring(netuserID) ], { indent = true } ) )
 		self.CharFile:Save()
+		print( '4' )
 		if netuser then
-			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving complete...' ) end)
+			print( '5' )
+			-- timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving complete...' ) end)
 		end
 	else
 		if netuser then
-			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving failed...' ) end)
+			print( '6' )
+			-- timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving failed...' ) end)
 		end
 	end
+	print( '7' )
 end
 
 -- DATA UPDATE AND SAVE
@@ -350,7 +359,6 @@ function PLUGIN:Load( netuserID )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
 		local data = json.decode( txt )
-		rust.BroadcastChat( tostring( netuserID ) .. ' has been loaded!' )
 		return data
 	end
 	return false

@@ -7,10 +7,14 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 function PLUGIN:PostInit()
+	-- Language
     self:AddChatCommand( 'language', self.lang )
 
     -- Character
     self:AddChatCommand( 'c', self.cmdCharacter ) -- will show level, xp to go (w/bar), dp, available commands >
+
+    -- Perks
+    self:AddChatCommand( 'perks', self.cmdPerks )
 
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
@@ -45,7 +49,7 @@ function PLUGIN:PostInit()
 end
 
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
---                 CHANNELS COMMANDS
+--                 CHANNEL COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 function PLUGIN:Channel( netuser, cmd ,args )
 	local data = char:GetUserData( netuser )
@@ -60,7 +64,7 @@ function PLUGIN:ChannelParty( netuser, _, _ )
 	if not pdata then rust.Notice( netuser, 'You\'re not in a party!' ) return end
 	data.channel = 'party'
 	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in party chat. ::::::::::' )
-	char:Save( data.id, netuser )
+	char:Save( netuser )
 end
 
 function PLUGIN:ChannelGuild( netuser, _, _ )
@@ -70,7 +74,7 @@ function PLUGIN:ChannelGuild( netuser, _, _ )
 	if not guild then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
 	data.channel = 'guild'
 	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in guild chat. ::::::::::' )
-	char:Save( data.id, netuser )
+	char:Save( netuser )
 end
 
 function PLUGIN:ChannelLocal( netuser, _, _ )
@@ -78,7 +82,7 @@ function PLUGIN:ChannelLocal( netuser, _, _ )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
 	data.channel = 'local'
 	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in local chat. ::::::::::' )
-	char:Save( data.id, netuser )
+	char:Save( netuser )
 end
 
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

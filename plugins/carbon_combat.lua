@@ -22,12 +22,11 @@ local IsDead = tostring(LifeStatus.isDead)
 local WasKilled = tostring(LifeStatus.WasKilled)
 local Failed = tostring(LifeStatus.Failed)
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-	rust.BroadcastChat( 'ProcessDmg' )
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Health: ' .. tostring( takedamage.health )) end
 	local combatData                                        -- Define combatData so that it wont turn global. I cant local it in the if statement, cus then I cannot use it outside of it.
 	local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
 	local status = tostring( damage.status )
 	if ( status ~= IsDead ) then                            -- Prevent calculating even if they're dead. Less CPU usage. BETTAH PERFORMANCE!
-		rust.BroadcastChat( 'Getdmg' )
         dmg, combatData = self:CombatDamage( takedamage, damage )
 	end
 	if ((combatData.bodyPart) and ( not combatData.npc )) then
@@ -91,8 +90,8 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-	   combatData.dmg.amount = self:ActivatePerks(combatData)
+        -- combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
@@ -103,8 +102,8 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-	   combatData.dmg.amount = self:ActivatePerks(combatData)
-        --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
+        -- dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
 	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs pve------------' ) end
@@ -115,12 +114,12 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-	   combatData.dmg.amount = self:ActivatePerks(combatData)
+        -- combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         -- combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end
-    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
+    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Final Damage: ' .. tostring(combatData.dmg.amount ) end
   rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
     dmg.amount = combatData.dmg.amount
     return dmg, combatData
@@ -207,7 +206,7 @@ end
 function PLUGIN:WeaponSkill (combatData)
     if (not combatData.netuserData.skills[combatData.weapon.name]) then
         char[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
-        char:Save( combatData.netuserData.id, combatData.netuser )
+        char:Save( combatData.netuser )
     end
     if combatData.weapon.lvl > combatData.netuserData.skills[combatData.weapon.name].lvl then
         combatData.dmg.amount = 0
