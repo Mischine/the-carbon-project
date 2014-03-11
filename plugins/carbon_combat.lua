@@ -18,7 +18,7 @@ local damage_cold = 32
 local spamNet = {}
 
 local IsAlive = tostring(LifeStatus.IsAlive)
-local IsDead = tostring(LifeStatus.isDead)
+local IsDead = tostring(LifeStatus.IsDead)
 local WasKilled = tostring(LifeStatus.WasKilled)
 local Failed = tostring(LifeStatus.Failed)
 
@@ -116,7 +116,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
        rust.BroadcastChat('------------client vs pve------------')
         combatData.dmg.amount = self:WeaponSkill(combatData)
 	    if combatData.dmg.amount == 0 then return 0 end
-        combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
+        combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on config s for player, weapon, npc, etc..
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
@@ -206,6 +206,7 @@ function PLUGIN:OnKilled (takedamage, dmg)
             char:GiveXp( combatData, xp, true)
         end
     end
+    combatData = nil
 end
 -----------------------------------------------------------------
 function PLUGIN:WeaponSkill (combatData)
@@ -220,6 +221,8 @@ function PLUGIN:WeaponSkill (combatData)
             spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = true
             timer.Once(6, function() spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = nil end)
         end
+        rust.BroadcastChat( canceldamage )
+        combatData = nil
     end
     return combatData.dmg.amount
 end

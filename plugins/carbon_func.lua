@@ -202,8 +202,9 @@ end
 
 function PLUGIN:Roll(a,b,c)
     local d=self:GetTimeMilliSeconds()
-    math.randomseed(tonumber(tostring(d):reverse():sub(1,6)))
-    --math.randomseed(d)
+    --math.randomseed(44)
+   -- math.randomseed(tonumber(tostring(d):reverse():sub(1,6)))
+    math.randomseed(d)
     rust.BroadcastChat(tostring(d))
     local result = 0
     if not c then
