@@ -257,7 +257,7 @@ function PLUGIN:DmgRandomizer(combatData)
 	-- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat('----PLUGIN:DmgRandomizer----')
     local min, max = combatData.dmg.amount*.5,combatData.dmg.amount
-    combatData.dmg.amount = func:Roll(min,max)
+    combatData.dmg.amount = func:Roll(false,min,max)
 	    -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
     rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount

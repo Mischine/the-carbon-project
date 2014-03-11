@@ -200,25 +200,20 @@ function PLUGIN:GetTimeMilliSeconds()
     return unix.TotalMilliSeconds
 end
 
-function PLUGIN:Roll(a,b)
+function PLUGIN:Roll(a,b,c)
     local d=self:GetTimeMilliSeconds()
-    --math.randomseed(44)
-   -- math.randomseed(tonumber(tostring(d):reverse():sub(1,6)))
     math.randomseed(d)
     local result = 0
-    if not b then
-        result=math.random(a)
+    if not c then
+        result=math.random(b)
     else
-        result=math.random(a,b)
+        result=math.random(b,c)
     end
-    return result
-	--[[
     if a then
         return math.floor((result)+0.5)
     else
         return result
     end
-    --]]
 end
 -- DATA UPDATE AND SAVE
 function PLUGIN:Save(name, dir)
