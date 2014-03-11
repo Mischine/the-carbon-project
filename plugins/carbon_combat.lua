@@ -206,7 +206,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
             char:GiveXp( combatData, xp, true)
         end
     end
-    combatData = nil
 end
 -----------------------------------------------------------------
 function PLUGIN:WeaponSkill (combatData)
@@ -221,8 +220,6 @@ function PLUGIN:WeaponSkill (combatData)
             spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = true
             timer.Once(6, function() spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = nil end)
         end
-        rust.BroadcastChat( canceldamage )
-        combatData = nil
     end
     return combatData.dmg.amount
 end

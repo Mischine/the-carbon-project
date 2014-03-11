@@ -49,17 +49,21 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	if not inv then rust.Notice( netuser, 'Inventory not found, try again!' ) return end
 	local tbl = {}
 	local con = 0
-	local helmet = inv:GetItem( 36 )
-	if helmet then
+	local b, helmet = inv:GetItem( 36 )
+	if b then
 		con = helmet.condition
+		rust.BroadcastChat( tostring(con) )
+		rust.BroadcastChat( tostring( helmet ))
+		helmet = helmet.datablock
+		rust.BroadcastChat( tostring( helmet ))
 		tbl[ 'helmet' ] = {
 			['item'] = helmet,
 			['con'] = con
 		}
 		inv:RemoveItem( 36 )
 	end
-	local vest = inv:GetItem( 37 )
-	if vest then
+	local b, vest = inv:GetItem( 37 )
+	if b then
 		con = vest.condition
 		tbl[ 'vest' ] = {
 			['item'] = vest,
@@ -67,8 +71,8 @@ function PLUGIN:Stealth( netuser, cmd, args)
 		}
 		inv:RemoveItem( 37 )
 	end
-	local pants = inv:GetItem( 38 )
-	if pants then
+	local b, pants = inv:GetItem( 38 )
+	if b then
 		con = pants.condition
 		tbl[ 'pants' ] = {
 			['item'] = pants,
@@ -76,8 +80,8 @@ function PLUGIN:Stealth( netuser, cmd, args)
 		}
 		inv:RemoveItem( 38 )
 	end
-	local boots = inv:GetItem( 39 )
-	if boots then
+	local b, boots = inv:GetItem( 39 )
+	if b then
 		con = boots.condition
 		tbl[ 'boots' ] = {
 			['item'] = boots,
@@ -97,13 +101,13 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local invitem3 = inv:AddItemAmount( pants, 1, pref )
 	local invitem4 = inv:AddItemAmount( boots, 1, pref )
 	rust.InventoryNotice( netuser, '+ Stealth' )
-	char:Save( netuser )
+	-- char:Save( netuser )
 end
 
 function PLUGIN:Unstealth( netuser )
 	local data = char:GetUserData( netuser )
 	if not data then return end
-	if not data.stealth then rust.Notice( netuser, 'You\'re not stealth!' ) return end
+	-- if not data.stealth then rust.Notice( netuser, 'You\'re not stealth!' ) return end
 	local netuserID = rust.GetUserID( netuser )
 	local char = rust.GetCharacter( netuser )
 	if not char then rust.Notice( netuser ,'No char.' ) return end
@@ -116,18 +120,17 @@ function PLUGIN:Unstealth( netuser )
 	local pref = rust.InventorySlotPreference( InventorySlotKind.Armor, false, InventorySlotKindFlags.Armor )
 
 	-- char:set_lockMovement(false)
-	rust.SendChatToUser(netuser, 'Movement: ' .. tostring(idchar.lockMovement))
+	-- rust.SendChatToUser(netuser, 'Movement: ' .. tostring(idchar.lockMovement))
 
 	inv:RemoveItem( 36 )inv:RemoveItem( 37 )inv:RemoveItem( 38 )inv:RemoveItem( 39 )
 	if self.stealth[ netuserID ] then
 		for _, v in pairs ( self.stealth[netuserID] ) do
 			local datablock = v.item
-			datablock:SetCondition(v.con)
 			inv:AddItemAmount( datablock, 1, pref )
 		end
 	end
 	rust.InventoryNotice( netuser, '- Stealth' )
-	char:Save( netuser )
+	-- char:Save( netuser )
 end
 
 
