@@ -3,9 +3,6 @@ PLUGIN.Description = 'combat module'
 PLUGIN.Version = '0.0.2'
 PLUGIN.Author = 'mischa / carex'
 
-local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )
-typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
-
 local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 
@@ -17,16 +14,16 @@ local damage_radiation = 16
 local damage_cold = 32
 local spamNet = {}
 
-local IsAlive = tostring(LifeStatus.IsAlive)
-local IsDead = tostring(LifeStatus.isDead)
-local WasKilled = tostring(LifeStatus.WasKilled)
-local Failed = tostring(LifeStatus.Failed)
-
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 
-
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )
+typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
+local IsAlive = tostring(LifeStatus.IsAlive)
+local IsDead = tostring(LifeStatus.IsDead)
+local WasKilled = tostring(LifeStatus.WasKilled)
+local Failed = tostring(LifeStatus.Failed)
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	rust.BroadcastChat('OnProcessDamageEvent')
 	--if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Health: ' .. tostring( takedamage.health )) end
@@ -285,7 +282,6 @@ function PLUGIN:Attack(combatData)
                 combatData.dmg.amount = combatData.dmg.amount * (((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.003)+1)
             end
         end
-
 
     elseif combatData.scenario == 2 then
         --ATTACKER DP DMG MODIFIERS
