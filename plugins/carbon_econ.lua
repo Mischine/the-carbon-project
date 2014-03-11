@@ -100,9 +100,9 @@ function PLUGIN:OnKilled ( takedamage, dmg )
     local npcController = {'ZombieController', 'BearAI', 'WolfAI', 'StagAI', 'BoarAI', 'ChickenAI', 'RabbitAI'}
     for _, npcController in ipairs(npcController) do
         if (takedamage:GetComponent( npcController )) then
-            local npcData = self.EConfig.Rewards[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
+            local npc = self.EConfig.Rewards[string.gsub(tostring(dmg.victim.networkView.name), '%(Clone%)', '')]
             local netuser = dmg.attacker.client.netUser
-            local data = self:Convert( math.floor( math.random( npcData.min, npcData.max )))
+            local data = self:Convert( math.floor( math.random( npc.min, npc.max )))
             local pdata = party:getParty( netuser )
             if pdata then
 	            rust.BroadcastChat( 'Has party, begin DistributeBalance' )

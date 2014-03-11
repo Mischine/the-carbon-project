@@ -10,12 +10,7 @@ function PLUGIN:PostInit()
     self:AddChatCommand( 'language', self.lang )
 
     -- Character
-    self:AddChatCommand( 'c', self.cmdCharacter )       -- will show level, xp to go (w/bar), dp, available commands >
-    self:AddChatCommand( 'skills', self.cmdSkills )     --only lists your skills and levels w/ bar also inspect by name individually will show bonus damage.
-    self:AddChatCommand( 'attr', self.cmdAttributes )   --lists your attributes and point availability.
-    self:AddChatCommand( 'perks', self.cmdPerks )       --shows current perks and levels w/ bar also inspect by name individually will show perk description.
-    self:AddChatCommand( 'add', self.cmdAdd )           --used to add points to perks or attributes i.e. /add 1 str or /add 1 parry
-    self:AddChatCommand( 'reset', self.cmdReset )       --used to reset perks, attr, class or prestige profession
+    self:AddChatCommand( 'c', self.cmdCharacter ) -- will show level, xp to go (w/bar), dp, available commands >
 
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
