@@ -3,6 +3,12 @@ PLUGIN.Description = 'combat module'
 PLUGIN.Version = '0.0.2'
 PLUGIN.Author = 'mischa / carex'
 
+local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )
+typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
+
+local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
+local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
+
 local damage_generic = 1
 local damage_bullet = 2
 local damage_melee = 4
@@ -11,23 +17,21 @@ local damage_radiation = 16
 local damage_cold = 32
 local spamNet = {}
 
-function PLUGIN:Init()
-    core = cs.findplugin("carbon_core") core:LoadLibrary()
-end
-
-local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )
-typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
 local IsAlive = tostring(LifeStatus.IsAlive)
 local IsDead = tostring(LifeStatus.isDead)
 local WasKilled = tostring(LifeStatus.WasKilled)
 local Failed = tostring(LifeStatus.Failed)
+
+function PLUGIN:Init()
+    core = cs.findplugin("carbon_core") core:LoadLibrary()
+end
+
+
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-	rust.BroadcastChat( 'ProcessDmg' )
 	local combatData                                        -- Define combatData so that it wont turn global. I cant local it in the if statement, cus then I cannot use it outside of it.
 	local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
 	local status = tostring( damage.status )
 	if ( status ~= IsDead ) then                            -- Prevent calculating even if they're dead. Less CPU usage. BETTAH PERFORMANCE!
-		rust.BroadcastChat( 'Getdmg' )
         dmg, combatData = self:CombatDamage( takedamage, damage )
 	end
 	if ((combatData.bodyPart) and ( not combatData.npc )) then
@@ -45,15 +49,13 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 end
 
 
-local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
-local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 function PLUGIN:CombatDamage (takedamage, dmg)
     --rust.BroadcastChat('INITIAL DAMAGE: ' .. tostring(dmg.amount))
     --SET UP COMBATDATA
-    --local combatData = {['dmg']={}}
-    --combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
-	-- local combatData = setmetatable({['dmg']={}}, {__newindex = function(t, k, v) rawset(t, k, v) end })
-	local combatData = {}
+    local combatData = {['dmg']={}}
+    combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+
+	--local combatData = {}
 
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
@@ -91,8 +93,8 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-	   combatData.dmg.amount = self:ActivatePerks(combatData)
+        -- combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
@@ -103,7 +105,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-	   combatData.dmg.amount = self:ActivatePerks(combatData)
+	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
         --dmg = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
@@ -115,8 +117,8 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        --combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-	   combatData.dmg.amount = self:ActivatePerks(combatData)
+        -- combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         -- combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end
@@ -154,10 +156,10 @@ end
 --http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
 function PLUGIN:OnKilled (takedamage, dmg)
     --SET UP COMBATDATA
-    --local combatData = {['dmg']={}}
-    --combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
-	-- local combatData = setmetatable({['dmg']={}}, {__newindex = function(t, k, v) rawset(t, k, v) end })
-	local combatData = {}
+    local combatData = {['dmg']={}}
+    combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+
+	--local combatData = {}
 
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
@@ -207,7 +209,7 @@ end
 function PLUGIN:WeaponSkill (combatData)
     if (not combatData.netuserData.skills[combatData.weapon.name]) then
         char[combatData.netuserData.id].skills[combatData.weapon.name] = {['name']=combatData.weapon.name,['xp']=0,['lvl']=1 }
-        char:Save( combatData.netuserData.id, combatData.netuser )
+        char:Save( combatData.netuser )
     end
     if combatData.weapon.lvl > combatData.netuserData.skills[combatData.weapon.name].lvl then
         combatData.dmg.amount = 0

@@ -28,8 +28,8 @@ function PLUGIN:Init()
 
     self.sysname = self.Config.settings.sysname
 
-    self.rnd = 0
-    timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
+    --self.rnd = 0
+    --timer.Repeat(0.0066666667, function() math.randomseed(math.random(100)) self.rnd = math.random(100) end)
 
     self.tmpusers = {}
     self.UnregTimer = timer.Repeat( 60, function() self:UnregBC() end)

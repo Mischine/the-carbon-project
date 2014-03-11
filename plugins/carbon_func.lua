@@ -194,13 +194,11 @@ function PLUGIN:xpbar( value, size )
 end
 
 function PLUGIN:GetTimeMilliSeconds()
-
     local epoch = System.DateTime.Parse[1]( "1970-01-01 00:00:00" ):ToLocalTime()
     local now = System.DateTime.Now
     local unix = now:Subtract( epoch )
-
+	rust.BroadcastChat(tostring(unix.TotalMilliSeconds))
     return unix.TotalMilliSeconds
-
 end
 
 function PLUGIN:Roll(a,b,c)
