@@ -21,6 +21,7 @@ function PLUGIN:Init()
 end
 
 function PLUGIN:SetLocalization()
+	self.Text = {}
     self.Text = {
         ['available']={'english','russian'},
         ['c'] = {
@@ -36,10 +37,12 @@ function PLUGIN:SetLocalization()
 			    ['agility'] = 'Agility',
 			    ['stamina'] = 'Stamina',
 			    ['intellect'] = 'Intellect',
-	            ['cmds_c_attr'] = {'add   [#]   [str|agi|sta|int]'},
+	            ['cmds_c_attr'] = {'train   [#]   [str|agi|sta|int]'},
+	            ['cmds_c_perks'] = {'train   [#]   [perk name]','list'},
 	            ['toomuchap']='You can\'t train above 10 points in a specific attribute field!',
 	            ['cmds_c_attr_train'] = {'[#]   [str|agi|sta|int]'},
                 ['insufficientap']='You don\'t have enough attribute points!',
+	            ['perkreqnotmet']='You do not meet the requirements to train this perk!',
 
             },
             ['russian'] = {

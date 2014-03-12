@@ -28,12 +28,20 @@ end
 
 
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+	--CONCEPT:
+	--STATUS CHECK: Check if the target is dead, if so cancel
+	--PROFICIENCY CHECK: Proficiency check, if not proficient cancel
+
+
+
+
+
 	-- Stealth check. TODO: Check if player works. NPC works fine.
 	if damage.victim.controllable then
 		if thief:hasStealth( damage.victim.client.netUser ) then
 			if damage.attacker.controllable then   -- PLAYER
 				thief:Unstealth( damage.victim.client.netUser )
-				damage = 10
+				damage.amount = damage.amount*1.5
 			else
 				local charid = rust.GetCharacter( damage.victim.client.netUser )
 				if not charid then rust.Notice( netuser ,'No char.' ) return end
@@ -43,11 +51,9 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 			end
 		end
 	end
-	rust.BroadcastChat('OnProcessDamageEvent')
 	local combatData = {}                     -- Define combatData so that it wont turn global. I cant local it in the if statement, cus then I cannot use it outside of it.
 	local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
 	local status = tostring( damage.status )
-
 	if ( status ~= IsDead ) then                            -- Prevent calculating even if they're dead. Less CPU usage. BETTAH PERFORMANCE!
         dmg, combatData = self:CombatDamage( takedamage, damage )
 	end
@@ -74,13 +80,11 @@ end
 local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 function PLUGIN:CombatDamage (takedamage, dmg)
-    dmg.amount = func:Roll(false,dmg.amount*0.97324564353,dmg.amount)
-    --SET UP COMBATDATA
-    --local combatData = {['dmg']={}}
-    --combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+	local randMultiplier = func:Roll(false,0.50123456789,0.59876543210)
+    dmg.amount = func:Roll(false,dmg.amount*randMultiplier,dmg.amount)
 
-	local combatData = {}
 
+    local combatData = {}
     if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
     if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
     if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
@@ -121,7 +125,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        combatData.dmg.amount = self:GuildAttack(combatData, takedamage ) --all guild offensive calls and modifiers
+        combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
 	    --combatData.dmg.amount = self:ActivatePerks(combatData)
         --combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers

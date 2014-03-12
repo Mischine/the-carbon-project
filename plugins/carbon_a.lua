@@ -19,7 +19,8 @@ function PLUGIN:a(netuser,cmd, args)
     local bp = controllable:GetComponent( "Blueprint" )
     local avatar = netuser:LoadAvatar()
 
-    rust.SendChatToUser(netuser, GetBlueprints)
+	rust.SendChatToUser(netuser, tostring(inv.activeItem))
+    --pinv:DoDeactivateItem()
 
 
 

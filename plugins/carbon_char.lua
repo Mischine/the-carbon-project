@@ -154,11 +154,54 @@ function PLUGIN:CharacterAttributesTrain(cmdData)
 		func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 	end
 end
-function PLUGIN:CharacterPerks(cmdData)
-	--TODO: ADD PERK CHAR COMMAND
+function PLUGIN:CharacterPerks(netuser, cmdData)
+	local content = {
+		--['prefix']='This is any prefix you would like to enter.',
+		--['breadcrumbs']=args,
+		--['header']='Header',
+		--['subheader']='Subheader',
+		--['msg']={},
+		['list']={},
+		['cmds']=cmdData.txt['cmds_c_perks'],
+		--['suffix']='this is the suffix',
+	}
+	for k,v in pairs(self[rust.GetUserID(netuser)].perks) do
+		table.insert( content.list, tostring('   ' .. v.name))
+		table.insert( content.list, tostring(func:xpbar( v.lvl*20, 5 )))
+	end
+	func:TextBox(netuser, content, cmdData.cmd, cmdData.args) return
 end
-function PLUGIN:CharacterPerksAdd(cmdData)
-	--TODO: ADD PERK CHAR COMMAND
+function PLUGIN:CharacterPerksTrain(netuser, cmdData)
+	local netuserData = self[rust.GetUserID(netuser)]
+	local cmdPerk = tostring(cmdData[4])
+	local perk = table.containsval( netuserData.perks, cmdPerk)
+	if ( perk ) then
+		local currentPerkLvl = netuserData.perks[cmdPerk].lvl
+		local desiredPerkLvl = currentPerkLvl + cmdData[3]
+		if desiredPerkLvl <= 5 then
+			local train = {['netuserData']=netuserData,['desiredPerkLvl']=desiredPerkLvl}
+			local res, perk, req = self:RequirementCheck(netuserData, cmdPerk)
+			if res then
+				--send trained message
+			else
+				local content = {
+					['msg'] = cmdData.txt['perkreqnotmet'],
+					['cmds'] = cmdData.txt['cmds_c_attr_train'],
+				}
+				func:TextBoxError(netuser, content, cmdData.cmd, cmdData.args) return
+			end
+		end
+	end
+end
+function PLUGIN:RequirementCheck(netuserData, cmdPerk, desiredPerkLvl)
+	for k,v in pairs( core.Config.perks[cmdPerk].req.attr ) do
+		if ( v ) then
+
+			if netuserData.attributes.k < v then return false, netuserData.attributes[tostring(k)],v end
+		end
+	end
+	if netuserData.lvl < core.Config.perks[cmdPerk].req.lvl then return netuserData.attributes[tostring(k)],v end
+
 end
 function PLUGIN:CharacterClass(cmdData)
 	--TODO: ADD CHAR CLASS COMMAND

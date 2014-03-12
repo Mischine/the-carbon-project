@@ -136,7 +136,6 @@ end
 
 function PLUGIN:GetCmdData(netuser, cmd ,args)
 	local cmdData = {}
-	cmdData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
 	cmdData['netuserData'] = char[rust.GetUserID(netuser)]
 	cmdData['netuser'] = netuser
 	cmdData['cmd'] = cmd
@@ -174,9 +173,9 @@ function PLUGIN:cmdCharacter(netuser, cmd ,args)
 		end
 	elseif args[1] == 'perks' then
 		if #args == 4 and args[2] == 'train' then
-			char:CharacterPerksTrain( cmdData )
+			char:CharacterPerksTrain(netuser,cmdData)
 		elseif #args == 1 then
-			char:CharacterPerks( cmdData )
+			char:CharacterPerks(netuser,cmdData)
 		end
 	elseif args[1] == 'class' then
 		if #args == 3 and args[2] == 'select' then
