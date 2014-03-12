@@ -456,6 +456,7 @@ function PLUGIN:Reflect(netuser, cmd, args)
         end
     end
 end
+
 function PLUGIN:Hurt(netuser, cmd, args)
     if(#args==0)then
         rust.SendChatToUser(netuser,'/hurt "name" #[amount]' )
@@ -469,7 +470,7 @@ function PLUGIN:Hurt(netuser, cmd, args)
             end
             return false
         end
-        local controllable = vicuser.playerClient.controllable
+        local controllable = netuser.playerClient.controllable
         local this = controllable:GetComponent("TakeDamage")
         local that = controllable:GetComponent("HumanBodyTakeDamage")
         rust.SendChatToUser(netuser,tostring(this) )

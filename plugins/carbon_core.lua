@@ -308,7 +308,7 @@ function PLUGIN:cmdRegister( netuser, cmd ,args )
 	print( netuser.displayName .. ' has registered with ID: ' .. tostring( netuserID ) )
 end
 
--- GUILD DOOR ACCESS! TODO Fix this damn guild door.
+-- GUILD DOOR ACCESS!
 local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
 function PLUGIN:CanOpenDoor( netuser, door )
 
@@ -323,7 +323,7 @@ function PLUGIN:CanOpenDoor( netuser, door )
 	-- check if user is owner.
 	if (ownerID == userID) then return true end
 
-	-- if not, get guilds
+	-- if not, get guilds           TODO: Test this.
 	local guildname = guild:getGuild( netuser )
 	if guildname then
 		local guilddata = guild:getGuildData( guildname )
@@ -333,7 +333,8 @@ function PLUGIN:CanOpenDoor( netuser, door )
 			end
 		end
 	end
-
+	-- TODO : Finish the thieving. I need a cfg file and how they lvl up.
+	-- Need handmade Lockpick and luck to open doors. -- Maybe have a cooldown on it when fail?
 	if thief:isThief( netuser ) then
 		local inv = rust.GetInventory( netuser )
 		if not inv then return end

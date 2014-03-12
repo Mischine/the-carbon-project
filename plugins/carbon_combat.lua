@@ -28,11 +28,26 @@ end
 
 
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+	-- Stealth check. TODO: Check if player works. NPC works fine.
+	if damage.victim.controllable then
+		if thief:hasStealth( damage.victim.client.netUser ) then
+			if damage.attacker.controllable then   -- PLAYER
+				thief:Unstealth( damage.victim.client.netUser )
+				damage = 10
+			else
+				local charid = rust.GetCharacter( damage.victim.client.netUser )
+				if not charid then rust.Notice( netuser ,'No char.' ) return end
+				local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
+				IDLocalCharacter:set_lockMovement( false )
+				timer.Once( 0.03, function () IDLocalCharacter:set_lockMovement( true ) end)
+			end
+		end
+	end
 	rust.BroadcastChat('OnProcessDamageEvent')
-	--if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, 'Health: ' .. tostring( takedamage.health )) end
 	local combatData = {}                     -- Define combatData so that it wont turn global. I cant local it in the if statement, cus then I cannot use it outside of it.
-	--local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
+	local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
 	local status = tostring( damage.status )
+
 	if ( status ~= IsDead ) then                            -- Prevent calculating even if they're dead. Less CPU usage. BETTAH PERFORMANCE!
         dmg, combatData = self:CombatDamage( takedamage, damage )
 	end
@@ -44,6 +59,9 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	if dmg.amount <= 0 then                                 -- Checks if they're proficient with the weapon.
 		dmg.status = LifeStatus.IsAlive
 		rust.BroadcastChat( cancelagro )
+	end
+	if dmg.amount >= 100 then
+		dmg.status = LifeStatus.WasKilled
 	end
 	if status == WasKilled then
 		if dmg.amount < takedamage.health then              -- Revive when they are not actually dead. So they wont die with 25 hp. =) | I think even will counter headshots.
@@ -103,7 +121,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-        combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+        combatData.dmg.amount = self:GuildAttack(combatData, takedamage ) --all guild offensive calls and modifiers
 	    --combatData.dmg.amount = self:ActivatePerks(combatData)
         --combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
@@ -144,10 +162,10 @@ function PLUGIN:ActivatePerks(combatData)
 
 	end
 end
-function PLUGIN:GuildAttack(combatData)
+function PLUGIN:GuildAttack(combatData, takedamage )
 	--if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:GuildAttack----' ) end
     rust.BroadcastChat('----PLUGIN:GuildAttack----')
-    combatData.dmg.amount = guild:GuildAttackMods( combatData )
+    combatData.dmg.amount = guild:GuildAttackMods( combatData, takedamage )
     --if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     return combatData.dmg.amount
 end

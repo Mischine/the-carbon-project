@@ -1075,7 +1075,7 @@ function PLUGIN:GuildWithdraw( name, guild, g, s, c )
     self:GuildSave()
 end
 
-function PLUGIN:GuildAttackMods( combatData )
+function PLUGIN:GuildAttackMods( combatData, takedamage )
     if combatData.scenario == 1 then                                                -- Client vs Client
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
         if not guild then
@@ -1092,6 +1092,7 @@ function PLUGIN:GuildAttackMods( combatData )
 	        combatData.dmg.amount = 110
 	        rust.Notice( combatData.vicuser, combatData.netuserData.name .. ' has assassinated you!' )
 	        rust.Notice( combatData.netuser, 'You\'ve assassinated ' .. combatData.vicuserData.name )
+	       rust.BroadcastChat( 'Assasinated' )
 	        return combatData.dmg.amount
         end
         local mod = self:hasCall( guilddata, 'rally' )

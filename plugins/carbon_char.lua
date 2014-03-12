@@ -238,6 +238,18 @@ function PLUGIN:PlayerLvl(combatData, xp)
         if (calcLvl ~= combatData.netuserData.lvl) then
             combatData.netuserData.lvl = calcLvl
             rust.Notice( combatData.netuser, 'You are now level ' .. calcLvl .. '!', 5 )
+	        if calcLvl == 25 then       -- Unlock classes selection.
+		        local content = {
+			        ['header'] = 'Classes unlock!',
+			        ['msg'] = 'You\'re now able to choose an class! Choosing a class will cost you 5 Gold. Classes give you extra abilities to play with. ',
+			        ['list'] = { 'To choose a class, type /class' },
+			        ['suffix'] = 'For more information about classes visit: www.tempusforge.com'
+		        }
+		        local cmd = 'Classes unlock!'
+		        local args = {}
+		        args[1] = 'Unlock message.'
+		        func:TextBox( combatData.netuser, content, cmd, args )
+	        end
         end
         local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/3)
         if (calcAp > combatData.netuserData.ap) then
@@ -286,6 +298,66 @@ function PLUGIN:SetDpPercentById(netuserID, percent)
         self:Save( netuserID )
     end
 end
+
+
+-- TODO: Add more classes. Medic before alpha maybe?
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--              CLASS COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+function PLUGIN:ClassReject( cmdData )
+	local content = {
+		['header'] = 'Class Reject',
+		['msg'] = 'You\'re not high enough level to choose a class. Please return when you\'re level 25 or higher.',
+		['suffix'] = 'More information about classes can be found at: www.tempusforge.com'
+	}
+	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
+end
+
+function PLUGIN:ClassInfo( cmdData )
+	local content = {
+		['header'] = 'Class Info',
+		['msg'] = 'Classes add a wide variaty of options in Carbon. \nHere is a list of all the available classes: ',
+		['list'] = {'Thief'},
+		['suffix'] = 'More information about classes can be found at: www.tempusforge.com'
+	}
+	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
+end
+
+function PLUGIN:SpecThief( cmdData )
+	if not cmdData.args[2] then
+		self:ThiefInfo( cmdData )
+	elseif cmdData.args[2]:lower() == 'spec' then
+		local canbuy = econ:canBuy( netuser, 5, 0, 0)
+		if not canbuy then rust.Notice( cmdData.netuser, 'Not enough balance, to spec a class it will cost 5 Gold.' ) return end
+		cmdData.netuserData.class = 'thief'
+		econ:RemoveBalance( cmdData.netuser, 5, 0 ,0 )
+	else
+		self:ThiefInfo( cmdData )
+	end
+end
+
+function PLUGIN:ThiefInfo( cmdData )
+	local content = {
+		['header'] = 'Thief Info',
+		['msg'] = 'A thief is a master of perception. Be stealthy. Backstab enemies or try to unlock their doors even? \nThief Features:',
+		['list'] = {'steal', 'stealth', 'backstab', 'picklock' },
+		['suffix'] = 'To spec thief, /class thief spec'
+	}
+	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
+end
+
+function PLUGIN:ThiefCmds( cmdData )
+	local content = {
+		['header'] = 'Thief Commands',
+		['msg'] = 'When trying to picklock a door, you need to have Handmade Lockpicks in slot 6 on your hotbar. To backstab a player you need to have a melee weapon, and standing behind a enemy in stealth mode when you hit them. Here is a list of thief commands:',
+		['list'] = {'/steal "name" - To steal from someone nearby.','/stealth - To go into stealth','/unstealth - To go visible again', },
+		['suffix'] = 'More information about the thief at: www.tempusforge.com'
+	}
+	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
+end
+
+
+
 
 function PLUGIN:GetUserData( netuser )
 
@@ -338,11 +410,11 @@ function PLUGIN:Save( netuser )
 		self.SaveCharFile:SetText( json.encode( self[ tostring(netuserID) ], { indent = true } ) )
 		self.SaveCharFile:Save()
 		if netuser then
-			-- timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving complete...' ) end)
+			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving complete...' ) end)
 		end
 	else
 		if netuser then
-			-- timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving failed...' ) end)
+			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving failed...' ) end)
 		end
 	end
 end
@@ -357,57 +429,3 @@ function PLUGIN:Load( netuserID )
 	end
 	return false
 end
-
---[[
--- PLUGIN:GetUserData
-function PLUGIN:GetUserData( netuser )
-    local netuserID = rust.GetUserID( netuser )
-    local data = self[ netuserID ] -- checks if data exist
-    if (not data ) then -- if not, creates one
-        data = {}
-        data.id = netuserID
-        data.name = netuser.displayName
-        data.lang = 'english'
-        data.lvl = 1
-        data.xp = 0
-        data.pp = 0
-        data.dp = 0
-        data.ap = 0
-        data.dmg = 1
-        data.ut = 0 --the amount of times this user has untrained his/her attributes.
-        data.attributes = {['str']=0,['agi']=0,['sta']=0,['int']=0 }
-        data.buffs = {}
-        data.skills = {}
-        data.perks = {}
-        data.crafting = false
-        data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
-        data.prof = {
-            ['Engineer']={['lvl']=0,['xp']=0,['maxlvl']=70},        -- Disabled on default : When unlocked you get lvl 1
-            ['Medic']={['lvl']=0,['xp']=0,['maxlvl']=70},           -- Disabled on default : When unlocked you get lvl 1
-            ['Carpenter']={['lvl']=1,['xp']=0,['maxlvl']=70},
-            ['Armorsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-            ['Weaponsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-            ['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-            ['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
-            }
-        self[ netuserID ] = data
-        self:UserSave()
-    end
-    return data
-end
-
-
--- DATA UPDATE AND SAVE
-function PLUGIN:UserSave()
-    print('Saving user data.')
-    selfFile:SetText( json.encode( self, { indent = true } ) )
-    selfFile:Save()
-    self:UserUpdate()
-    func.spamNet = {}
-end
-function PLUGIN:UserUpdate()
-    selfFile = util.GetDatafile( 'carbon_char' )
-    local txt = selfFile:GetText()
-    self = json.decode ( txt )
-end
---]]

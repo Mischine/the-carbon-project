@@ -35,10 +35,26 @@ end
 function PLUGIN:Steal( netuser, cmd, args )
 	if not args[1] then rust.SendChatToUser( netuser, '/steal "name" ' ) return end
 	local targname = util.QuoteSave( args[1] )
-
+	local b, vicuser = rust.FindNetUsersByName( args[1] )
+	if (not b) then return rust.Notice( netuser, 'No player found with the name ' .. targname ) end
+	local coords1 = netuser.playerClient.lastKnownPosition
+	if ( coords1 ) and ( coords1.x ) and ( coords1.y ) and ( coords1.z ) then
+		local coords2 = vicuser.playerClient.lastKnownPosition
+		if ( coords2 ) and ( coords2.x ) and ( coords2.y ) and ( coords2.z ) then
+			if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= 1.5 ) then
+				self:StealFrom( netuser, vicuser )
+			end
+		end
+		rust.Notice( netuser, 'Failed to get victims coords, try again.' )
+	end
+	rust.Notice( netuser, 'Failed to get your coords, try again.' )
 end
 
-function PLUGIN:Stealth( netuser, cmd, args)
+function PLUGIN:StealFrom( netuser, vicuser )
+	-- TODO : Finish stealing from. Make a CFG. Ask mischa what we want for Thief CFG.
+end
+
+function PLUGIN:Stealth( netuser )
 	local data = char:GetUserData( netuser )
 	if not data then return end
 	if data.stealth then rust.Notice( netuser, 'You\'re already stealth!' ) return end
@@ -59,7 +75,8 @@ function PLUGIN:Stealth( netuser, cmd, args)
 		helmet = helmet.datablock
 		tbl[ 'helmet' ] = {
 			['item'] = helmet,
-			['con'] = con
+			['con'] = con,
+			['slot'] = 36
 		}
 		inv:RemoveItem( 36 )
 	end
@@ -69,7 +86,8 @@ function PLUGIN:Stealth( netuser, cmd, args)
 		vest = vest.datablock
 		tbl[ 'vest' ] = {
 			['item'] = vest,
-			['con'] = con
+			['con'] = con,
+			['slot'] = 37
 		}
 		inv:RemoveItem( 37 )
 	end
@@ -79,7 +97,8 @@ function PLUGIN:Stealth( netuser, cmd, args)
 		pants = pants.datablock
 		tbl[ 'pants' ] = {
 			['item'] = pants,
-			['con'] = con
+			['con'] = con,
+			['slot'] = 38
 		}
 		inv:RemoveItem( 38 )
 	end
@@ -89,7 +108,8 @@ function PLUGIN:Stealth( netuser, cmd, args)
 		boots = boots.datablock
 		tbl[ 'boots' ] = {
 			['item'] = boots,
-			['con'] = con
+			['con'] = con,
+			['slot'] = 39
 		}
 		inv:RemoveItem( 39 )
 	end
@@ -105,13 +125,14 @@ function PLUGIN:Stealth( netuser, cmd, args)
 	local invitem3 = inv:AddItemAmount( pants, 1, pref )
 	local invitem4 = inv:AddItemAmount( boots, 1, pref )
 	rust.InventoryNotice( netuser, '+ Stealth' )
-	-- char:Save( netuser )
+	-- TODO: With the CFG file we can set a certain amount of time they can invisible
+	char:Save( netuser )
 end
 
 function PLUGIN:Unstealth( netuser )
 	local data = char:GetUserData( netuser )
 	if not data then return end
-	-- if not data.stealth then rust.Notice( netuser, 'You\'re not stealth!' ) return end
+	if not data.stealth then rust.Notice( netuser, 'You\'re not stealth!' ) return end
 	local netuserID = rust.GetUserID( netuser )
 	local charid = rust.GetCharacter( netuser )
 	if not charid then rust.Notice( netuser ,'No char.' ) return end
@@ -128,10 +149,15 @@ function PLUGIN:Unstealth( netuser )
 		for _, v in pairs ( self.stealth[netuserID] ) do
 			local datablock = v.item
 			inv:AddItemAmount( datablock, 1, pref )
+			local b, item = inv:GetItem( v.slot )
+			if b then
+				item:SetCondition( v.con )
+			end
 		end
 	end
+	self.stealth[ netuserID ] = nil
 	rust.InventoryNotice( netuser, '- Stealth' )
-	-- char:Save( netuser )
+	char:Save( netuser )
 end
 
 function PLUGIN:hasStealth( netuser )

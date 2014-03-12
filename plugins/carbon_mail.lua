@@ -9,6 +9,12 @@ function PLUGIN:Init()
     --self:AddChatCommand( 'mail', self.cmdMail )
 end
 
+--[[
+	TODO:
+	 Redo the whole mail system. Make it so people can forward mails. And send/receive money/items.
+	 Also make it so people can receive their donation per mail. XP,ITEM,MONEY,CLASSUNLOCK
+ ]]
+
 --PLUGIN:cmdMail
 function PLUGIN:cmdMail( netuser, cmd ,args )
     if( not args[1] ) then                              -- /mail        to check your inbox

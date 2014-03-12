@@ -12,7 +12,7 @@ function PLUGIN:PostInit()
 
     -- Character
     self:AddChatCommand( 'c', self.cmdCharacter ) -- will show level, xp to go (w/bar), dp, available commands >
-
+    self:AddChatCommand( 'class', self.cmdClass )
     -- Perks
     self:AddChatCommand( 'perks', self.cmdPerks )
 
@@ -227,6 +227,26 @@ function PLUGIN:cmdReset(netuser, cmd ,args)
         local netuserData = char[netuserID]
         char:InfoSkills( netuserData )
     end
+end
+
+function PLUGIN:cmdClass( netuser, cmd, args )
+	local cmdData = self:GetCmdData(netuser, cmd ,args)
+	if cmdData.netuserData.lvl < 25 then
+		char:ClassReject( cmdData )
+	end
+	if not args[1] then
+		if cmdData.netuserData.class then
+			if cmdData.netuserData.class == 'thief' then
+				char:ThiefCmds( cmdData )
+			end
+		end
+	char:ClassInfo( cmdData )
+	return end
+	if args[1]:lower() == 'thief' then
+		char:SpecThief( cmdData )
+	else
+		char:ClassInfo( cmdData )
+	end
 end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                    GUILD COMMANDS
