@@ -30,24 +30,26 @@ end
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	--CONCEPT:
 	--STATUS CHECK: Check if the target is dead, if so cancel
-	--PROFICIENCY CHECK: Proficiency check, if not proficient cancel
+	--PROFICIENCY CHECK: Proficiency check, if not proficient cancel | CAREX: This is already handled in the combatdamage. It sets the dmg to 0. then returns it.
+	--If we wanna do this here, we need to collect the weapon data here AND in CombatDamage. Your call.
 
 
 
 
 
-	-- Stealth check. TODO: Check if player works. NPC works fine.
+	-- Stealth check.
 	if damage.victim.controllable then
 		if thief:hasStealth( damage.victim.client.netUser ) then
 			if damage.attacker.controllable then   -- PLAYER
 				thief:Unstealth( damage.victim.client.netUser )
-				damage.amount = damage.amount*1.5
+				damage.amount = damage.amount*1.5   -- Incoming dmg is 0 I beleive. because our armor is that high.
 			else
 				local charid = rust.GetCharacter( damage.victim.client.netUser )
 				if not charid then rust.Notice( netuser ,'No char.' ) return end
 				local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
 				IDLocalCharacter:set_lockMovement( false )
 				timer.Once( 0.03, function () IDLocalCharacter:set_lockMovement( true ) end)
+				rust.BroadcastChat( cancelagro )
 			end
 		end
 	end

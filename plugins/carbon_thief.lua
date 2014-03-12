@@ -10,6 +10,7 @@ function PLUGIN:Init()
 
 	self:AddChatCommand( 'stealth', self.Stealth )
 	self:AddChatCommand( 'unstealth', self.Unstealth )
+	self:AddChatCommand( 'steal', self.Steal )
 end
 
 function PLUGIN:ThiefInfo( netuser, cmd, args )
@@ -25,6 +26,24 @@ function PLUGIN:SpecThief( netuser, cmd, args )
 	if not data then return end
 	data.stealth = false
 	data.class = 'thief'
+	if data.classdata then
+		if not data.classdata.thief then
+			data.classdata = {
+				['thief']={
+					['lvl'] = 1,
+					['xp'] = 0,
+					['steal'] = 5,           -- 5% success chance
+					['stealcd'] = 30,           -- 30 secs cooldown before you can steal again.
+					['stealth'] = 30,           -- 30 secs stealth max.
+					['stealthcd'] = 20,           -- 20 secs stealth cooldown before using it again AFTER you've unstealthed..
+					['picklock'] = 10,          -- 10% succes chance to picklock a door
+					['picklockcd'] = 20,        -- 20 secs cooldown before you can picklock again
+				}
+			}
+		char:Save( netuser )
+		end
+	end
+
 	local content = {
 		['header'] = 'You\'re now a Thief!',
 		['msg'] = 'A thief is a versatile class, capable of sneaky combat and nimble tricks. The thief is stealthy and agile, and currently the only class capable of finding and disarming many traps and picking locks. The rogue also has the ability to "sneak attack" or "backstab" enemies who are caught off-guard or taken by surprise, inflicting extra damage. The thief class is the only class able to walk in stealth mode undetectable by enemy hordes and other players.',
@@ -33,8 +52,13 @@ function PLUGIN:SpecThief( netuser, cmd, args )
 end
 
 function PLUGIN:Steal( netuser, cmd, args )
+	local charid = rust.GetCharacter( netuser )
+	if not charid then rust.Notice( netuser ,'No char.' ) return end
+	local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
+	IDLocalCharacter:set_lockMovement( false )
+
 	if not args[1] then rust.SendChatToUser( netuser, '/steal "name" ' ) return end
-	local targname = util.QuoteSave( args[1] )
+	local targname = tostring( args[1] )
 	local b, vicuser = rust.FindNetUsersByName( args[1] )
 	if (not b) then return rust.Notice( netuser, 'No player found with the name ' .. targname ) end
 	local coords1 = netuser.playerClient.lastKnownPosition
@@ -42,16 +66,36 @@ function PLUGIN:Steal( netuser, cmd, args )
 		local coords2 = vicuser.playerClient.lastKnownPosition
 		if ( coords2 ) and ( coords2.x ) and ( coords2.y ) and ( coords2.z ) then
 			if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= 1.5 ) then
+				rust.BroadcastChat( 'Stealing!' )
 				self:StealFrom( netuser, vicuser )
+				IDLocalCharacter:set_lockMovement( true )
+				return
+			else
+				rust.BroadcastChat( 'To far!' )
+				IDLocalCharacter:set_lockMovement( true )
+				return
 			end
 		end
 		rust.Notice( netuser, 'Failed to get victims coords, try again.' )
 	end
 	rust.Notice( netuser, 'Failed to get your coords, try again.' )
+	IDLocalCharacter:set_lockMovement( true )
 end
 
 function PLUGIN:StealFrom( netuser, vicuser )
-	-- TODO : Finish stealing from. Make a CFG. Ask mischa what we want for Thief CFG.
+	-- TODO : Finish stealing from.
+end
+
+function PLUGIN:cmdStealth( netuser )
+	local data = char:GetUserData( netuser )
+	if not data then return end
+	if not data.class == 'thief' then rust.Notice( netuser, 'You\'re not a thief!' ) return end
+	if data.stealth then
+		self:Unstealth( netuser )
+	else
+		self:Stealth( netuser )
+	end
+	char:Save( netuser )
 end
 
 function PLUGIN:Stealth( netuser )
