@@ -80,7 +80,6 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
 	end
 end
 
-
 function PLUGIN:GetCmdData(netuser, cmd ,args)
 	local cmdData = {}
 	cmdData['netuserData'] = char[rust.GetUserID(netuser)]
