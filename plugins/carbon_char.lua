@@ -399,9 +399,6 @@ function PLUGIN:ThiefCmds( cmdData )
 	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
 end
 
-
-
-
 function PLUGIN:GetUserData( netuser )
 
 	local netuserID = tostring(rust.GetUserID( netuser ) )

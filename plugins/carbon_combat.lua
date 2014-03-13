@@ -130,6 +130,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
 	    --combatData.dmg.amount = self:ActivatePerks(combatData)
         --combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+	    combatData.dmg.amount = self:ThiefMod( combatData )
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 2 then
 	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------pve vs client------------' ) end
@@ -182,6 +183,24 @@ function PLUGIN:GuildDefend(combatData)
     combatData.dmg.amount = guild:GuildDefendMods( combatData )
     --if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     return combatData.dmg.amount
+end
+
+function PLUGIN:ThiefMod( combatData )
+	if thief:isThief( combatData.netuser ) and thief:hasStealth( combatData.netuser ) then
+rust.BroadcastChat('----Thief backstab----')
+		local netchar = rust.GetCharacter(combatData.netuser)
+		local vicchar = rust.GetCharacter(combatData.vicuser)
+		if (type(netchar.eyesYaw == "number")) and (type(vichar.eyesYaw == "number")) then
+			local netangle = (netchar.eyesYaw+90)%360
+			local vicangle = (vichar.eyesYaw+90)%360
+			if (((netangle - vicangle) >= -50) and ((netangle - vicangle) <= 50)) then
+				combatData.dmg.amount = combatData.dmg.amount * (1 + combatData.netuserData.classdata.thief.backstab)
+				rust.InventoryNotice( combatData.netuser, 'Backstab!' )
+rust.BroadcastChat(tostring(combatData.dmg.amount))
+				return combatData.dmg.amount
+			end
+		end
+	end
 end
 -----------------------------------------------------------------
 --http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled

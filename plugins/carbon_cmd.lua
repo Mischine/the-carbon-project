@@ -43,9 +43,52 @@ function PLUGIN:PostInit()
 
     -- Statistics (stats)
 
+    -- Mail
+    self:AddChatCommand( 'mail', self.cmdMail )
+
 	-- Other
     self:AddChatCommand( 'register', self.Register )
     self:AddChatCommand( 'w', self.Whisper )
+end
+
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+--                 MAIL COMMANDS
+-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+function PLUGIN:cmdMail( netuser, cmd ,args )
+	local cmdData = self:GetCmdData( netuser, cmd, args )
+	if not args[1] then
+		mail.MailInfo( cmdData )
+	end
+	local option = args[1]:lower()
+
+	if option == 'new' then             -- /mail new [Optional subject]         To create a new mail, subject is optional
+	elseif option == 'item' then        -- /mail item #amount "ItemName"        To add items
+	elseif option == 'subject' then     -- /mail subject txt                    To add a subject
+	elseif option == 'txt' then         -- /mail txt txt                        To add new text
+	elseif option == 'money' then       -- /mail money g s c                    To add money to the mail
+	elseif option == 'read' then        -- /mail read #ID                       To read an mail
+	elseif option == 'pv' then          -- /mail pv                             To preview your mail that you\'re about to send
+	elseif option == 'cancel' then      -- /mail cancel                         To cancel the concept. return items/money in concept
+	elseif option == 'del' then         -- /mail del #ID                        To delete a mail
+	elseif option == 'clear' then       -- /mail clear                          To clear your whole inbox. Even the one with items in it
+	elseif option == 'fw' then          -- /mail fw                             To forward a mail
+	elseif option == 'collect' then     -- /mail collect                        To collect the items/money/donation
+	elseif option == 'send' then        -- /mail send "Name"                    To send mail to a player
+	else
+		mail.MailInfo( cmdData )
+	end
+end
+
+
+function PLUGIN:GetCmdData(netuser, cmd ,args)
+	local cmdData = {}
+	cmdData['netuserData'] = char[rust.GetUserID(netuser)]
+	cmdData['netuser'] = netuser
+	cmdData['cmd'] = cmd
+	if #args then cmdData['args'] = args end
+	if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
+	return cmdData
 end
 
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -134,15 +177,6 @@ function PLUGIN:Party( netuser, cmd, args )
 	end
 end
 
-function PLUGIN:GetCmdData(netuser, cmd ,args)
-	local cmdData = {}
-	cmdData['netuserData'] = char[rust.GetUserID(netuser)]
-	cmdData['netuser'] = netuser
-	cmdData['cmd'] = cmd
-	if #args then cmdData['args'] = args end
-	if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
-	return cmdData
-end
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --                 PROFFESIONS COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

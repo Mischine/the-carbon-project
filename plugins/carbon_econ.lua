@@ -48,6 +48,12 @@ function PLUGIN:Init()
     for _,v in pairs(self.Data) do count = count + 1 end
     print("Carbon: A total of " .. tostring(count) .. " users has been found.")
 
+    self.unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
+	    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
+	    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
+	    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
+	    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
+
     -- Sets CurrencySymbol, Chat name
     self.Chat = self.EConfig.Chat
 
@@ -66,11 +72,7 @@ function PLUGIN:Init()
 
 end
 
-local unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
-    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
-    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
-    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
-    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
+
 
 function PLUGIN:OnKilled ( takedamage, dmg )
     if ( takedamage:GetComponent( "HumanController" )) then
@@ -112,6 +114,11 @@ function PLUGIN:OnKilled ( takedamage, dmg )
             end
             return end --break out of all loops after finding controller type
     end
+end
+
+function PLUGIN:DeConvert( g, s, c )
+	local cost = (( g * 10000 ) + ( s * 100 ) + ( c * 1 ))
+	return cost
 end
 
 function PLUGIN:Convert( value )
@@ -379,7 +386,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
             data = self.Item[ key ]
         end
         if( data and key ) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then
-            local price = ""
+            local price
             if( data.price.g > 0 ) then
                 price = tostring( '[ Gold: ' .. data.price.g .. ' ] ' )
             elseif( data.price.s > 0 ) then
@@ -454,7 +461,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
             if( canbuy ) then -- Has enough money datablock found.
                 local inv = rust.GetInventory( netuser )
                 if not inv then rust.Notice( netuser, 'Inventory not found! Please report this to a GM' ) return end
-                local isUnstackable = func:containsval( unstackable, data.name )
+                local isUnstackable = func:containsval( self.unstackable, data.name )
                 local invamount = amount
                 if( isUnstackable ) then invamount = amount * 250 end
                 local i = 0
@@ -648,7 +655,7 @@ function PLUGIN:cmdSell( netuser, cmd, args)
             if not datablock then rust.Notice( netuser, ' Datablock not found, report this to a GM please. ') return end
             local inv = rust.GetInventory( netuser )
             if not inv then rust.Notice( netuser, 'Inventory not found, please report this to a GM.' ) return end
-            local isUnstackable = func:containsval(unstackable,data.name)
+            local isUnstackable = func:containsval(self.unstackable,data.name)
             local i = 0
             local item = inv:FindItem(datablock)
             if (item) then
