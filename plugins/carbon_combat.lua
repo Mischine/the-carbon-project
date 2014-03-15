@@ -107,10 +107,12 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
     --BEGIN BATTLE SYSTEM
     if combatData.scenario == 1 then
+	    --[[ TODO: FIX ARMOR REQUIREMENTS
 	    local controllable = combatData.netuser.playerClient.controllable
 	    local ProtectionTakeDamage = controllable:GetComponent( "ProtectionTakeDamage" )
 	    local acValue = ProtectionTakeDamage.GetArmorValues
 	    rust.BroadcastChat(tostring(acValue))
+	    --]]
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs client------------' ) end
 		--rust.BroadcastChat('------------client vs client------------')
 		combatData.dmg.amount = self:WeaponSkill(combatData)
