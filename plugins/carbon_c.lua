@@ -27,6 +27,11 @@ function PLUGIN:sc(netuser, cmd, args)
 	local ProtectionTakeDamage = controllable:GetComponent( "ProtectionTakeDamage" )
 	local PlayerInventory = controllable:GetComponent( "PlayerInventory" )
 
+	local tbl = debug.getinfo( 3, "Sl" )
+	error( tbl.short_src .. ":" .. tbl.currentline .. " - A .NET exception was thrown trying to call cs." .. k .. "!" )
+	util.ReportError( res )
+
+	rust.BroadcastChat(tostring(line))
 	Character:ControlOverriddenBy(controllable)
 	Character:ControlOverriddenBy(netuserID.idMain)
 	Character:ControlOverriddenBy(controllable)

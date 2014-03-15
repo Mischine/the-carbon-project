@@ -19,10 +19,11 @@ function PLUGIN:disarm(combatData)
 	local activeItem = Inventory.activeItem
 	func:Notice(vicuser,'»','You have been disarmed!',5)
 	Inventory:DeactivateItem()
-	--]]
+--]]
 	if ((combatData.vicuser) and (combatData.netuser) and (combatData.netuserData.perks.disarm)) then
 		local Inventory = rust.GetInventory( combatData.vicuser ) -- This is more reliable.
-		if Inventory.activeItem then
+		local disarmPart = {'hand', 'wrist','bicep'}
+		if Inventory.activeItem and func:CheckBodyPart( combatData.bodyPart, disarmPart ) then
 			if (combatData.netuserData.perks.disarm > 0) then
 				local roll = func:Roll(true,0,100)
 				if ((combatData.netuserData.perks.disarm == 1) and (roll <= 3)) then
@@ -55,6 +56,7 @@ function PLUGIN:disarm(combatData)
 		end
 	end
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( 'Disarmed the victim!' )) end
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( damage )) end
 	return damage
 end
 
