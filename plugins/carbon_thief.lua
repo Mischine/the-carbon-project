@@ -23,42 +23,37 @@ function PLUGIN:ThiefInfo( netuser, cmd, args )
 	func:TextBox(netuser, content, cmd, args)
 end
 
-function PLUGIN:SpecThief( netuser, cmd, args )
-	local data = char:GetUserDataFromTable( netuser )
-	if not data then return end
-	data.stealth = false
-	data.class = 'thief'
-	if data.classdata then
-		if not data.classdata.thief then
-			data.classdata = {
-				['thief']={
-					['lvl'] = 1,
-					['xp'] = 0,
-					['steal'] = 5,                  -- 5% success chance
-					['stealcd'] = 30,               -- 30 secs cooldown before you can steal again.
-					['stealth'] = 30,               -- 30 secs stealth max.
-					['stealthcd'] = 20,             -- 20 secs stealth cooldown before using it again AFTER you've unstealthed..
-					['picklock'] = 10,              -- 10% succes chance to picklock a door
-					['picklockfail'] = 90,          -- 90% chance to break picklock.
-					['picklockcd'] = 20,            -- 20 secs cooldown before you can picklock again
-					['backstab'] = 5,               -- 5% dmg increase when backstab.
-				}
+function PLUGIN:SpecThief( cmdData )
+	cmdData.netuserData.stealth = false
+	cmdData.netuserData.class = 'thief'
+	if not cmdData.netuserData.classdata then cmdData.netuserData.classdata = {} end
+	if not cmdData.netuserData.classdata.thief then
+		cmdData.netuserData.classdata = {
+			['thief']={
+				['lvl'] = 1,
+				['xp'] = 0,
+				['steal'] = 5,                  -- 5% success chance
+				['stealcd'] = 30,               -- 30 secs cooldown before you can steal again.
+				['stealth'] = 30,               -- 30 secs stealth max.
+				['stealthcd'] = 20,             -- 20 secs stealth cooldown before using it again AFTER you've unstealthed..
+				['picklock'] = 10,              -- 10% succes chance to picklock a door
+				['picklockfail'] = 90,          -- 90% chance to break picklock.
+				['picklockcd'] = 20,            -- 20 secs cooldown before you can picklock again
+				['backstab'] = 5,               -- 5% dmg increase when backstab.
 			}
-		char:Save( netuser )
-		end
+		}
 	end
-
+	char:Save( cmdData.netuser )
 	local content = {
 		['header'] = 'You\'re now a Thief!',
 		['msg'] = 'A thief is a versatile class, capable of sneaky combat and nimble tricks. The thief is stealthy and agile, and currently the only class capable of finding and disarming many traps and picking locks. The rogue also has the ability to "sneak attack" or "backstab" enemies who are caught off-guard or taken by surprise, inflicting extra damage. The thief class is the only class able to walk in stealth mode undetectable by enemy hordes and other players.',
 	}
-	func:TextBox(netuser, content, cmd, args)
+	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 end
 
 function PLUGIN:Steal( netuser, _, args )
-
-	if self.cd[ netuser ] then rust.Notice( netuser, 'Stealing is still on cooldown! ' .. tostring(self.cd[ netuser ] .. ' seconds remaining' )) return end
-	-- if not self:isThief( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
+	-- if self.cd[ netuser ] and self.cd[ netuser ].steal then rust.Notice( netuser, 'Stealing is still on cooldown!' ) return end
+	if not self:isThief( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
 	if not args[1] then rust.SendChatToUser( netuser, '/steal "name" ' ) return end
 	local targname = tostring( args[1] )
 	local b, vicuser = rust.FindNetUsersByName( args[1] )
@@ -73,7 +68,7 @@ function PLUGIN:Steal( netuser, _, args )
 	if ( coords1 ) and ( coords1.x ) and ( coords1.y ) and ( coords1.z ) then
 		local coords2 = vicuser.playerClient.lastKnownPosition
 		if ( coords2 ) and ( coords2.x ) and ( coords2.y ) and ( coords2.z ) then
-			if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= 1.5 ) then
+			if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= 50 ) then
 rust.BroadcastChat( 'Stealing!' )
 				self:StealFrom( netuser, vicuser )
 				IDLocalCharacter:set_lockMovement( true )
@@ -92,30 +87,22 @@ end
 
 function PLUGIN:StealFrom( netuser, vicuser )
 	if netuser and vicuser then
-		-- Get Data
 		local netdata = char:GetUserDataFromTable( netuser )
 		if not netdata then Notice( netuser, 'Failed to load data, try again' ) return end
 		local vicdata = char:GetUserDataFromTable( vicuser )
 		if not vicdata then rust.Notice( netuser, 'Failed to load victems data, try again.' ) return end
-
-		-- Get vic Balance || Stealing money
 		local data = econ:getBalance( vicuser )
 		local bal = econ:DeConvert( data.g, data.s, data.c )
-rust.BroadcastChat( 'bal: ' .. tostring(bal))
 		if bal > 0 then
 			local max = 1750 + (250 * netdata.classdata.thief.lvl )
 			local take = func:Roll(true,  0, max )
 			if take > bal/2 then take = bal/2 end               -- Take 50% when the take is higher then 50% of the vics balance.
-rust.BroadcastChat( 'take: ' .. tostring( take ))
-			local data = econ:Convert( take )
+			local data = econ:Convert( math.floor(take) )
 			econ:AddBalance( netuser, data.g, data.s, data.c  )
-			econ:RemovieBalance( vicuser, data.g, data.s, data.c  )
-			local msg = ""
-			if data.g > 0 then msg = msg .. 'Gold: ' .. data.g .. ' ' end
-			if data.s > 0 then msg = msg .. 'Silver: ' .. data.s .. ' ' end
-			if data.c > 0 then msg = msg .. 'Copper: ' .. data.c .. ' ' end
-			rust.Notice( vicuser, netuser.displayName .. ' stole ' .. tostring( msg ) .. 'from you!')
-			rust.Notice( netuser, 'You stole ' .. tostring( msg ) .. 'from' .. vicuser.displayName)
+			econ:RemoveBalance( vicuser, data.g, data.s, data.c  )
+			local msg = tostring('Gold: ' .. data.g .. ' Silver: ' .. data.s .. ' Copper: ' .. data.c)
+			rust.Notice( vicuser, netuser.displayName .. ' stole ' .. tostring( msg ) .. ' from you!')
+			rust.Notice( netuser, 'You stole ' .. tostring( msg ) .. ' from ' .. vicuser.displayName)
 		else
 			rust.Notice( netuser, vicuser.displayName .. ' has no money!' )
 		end
@@ -128,57 +115,76 @@ rust.BroadcastChat( 'take: ' .. tostring( take ))
 			if not vicinv then rust.Notice( netuser, 'Failed to load victims inventory, try again.' ) return end
 
 			local roll = func:Roll( false, 100 )
-rust.BroadcastChat( 'Roll: ' .. tostring( roll ))
+			roll = 1
 			if roll < netdata.classdata.thief.steal then
-rust.BroadcastChat( 'Steal item.' )
 				local max
 				local min
-				if netdata.class.thief.lvl < 20 then
+				if netdata.classdata.thief.lvl < 20 then
 					min = 1
 					max = 2
-				elseif netdata.class.thief.lvl < 30 then
+				elseif netdata.classdata.thief.lvl < 30 then
 					min = 1
 					max = 2
-				elseif netdata.class.thief.lvl < 40 then
+				elseif netdata.classdata.thief.lvl < 40 then
 					min = 2
 					max = 4
-				elseif netdata.class.thief.lvl >= 40 then
+				elseif netdata.classdata.thief.lvl >= 40 then
 					min = 3
 					max = 5
 				else
 					min = 1
 					max = 1
 				end
-rust.BroadcastChat( 'Min: ' .. tostring(min) .. ' | Max: ' .. tostring(max))
 				local total = func:Roll( true, min, max )
-				for i = 0, total do
-					local rnd = func:Roll( true, 0, 35 )
+				local i = 0
+				local y = 0
+				while i < total do
+					local rnd = func:Roll( true, 0, 29 )
+					if y >= 35 then break end
 					local b, item = vicinv:GetItem(rnd)
 					if b then
+						vicinv:RemoveItem( rnd )
 						local uses = item.uses
 						local con = false
 						if item.condition then con = item.condition end
 						local db = item.datablock
+						local split = db._splittable
 						for i = 0, 35 do
 							local c, _ = netinv:GetItem( i )
 							if not c then
-								netinv:AddItemAmount( db, uses )
+								netinv:AddItemAmount( db, 1 )
 								b, item = netinv:GetItem( i )
-								if b and con then item.con = con end
-								rust.InventoryNotice( netuser, tostring('+' .. uses .. ' ' .. db.name ))
-								rust.InventoryNotice( vicuser, tostring('-' .. uses .. ' ' .. db.name ))
+								if b then
+									if con then
+										item.condition = con
+									end
+									if uses then
+										item.uses = uses
+									end
+								end
+								if split then
+									rust.InventoryNotice( netuser, tostring('+' .. uses .. ' ' .. db.name ))
+									rust.InventoryNotice( vicuser, tostring('-' .. uses .. ' ' .. db.name ))
+								else
+									rust.InventoryNotice( netuser, tostring('+ 1 ' .. db.name ))
+									rust.InventoryNotice( vicuser, tostring('- 1 ' .. db.name ))
+
+								end
+								break
 							end
 						end
+						i = i + 1
 					end
+					y = y + 1
 				end
-			else
-				rust.Notice( netuser, 'You tried to steal from ' .. vicuser.displayName .. ' but failed.' )
 			end
 		end
-		self:Unstealth( netuser )
+		if self:hasStealth( netuser ) then
+			self:Unstealth( netuser )
+		end
 		if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
 		self.cd[ netuser ]['steal'] = netdata.classdata.thief.stealcd
-		timer.Once( netdata.classdata.thief.stealcd, function() if self.cd[ netuser ]['steal'] then self.cd[ netuser ]['steal'] = nil end end )
+		timer.Once( netdata.classdata.thief.stealcd, function() if self.cd[ netuser ]['steal'] then self.cd[ netuser ]['steal'] = nil rust.InventoryNotice( netuser, '+ Steal' ) end end )
 	end
 end
 
@@ -263,7 +269,6 @@ function PLUGIN:Stealth( netuser )
 
 	if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
 	self.cd[ netuser ]['stealth'] = netdata.classdata.thief.stealthcd
-
 	char:Save( netuser )
 end
 

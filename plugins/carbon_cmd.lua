@@ -254,7 +254,8 @@ function PLUGIN:cmdAdd(netuser, cmd ,args)
         char:InfoSkills( netuserData )
     end
 end
-function PLUGIN:cmdReset(netuser, cmd ,args)
+function PLUGIN:cmdReset(netuser, _ ,args)
+	local netuserID = rust.GetUserID( netuser )
     if not args[1] then
         local netuserData = char[netuserID]
         char:InfoSkills( netuserData )

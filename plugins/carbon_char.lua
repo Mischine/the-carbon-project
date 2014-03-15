@@ -23,7 +23,7 @@ function PLUGIN:PostInit()
 end
 
 function PLUGIN:loadchar( netuser, cmd, args)
-	local data = self:GetUserDataFromTable( netuser )
+	local data = self:GetUserData( netuser )
 	if data then
 		rust.SendChatToUser( netuser, 'Reloaded data for ' ..  data.name )
 	else
@@ -152,7 +152,6 @@ function PLUGIN:CharacterAttributesTrain(cmdData)
 			func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 		end
 	else
-
 		func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 	end
 end
@@ -445,10 +444,10 @@ function PLUGIN:SpecThief( cmdData )
 	if not cmdData.args[2] then
 		self:ThiefInfo( cmdData )
 	elseif cmdData.args[2]:lower() == 'spec' then
-		local canbuy = econ:canBuy( netuser, 5, 0, 0)
+		local canbuy = econ:canBuy( cmdData.netuser, 5, 0, 0)
 		if not canbuy then rust.Notice( cmdData.netuser, 'Not enough balance, to spec a class it will cost 5 Gold.' ) return end
-		cmdData.netuserData.class = 'thief'
 		econ:RemoveBalance( cmdData.netuser, 5, 0 ,0 )
+		thief:SpecThief( cmdData )
 	else
 		self:ThiefInfo( cmdData )
 	end
@@ -519,8 +518,7 @@ function PLUGIN:GetUserData( netuser )
 			['Carpenter']={['lvl']=1,['xp']=0,['maxlvl']=70},
 			['Armorsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
 			['Weaponsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-			['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
+			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70}
 		}
 		self[netuserID] = data
 		self:Save( netuser )
