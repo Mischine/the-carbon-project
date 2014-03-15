@@ -63,23 +63,23 @@ end
 function PLUGIN:stoneskin(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----perk:stoneskin----' ) end
 	local damage = combatData.dmg.amount
-    if ((combatData.vicuser) and (combatData.vicuser ~= combatData.netuser) and (oodinvicuserData.perks.Stoneskin)) then
-        if (vicuserData.perk.Stoneskin.lvl > 0) then
-            if (vicuserData.perk.Stoneskin.lvl == 1) then
+    if ((combatData.vicuser) and (combatData.vicuser ~= combatData.netuser) and (combatData.vicuserData.perks.stoneskin)) then
+        if (combatData.vicuserData.perk.stoneskin > 0) then
+            if (combatData.vicuserData.perk.stoneskin == 1) then
                 damage = tonumber(damage - (damage*.05))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:perkStoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (vicuserData.perk.Stoneskin.lvl == 2) then
+                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
+            elseif (combatData.vicuserData.perk.stoneskin == 2) then
                 damage = tonumber(damage - (damage*.10))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:perkStoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (vicuserData.perk.Stoneskin.lvl == 3) then
+                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
+            elseif (combatData.vicuserData.perk.stoneskin == 3) then
                 damage = tonumber(damage - (damage*.15))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:perkStoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (vicuserData.perk.Stoneskin.lvl == 4) then
+                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
+            elseif (combatData.vicuserData.perk.stoneskin == 4) then
                 damage = tonumber(damage - (damage*.20))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:perkStoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (vicuserData.perk.Stoneskin.lvl == 5) then
+                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
+            elseif (combatData.vicuserData.perk.stoneskin == 5) then
                 damage = tonumber(damage - (damage*.25))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'PLUGIN:perkStoneskin (vicuser): ' .. tostring(damage)) end
+                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
             end
         end
     end

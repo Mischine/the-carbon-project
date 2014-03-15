@@ -16,7 +16,6 @@ function PLUGIN:sc(netuser, cmd, args)
 		local validate,netuser = rust.FindNetUsersByName( args[1] )
 		i = i+1
 	end
-
 	local controllable = netuser.playerClient.controllable
 	local netuserID = rust.GetCharacter( netuser )
 	local Character = controllable:GetComponent( "Character" )
@@ -27,9 +26,8 @@ function PLUGIN:sc(netuser, cmd, args)
 	local ProtectionTakeDamage = controllable:GetComponent( "ProtectionTakeDamage" )
 	local PlayerInventory = controllable:GetComponent( "PlayerInventory" )
 
-	local tbl = debug.getinfo( 3, "Sl" )
-	error( tbl.short_src .. ":" .. tbl.currentline .. " - A .NET exception was thrown trying to call cs." .. k .. "!" )
-	util.ReportError( res )
+
+	Character:DestroyCharacter(Character)
 
 	rust.BroadcastChat(tostring(line))
 	Character:ControlOverriddenBy(controllable)

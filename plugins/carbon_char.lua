@@ -269,14 +269,13 @@ function PLUGIN:RequirementCheck(cmdData, desiredPerkLvl)
 	end
 	return true
 end
-function PLUGIN:CharacterClass(cmdData)
-	--TODO: ADD CHAR CLASS COMMAND
-end
-function PLUGIN:CharacterClassSelect(cmdData)
-	--TODO: ADD CHAR CLASS SELECT COMMAND
-end
 function PLUGIN:CharacterReset(cmdData)
-	--TODO: ADD CHAR RESET COMMAND
+	local content = {
+		['msg']=cmdData.txt['C_RESET'],
+		['cmds']=cmdData.txt['CMDS_C_RESET'],
+	}
+
+	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 end
 function PLUGIN:CharacterResetPerks(cmdData)
 	--TODO: ADD  CHAR RESET PERKS COMMAND
