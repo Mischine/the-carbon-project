@@ -43,7 +43,11 @@ function PLUGIN:SetLocalization()
 	            ['cmds_c_attr_train'] = {'[#]   [str|agi|sta|int]'},
                 ['insufficientap']='You don\'t have enough attribute points!',
 	            ['perkreqnotmet']='You do not meet the requirements to train this perk!',
-
+	            ['perklvloverlimit']='You can\'t train a perk over level 5!',
+	            ['insufficientpp']='You don\'t have enough perk points!',
+	            ['trainperknegative']='You can\'t negatively train a perk!',
+	            ['traiattrnegative']='You can\'t negatively train an attribute!',
+	            ['perkdoesntexist']='This perk doesn\'t exist!',
             },
             ['russian'] = {
 	            --/c

@@ -206,9 +206,9 @@ function PLUGIN:cmdCharacter(netuser, cmd ,args)
 		end
 	elseif args[1] == 'perks' then
 		if #args == 4 and args[2] == 'train' then
-			char:CharacterPerksTrain(netuser,cmdData)
+			char:CharacterPerksTrain(cmdData)
 		elseif #args == 1 then
-			char:CharacterPerks(netuser,cmdData)
+			char:CharacterPerks(cmdData)
 		end
 	elseif args[1] == 'class' then
 		if #args == 3 and args[2] == 'select' then

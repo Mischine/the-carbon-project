@@ -128,7 +128,9 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-	    --combatData.dmg.amount = self:ActivatePerks(combatData)
+	   for k,v in pairs(combatData.netuserData.perks) do
+		   combatData.dmg.amount = perk[k](perk, combatData)
+	   end
         --combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
 	    combatData.dmg.amount = self:ThiefMod( combatData )
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
@@ -139,7 +141,9 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
+	   for k,v in pairs(combatData.netuserData.perks) do
+		   combatData.dmg.amount = perk[k](perk, combatData)
+	   end
         combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 3 then
 	   if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs pve------------' ) end
@@ -150,7 +154,9 @@ function PLUGIN:CombatDamage (takedamage, dmg)
         combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
         combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
         combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-	    -- combatData.dmg.amount = self:ActivatePerks(combatData)
+	   for k,v in pairs(combatData.netuserData.perks) do
+		   combatData.dmg.amount = perk[k](perk, combatData)
+	   end
         combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
         -- combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     end

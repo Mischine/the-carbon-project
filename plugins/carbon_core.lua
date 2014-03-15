@@ -200,13 +200,13 @@ function PLUGIN:SetDefaultConfig()
                 ['forglory']={['name']='For Glory!',['requirements']={['cost']={['g']=2,['s']=0,['c']=0},['glvl']=5},['mod']=.05 },
                 ['kos']={['name']='Kill On Sight!',['requirements']={['cost']={['g']=5,['s']=0,['c']=0},['glvl']=6},['mod']=50}
             },
-	        ['perks']={
-		        ['parry']={['name']='Parry',['req']={['attr']={['str']=0,['sta']=0,['agi']={[1]=1,[2]=2,[3]=3,[4]=4,[5]=5,},['int']=0,['cha']=0,['wis']=0,['wil']=0,['per']=0,['chance']=0},['lvl']=0},['class']=nil,['achievement']=nil,['quest']=nil,},
-		        ['disarm']={['name']='Disarm',['req']={['attr']={['str']=0,['sta']=0,['agi']={[1]=1,[2]=2,[3]=3,[4]=4,[5]=5,},['int']=0,['cha']=0,['wis']=0,['wil']=0,['per']=0,['chance']=0},['lvl']=0},['class']=nil,['achievement']=nil,['quest']=nil,},
-		        ['stoneskin']={['name']='Stoneskin',['req']={['attr']={['str']={[1]=1,[2]=2,[3]=3,[4]=4,[5]=5,},['sta']=0,['agi']=0,['int']=0,['cha']=0,['wis']=0,['wil']=0,['per']=0,['chance']=0},['lvl']=0},['class']=nil,['achievement']=nil,['quest']=nil,},
-		        ['knockdown']={['name']='Stoneskin',['req']={['attr']={['str']={[1]=1,[2]=2,[3]=3,[4]=4,[5]=5,},['sta']=0,['agi']=0,['int']=0,['cha']=0,['wis']=0,['wil']=0,['per']=0,['chance']=0},['lvl']=0},['class']=nil,['achievement']=nil,['quest']=nil,},
-	        },
-        }
+        },
+	    ['perks']={
+		    ['parry']={['name']='Parry',['req']={['attr']={['str']=nil,['sta']=nil,['agi']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil}},
+		    ['disarm']={['name']='Disarm',['req']={['attr']={['str']=nil,['sta']=nil,['agi']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
+		    ['stoneskin']={['name']='Stoneskin',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
+		    ['knockdown']={['name']='knockdown',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
+	    },
     }
     self:ConfigSave()
 end

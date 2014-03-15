@@ -128,19 +128,20 @@ end
 function PLUGIN:CharacterAttributesTrain(cmdData)
 	cmdData.args[3] = tonumber(cmdData.args[3])
 	cmdData.args[4] = tostring(cmdData.args[4])
-	if cmdData.args[3] >= 1 and (cmdData.args[4] == 'str' or cmdData.args[4] == 'agi' or cmdData.args[4] == 'sta' or cmdData.args[4] == 'int')then
+	if cmdData.args[3] >= 1 and ( self[ cmdData.netuserData.id ].attributes[ cmdData.args[4] ] ) then
 		if cmdData.netuserData.ap >= cmdData.args[3] then
 			if cmdData.netuserData.attributes[ cmdData.args[4] ] + cmdData.args[3]<=10 then
 				cmdData.netuserData.ap=cmdData.netuserData.ap - cmdData.args[3]
 				cmdData.netuserData.attributes[ cmdData.args[4] ] = cmdData.netuserData.attributes[ cmdData.args[4] ] + cmdData.args[3]
 				rust.InventoryNotice(cmdData.netuser, '+' .. tostring(cmdData.args[3]) .. cmdData.args[4])
-				self:Save(cmdData.netuserData.id, cmdData.netuser )
+				self:Save(cmdData.netuser )
 				self:CharacterAttributes(cmdData)
 			else
 				local content = {
 					['msg']=cmdData.txt['toomuchap'],
 					['cmds']=cmdData.txt['cmds_c_attr_train'],
 				}
+
 				func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 			end
 		elseif cmdData.netuserData.ap < cmdData.args[3] then
@@ -148,60 +149,126 @@ function PLUGIN:CharacterAttributesTrain(cmdData)
 				['msg'] = cmdData.txt['insufficientap'],
 				['cmds']=cmdData.txt['cmds_c_attr_train'],
 			}
+
 			func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 		end
 	else
+
 		func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 	end
 end
-function PLUGIN:CharacterPerks(netuser, cmdData)
+function PLUGIN:CharacterPerks(cmdData)
 	local content = {
-		--['prefix']='This is any prefix you would like to enter.',
-		--['breadcrumbs']=args,
-		--['header']='Header',
-		--['subheader']='Subheader',
-		--['msg']={},
 		['list']={},
 		['cmds']=cmdData.txt['cmds_c_perks'],
-		--['suffix']='this is the suffix',
 	}
-	for k,v in pairs(self[rust.GetUserID(netuser)].perks) do
-		table.insert( content.list, tostring('   ' .. v.name))
-		table.insert( content.list, tostring(func:xpbar( v.lvl*20, 5 )))
+	local usedpp = 0
+	for k,v in pairs(cmdData.netuserData.perks) do
+		table.insert( content.list, tostring('   ' .. core.Config.perks[k].name))
+		table.insert( content.list, tostring(func:xpbar( v*20, 5 )))
+		usedpp = usedpp+v
 	end
-	func:TextBox(netuser, content, cmdData.cmd, cmdData.args) return
+	table.insert( content.list, 'Available Perk Points: ' .. cmdData.netuserData.pp .. ' / ' .. usedpp+cmdData.netuserData.pp )
+	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 end
-function PLUGIN:CharacterPerksTrain(netuser, cmdData)
-	local netuserData = self[rust.GetUserID(netuser)]
-	local cmdPerk = tostring(cmdData[4])
-	local perk = table.containsval( netuserData.perks, cmdPerk)
-	if ( perk ) then
-		local currentPerkLvl = netuserData.perks[cmdPerk].lvl
-		local desiredPerkLvl = currentPerkLvl + cmdData[3]
-		if desiredPerkLvl <= 5 then
-			local train = {['netuserData']=netuserData,['desiredPerkLvl']=desiredPerkLvl}
-			local res, perk, req = self:RequirementCheck(netuserData, cmdPerk)
-			if res then
-				--send trained message
+function PLUGIN:CharacterPerksTrain(cmdData)
+	cmdData.args[3] = tonumber(cmdData.args[3])
+	cmdData.args[4] = tostring(cmdData.args[4])
+	if cmdData.args[3] >= 1 then
+		if debug.list[ cmdData.netuser.displayName ] then debug:SendDebug( combatData.debug, '' ) end
+		if (core.Config.perks[cmdData.args[4]]) then
+			local currentPerkLvl = 0
+			if cmdData.netuserData.perks[cmdData.args[4]] then currentPerkLvl = cmdData.netuserData.perks[cmdData.args[4]] end
+			local desiredPerkLvl = currentPerkLvl+cmdData.args[3]
+			if desiredPerkLvl <= 5 then
+				if cmdData.netuserData.pp >= cmdData.args[3] then
+					local res, atr, curlvl, reqlvl = self:RequirementCheck(cmdData, desiredPerkLvl)
+					if res then
+						cmdData.netuserData.pp=cmdData.netuserData.pp - cmdData.args[3]
+
+						cmdData.netuserData.perks[ cmdData.args[4] ] = currentPerkLvl + cmdData.args[3]
+						rust.InventoryNotice(cmdData.netuser, '+' .. tostring(cmdData.args[3]) .. ' '.. core.Config.perks[ cmdData.args[4] ].name)
+						self:Save(cmdData.netuser )
+						self:CharacterPerks(cmdData)
+					else
+						if atr then
+							if atr=='str'then atr='Strength'
+							elseif atr=='sta'then atr='Stamina'
+							elseif atr=='agi'then atr='Agility'
+							elseif atr=='int'then atr='Intellect'
+							elseif atr=='cha'then atr='Charisma'
+							elseif atr=='wis'then atr='Wisdom'
+							elseif atr=='wil'then atr='Willpower'
+							elseif atr=='per'then atr='Perception'
+							elseif atr=='luc'then atr='Luck' end
+						end
+						local content = {
+							['header']= 'Requirements not met',
+							--obtain attribute nice name.. >;)
+							['msg'] =tostring('Your '.. atr ..' must be at least '.. reqlvl),
+							['list'] = {'Your current ' .. atr .. ' level is ' .. curlvl },
+							['cmds'] = cmdData.txt['cmds_c_perks'],
+						}
+						func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
+					end
+				else
+					local content = {
+						['msg'] = cmdData.txt['insufficientpp'],
+						['cmds']=cmdData.txt['cmds_c_attr_train'],
+					}
+					func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
+				end
 			else
 				local content = {
-					['msg'] = cmdData.txt['perkreqnotmet'],
-					['cmds'] = cmdData.txt['cmds_c_attr_train'],
+				['msg'] = cmdData.txt['perklvloverlimit'],
+				['cmds']=cmdData.txt['cmds_c_attr_train'],
 				}
-				func:TextBoxError(netuser, content, cmdData.cmd, cmdData.args) return
+				func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 			end
+		else
+			local content = {
+				['msg'] = cmdData.txt['perkdoesntexist'],
+				['cmds']=cmdData.txt['cmds_c_attr_train'],
+			}
+			func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 		end
+	else
+		local content = {
+			['msg'] = cmdData.txt['trainperknegative'],
+			['cmds']=cmdData.txt['cmds_c_attr_train'],
+		}
+		func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 	end
 end
-function PLUGIN:RequirementCheck(netuserData, cmdPerk, desiredPerkLvl)
-	for k,v in pairs( core.Config.perks[cmdPerk].req.attr ) do
-		if ( v ) then
-
-			if netuserData.attributes.k < v then return false, netuserData.attributes[tostring(k)],v end
+function PLUGIN:RequirementCheck(cmdData, desiredPerkLvl)
+	for k,v in pairs( core.Config.perks[cmdData.args[4]].req.attr ) do
+		if (v) then
+			if cmdData.netuserData.attributes[k] < v[tostring(desiredPerkLvl)] then return false, k, cmdData.netuserData.attributes[k],v[tostring(desiredPerkLvl)] end
 		end
 	end
-	if netuserData.lvl < core.Config.perks[cmdPerk].req.lvl then return netuserData.attributes[tostring(k)],v end
-
+	-- check character lvl
+	if core.Config.perks[ cmdData.args[4] ].req.lvl then
+		if cmdData.netuserData.lvl < core.Config.perks[cmdData.args[4]].req.lvl then return false, 'Level', cmdData.netuserData.lvl, core.Config.perks[cmdData.args[4]].req.lvl end
+	end
+	-- check class
+	if core.Config.perks[ cmdData.args[4] ].req.class then
+		if not cmdData.netuserData.class == core.Config.perks[cmdData.args[4]].req.class then return false, 'Class', cmdData.netuserData.class, core.Config.perks[cmdData.args[4]].req.class end
+	end
+	-- check achievements
+	if core.Config.perks[ cmdData.args[4] ].req.achievement then
+		for k, v in pairs( core.Config.perks[ cmdData.args[4] ].req.achievement) do
+			local b = func:containsval( cmdData.netuserData.achievements, v )
+			if not b then return false, 'Achievements', 'Not complete', core.Achieve[ tostring(v) ].name end
+		end
+	end
+	-- check quests
+	if core.Config.perks[ cmdData.args[4] ].req.quest then
+		for k, v in pairs( core.Config.perks[ cmdData.args[4] ].req.quest) do
+			local b = func:containsval( cmdData.netuserData.quests, v )
+			if not b then return false, 'Quests', 'Not complete', core.Quest[tostring(v)].name end
+		end
+	end
+	return true
 end
 function PLUGIN:CharacterClass(cmdData)
 	--TODO: ADD CHAR CLASS COMMAND
@@ -295,12 +362,20 @@ function PLUGIN:PlayerLvl(combatData, xp)
 	        end
         end
         local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/3)
-        if (calcAp > combatData.netuserData.ap) then
+        local usedAp = 0
+        local usedPp = 0
+        for k,v in pairs(cmdData.netuserData.attributes) do
+	        usedAp = usedAp+v
+        end
+        if (calcAp > (combatData.netuserData.ap+usedAp)) then
             combatData.netuserData.ap = calcAp
             timer.Once(2, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned an attribute point!') end)
         end
         local calcPp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/6)
-        if (calcPp > combatData.netuserData.pp) then
+        for k,v in pairs(cmdData.netuserData.perks) do
+	        usedPp = usedPp+v
+        end
+        if (calcPp > (combatData.netuserData.pp+usedPp)) then
             combatData.netuserData.pp = calcPp
             timer.Once(3, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned a perk point!') end)
         end
@@ -324,21 +399,21 @@ end
 
 --PLUGIN:SetDpPercent
 function PLUGIN:SetDpPercent(netuser, percent)
-    self:SetDpPercentById(rust.GetUserID( netuser ) ,percent )
+    self:SetDpPercentById(netuser, rust.GetUserID( netuser ) ,percent )
     if (percent >= 0 and percent <= 100) then
         --[[rust.SendChatToUser( netuser, self:printmoney(netuser) )--]]
     end
 end
 
 --PLUGIN:SetDpPercentById
-function PLUGIN:SetDpPercentById(netuserID, percent)
+function PLUGIN:SetDpPercentById(netuser, netuserID, percent)
     if (percent >= 0 and percent <= 100) then
         if (percent == 0) then
             self[netuserID].dp = math.floor(self[netuserID].dp + self[netuserID].xp)
         else
             self[netuserID].dp = math.floor(self[netuserID].dp + (self[netuserID].xp * percent / 100))
         end
-        self:Save( netuserID )
+        self:Save( netuser )
     end
 end
 
@@ -421,7 +496,7 @@ function PLUGIN:GetUserData( netuser )
 		data.ap = 0
 		data.dmg = 1
 		data.ut = 0 --the amount of times this user has untrained his/her attributes.
-		data.attributes = {['str']=0,['agi']=0,['sta']=0,['int']=0 }
+		data.attributes = {['str']=0,['sta']=0,['agi']=0,['int']=0,['cha']=0,['wis']=0,['wil']=0,['per']=0,['luc']=0 }
 		data.buffs = {}
 		data.skills = {}
 		data.perks = {}

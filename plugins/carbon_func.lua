@@ -33,7 +33,7 @@ function PLUGIN:TextBox(netuser, content, cmd, args)
     if content.prefix then
         rust.SendChatToUser(netuser,core.sysname,' ')
         rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
-        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     else
         rust.SendChatToUser(netuser,core.sysname,' ')
@@ -42,18 +42,18 @@ function PLUGIN:TextBox(netuser, content, cmd, args)
     rust.SendChatToUser(netuser,core.sysname,'║ ' .. cmd .. ' > ' .. table.concat(args, ' > '))
     rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     if content.header or content.subheader then
-        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
-        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end end
+        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end end
         rust.SendChatToUser(netuser,core.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
     end
-    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
-    if content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end end
+    if content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end end
     rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     if content.cmds then rust.SendChatToUser(netuser,core.sysname,'║ ► ' .. table.concat(content.cmds, '     ► ')) else
         rust.SendChatToUser(netuser,core.sysname,'║ ') end
     if content.suffix then
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
-        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end
         rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
         rust.SendChatToUser(netuser,core.sysname,' ')
     else
@@ -73,7 +73,7 @@ function PLUGIN:TextBoxError(netuser, content, cmd, args)
     if content.prefix then
         rust.SendChatToUser(netuser,core.sysname,' ')
         rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
-        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        for _,v in ipairs(content.prefix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     else
         rust.SendChatToUser(netuser,core.sysname,' ')
@@ -82,19 +82,19 @@ function PLUGIN:TextBoxError(netuser, content, cmd, args)
     rust.SendChatToUser(netuser,core.sysname,'║ ' .. cmd .. ' > ' .. table.concat(args, ' > ') .. ' > ϟ error')
     rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     if content.header or content.subheader then
-        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
-        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end end
+        if content.header then for _,v in ipairs(content.header) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end end
+        if content.subheader then for _,v in ipairs(content.subheader) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end end
         rust.SendChatToUser(netuser,core.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
     end
-    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
-    elseif content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+    if content.msg then for _,v in ipairs(content.msg) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end
+    elseif content.list then for _,v in ipairs(content.list) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end
     else rust.SendChatToUser(netuser,core.sysname,'║ Sacrebleu! Something went wrong.. .') end
     rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     if content.cmds then rust.SendChatToUser(netuser,core.sysname,'║ ► ' .. table.concat(content.cmds, '     ► ')) else
         rust.SendChatToUser(netuser,core.sysname,'║ ') end
     if content.suffix then
         rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
-        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. v) end
+        for _,v in ipairs(content.suffix) do rust.SendChatToUser(netuser,core.sysname,'║ ' .. tostring(v)) end
         rust.SendChatToUser(netuser,core.sysname,'╚════════════════════════')
         rust.SendChatToUser(netuser,core.sysname,' ')
     else
