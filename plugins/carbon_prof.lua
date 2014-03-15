@@ -127,7 +127,7 @@ end
 
 function PLUGIN:AddCraftXP(netuser, prof, xp)
 	local netuserID = rust.GetUserID( netuser )
-    local data = char:GetUserData(netuser)
+    local data = char:GetUserDataFromTable(netuser)
     if not data then return end
     local craftdata = data.prof[ prof ]
     if not craftdata then return end

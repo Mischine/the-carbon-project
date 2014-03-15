@@ -86,7 +86,7 @@ function PLUGIN:GetCmdData(netuser, cmd ,args)
 	cmdData['netuser'] = netuser
 	cmdData['cmd'] = cmd
 	if #args then cmdData['args'] = args end
-	if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
+	-- if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
 	return cmdData
 end
 
@@ -94,13 +94,13 @@ end
 --                 CHANNEL COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 function PLUGIN:Channel( netuser, cmd ,args )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
 	rust.SendChatToUser( netuser, 'Your current channel is ' .. data.channel )
 end
 
 function PLUGIN:ChannelParty( netuser, _, _ )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
 	local pdata = party:getParty( netuser )
 	if not pdata then rust.Notice( netuser, 'You\'re not in a party!' ) return end
@@ -110,7 +110,7 @@ function PLUGIN:ChannelParty( netuser, _, _ )
 end
 
 function PLUGIN:ChannelGuild( netuser, _, _ )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
 	local guild = guild:getGuild( netuser )
 	if not guild then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
@@ -120,7 +120,7 @@ function PLUGIN:ChannelGuild( netuser, _, _ )
 end
 
 function PLUGIN:ChannelLocal( netuser, _, _ )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging.' ) return end
 	data.channel = 'local'
 	rust.SendChatToUser( netuser, core.sysname ,':::::::::: Now talking in local chat. ::::::::::' )
@@ -265,11 +265,13 @@ function PLUGIN:cmdClass( netuser, cmd, args )
 	local cmdData = self:GetCmdData(netuser, cmd ,args)
 	if cmdData.netuserData.lvl < 25 then
 		char:ClassReject( cmdData )
+		return
 	end
 	if not args[1] then
 		if cmdData.netuserData.class then
 			if cmdData.netuserData.class == 'thief' then
 				char:ThiefCmds( cmdData )
+				return
 			end
 		end
 	char:ClassInfo( cmdData )

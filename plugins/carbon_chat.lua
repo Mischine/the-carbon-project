@@ -103,7 +103,7 @@ end
 
 function PLUGIN:OnUserChat(netuser, name, msg)
 	if ( msg:sub( 1, 1 ) == "/" ) then return end
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then rust.Notice( netuser, 'Userdata not found, try relogging' ) return false end
 	local guildname = guild:getGuild( netuser )
 	if guildname then name = tostring( guild:getGuildTag(netuser) .. ' ' .. name ) end
