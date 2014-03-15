@@ -264,6 +264,7 @@ function PLUGIN:OnUserConnect( netuser )
 end
 
 function PLUGIN:OnUserDisconnect( netplayer )
+	if thief:hasStealth( netuser )  then thief:Unstealth( netuser ) end
 	local netuser = rust.NetUserFromNetPlayer(netplayer)
 	local netuserID = tostring(rust.GetUserID( netuser ) )
 	rust.BroadcastChat( netuser.displayName .. ' has left the server!' )

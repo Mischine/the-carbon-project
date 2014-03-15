@@ -175,6 +175,7 @@ rust.BroadcastChat( 'Min: ' .. tostring(min) .. ' | Max: ' .. tostring(max))
 				rust.Notice( netuser, 'You tried to steal from ' .. vicuser.displayName .. ' but failed.' )
 			end
 		end
+		self:Unstealth( netuser )
 		if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
 		self.cd[ netuser ]['steal'] = netdata.classdata.thief.stealcd
 		timer.Once( netdata.classdata.thief.stealcd, function() if self.cd[ netuser ]['steal'] then self.cd[ netuser ]['steal'] = nil end end )
@@ -299,6 +300,7 @@ function PLUGIN:Unstealth( netuser )
 end
 
 function PLUGIN:hasStealth( netuser )
+	if not self:isThief( netuser ) then return false end
 	local data = char:GetUserDataFromTable( netuser )
 	if not data then return false end
 	if data.stealth then return true else return false end

@@ -86,7 +86,7 @@ function PLUGIN:GetCmdData(netuser, cmd ,args)
 	cmdData['netuser'] = netuser
 	cmdData['cmd'] = cmd
 	if #args then cmdData['args'] = args end
-	-- if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
+	if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end
 	return cmdData
 end
 

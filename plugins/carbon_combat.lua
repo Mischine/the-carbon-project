@@ -87,6 +87,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
 	local npc = core.Config.npc
 
+	func:Repair( combatData.netuser, 1 )
     for k,v in pairs(npc) do
         if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
             combatData['npc'] = core.Config.npc[string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')]
@@ -192,6 +193,7 @@ function PLUGIN:ThiefMod( combatData )
 			end
 		end
 	end
+	return combatData.dmg.amount
 end
 -----------------------------------------------------------------
 --http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled

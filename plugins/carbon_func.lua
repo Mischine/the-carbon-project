@@ -16,6 +16,7 @@ function PLUGIN:Init()
     self:AddChatCommand( 'bandage', self.Bandage )
     self:AddChatCommand( 'hurt', self.Hurt )
     self:AddChatCommand( 'takeover', self.TakeOver )
+    self:AddChatCommand( 'repair', self.cmdRepair )
 
     self.spamNet = {} --used to prevent spammed messages to a user.
     self.SquareRoot = math.sqrt
@@ -168,7 +169,7 @@ function PLUGIN:sayTable( table, sep ) local msg = '' local count = #table if( c
 for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. '.' return msg end
 
 function PLUGIN:returnvalues( table ) if( not table ) then return false end local msg = '' for k,v in pairs( table ) do msg = msg .. '[ ' .. v .. ' ]' end return msg end
-
+function PLUGIN:CheckBodyPart(a,b)for c,d in pairs(b)do if string.find(a,d)then return true end end end
 function PLUGIN:Notice(netuser,prefix,text,duration)
     Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ", text .. '      ', duration or 4.0 )
 end
@@ -519,4 +520,22 @@ function PLUGIN:deepcopy(t)
 	end
 	setmetatable(res,mt)
 	return res
+end
+
+function PLUGIN:cmdRepair( netuser, cmd ,args )
+	if not args[1] then rust.SendChatToUser( netuser, '/repair "#HotkeySlotNumber"' ) return end
+	local spot = tonumber( args[1] )
+	if not spot then rust.Notice( netuser, 'invalid numer' ) return end
+	self:Repair( netuser, spot )
+end
+
+function PLUGIN:Repair( netuser, spot )
+	local inv = rust.GetInventory( netuser )
+	if not inv then rust.Notice( netuser, 'Inventory not found, bitch.' ) return end
+	if spot == 1 then spot = 30 elseif spot == 2 then spot = 31 elseif spot == 3 then spot = 32 elseif spot == 4 then spot = 33 elseif spot == 5 then spot = 34 elseif spot == 6 then spot = 35 else rust.Notice( netuser, 'Wrong hotkey slot noob.' ) return end
+	local b, item = inv:GetItem( spot )
+	if not b then rust.Notice( netuser, 'No item in that Slot.' ) return end
+	item:SetCondition(1)
+	item.uses = 300
+	-- rust.Notice( netuser, 'Changed condition to 100.' )
 end
