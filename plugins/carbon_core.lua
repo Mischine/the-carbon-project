@@ -335,7 +335,7 @@ function PLUGIN:CanOpenDoor( netuser, door )
 		local guilddata = guild:getGuildData( guildname )
 		if guilddata then
 			for k, v in pairs( guild.members ) do
-				if (k == ownerID) then rust.Notice( netuser, 'Entered ' .. v.name .. '\'s house.' ) return true end
+				if (k == ownerID) then rust.Notice( netuser, 'Entered/left ' .. v.name .. '\'s house.' ) return true end
 			end
 		end
 	end

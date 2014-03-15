@@ -24,7 +24,7 @@ function PLUGIN:ThiefInfo( netuser, cmd, args )
 end
 
 function PLUGIN:SpecThief( netuser, cmd, args )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then return end
 	data.stealth = false
 	data.class = 'thief'
@@ -93,9 +93,9 @@ end
 function PLUGIN:StealFrom( netuser, vicuser )
 	if netuser and vicuser then
 		-- Get Data
-		local netdata = char:GetUserData( netuser )
+		local netdata = char:GetUserDataFromTable( netuser )
 		if not netdata then Notice( netuser, 'Failed to load data, try again' ) return end
-		local vicdata = char:GetUserData( vicuser )
+		local vicdata = char:GetUserDataFromTable( vicuser )
 		if not vicdata then rust.Notice( netuser, 'Failed to load victems data, try again.' ) return end
 
 		-- Get vic Balance || Stealing money
@@ -189,7 +189,7 @@ end
 
 function PLUGIN:Stealth( netuser )
 	if not self:hasStealth( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then return end
 	if data.stealth then rust.Notice( netuser, 'You\'re already stealth!' ) return end
 	local netuserID = rust.GetUserID( netuser )
@@ -267,7 +267,7 @@ function PLUGIN:Stealth( netuser )
 end
 
 function PLUGIN:Unstealth( netuser )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then return end
 	if not data.stealth then rust.Notice( netuser, 'You\'re not stealth!' ) return end
 	local netuserID = rust.GetUserID( netuser )
@@ -299,13 +299,13 @@ function PLUGIN:Unstealth( netuser )
 end
 
 function PLUGIN:hasStealth( netuser )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then return false end
 	if data.stealth then return true else return false end
 end
 
 function PLUGIN:isThief( netuser )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then return false end
 	if data.class == 'thief' then return true else return false end
 end

@@ -37,7 +37,7 @@ end
 
 -- /votekick "name"
 function PLUGIN:cmdVoteKick( netuser, cmd, args )
-	local data = char:GetUserData( netuser )
+	local data = char:GetUserDataFromTable( netuser )
 	if not data then rust.Notice( netuser, 'Player data not found.' ) return end
 	if not data.reg then rust.Notice( netuser, 'Only registered users can votekick.' ) return end
 	if not args[1] then rust.Notice( netuser, '/votekick "Name" ' ) return end

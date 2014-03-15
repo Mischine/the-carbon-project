@@ -23,7 +23,7 @@ function PLUGIN:PostInit()
 end
 
 function PLUGIN:loadchar( netuser, cmd, args)
-	local data = self:GetUserData( netuser )
+	local data = self:GetUserDataFromTable( netuser )
 	if data then
 		rust.SendChatToUser( netuser, 'Reloaded data for ' ..  data.name )
 	else
@@ -476,9 +476,11 @@ end
 
 function PLUGIN:GetUserDataFromTable( netuser )
 	local netuserID = rust.GetUserID( netuser )
-	local data = self[ netuserID ]
-	if data then return data end
-	data = self:Load( netuser )
+	if self[ netuserID ] then
+		local data = self[ netuserID ]
+		if data then return data end
+	end
+	local data = self:Load( netuser )
 	if data then return data end
 	return false
 end
@@ -547,6 +549,7 @@ end
 
 -- DATA UPDATE AND SAVE
 function PLUGIN:Load( netuserID )
+	rust.BroadcastChat( 'Loading datafile' )
 	self.CharFile = util.GetDatafile( tostring( netuserID ) )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
