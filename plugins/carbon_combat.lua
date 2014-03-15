@@ -28,20 +28,20 @@ end
 
 
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-	--[[
 	-- Stealth check.
 	if damage.victim.controllable then
 		if thief:hasStealth( damage.victim.client.netUser ) then
 			if damage.attacker.controllable then   -- PLAYER
 				thief:Unstealth( damage.victim.client.netUser )
-				damage.amount = damage.amount*1.5   -- Incoming dmg is 0 I beleive. because our armor is that high.
+				damage.amount = damage.amount*1.5
 			else
 				local charid = rust.GetCharacter( damage.victim.client.netUser )
-				if not charid then rust.Notice( netuser ,'No char.' ) return end
-				local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
-				IDLocalCharacter:set_lockMovement( false )
-				timer.Once( 0.03, function () IDLocalCharacter:set_lockMovement( true ) end)
-				rust.BroadcastChat( cancelagro )
+				if charid then
+					local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
+					IDLocalCharacter:set_lockMovement( false )
+					timer.Once( 0.03, function () IDLocalCharacter:set_lockMovement( true ) end)
+					rust.BroadcastChat( cancelagro )
+				end
 			end
 		end
 	end
@@ -69,9 +69,6 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 			dmg.status = LifeStatus.IsAlive
 		end
 	end
-	--]]
-	self:CombatDamage( takedamage, damage )
-
 end
 
 
@@ -133,9 +130,9 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
 		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
 		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
 		combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
-		--combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+		combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
     elseif combatData.scenario == 3 then
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs pve------------' ) end
 		--rust.BroadcastChat('------------client vs pve------------')
@@ -282,6 +279,8 @@ function PLUGIN:WeaponSkill(combatData)
         combatData.dmg.amount = 0
         if not spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] then
             func:Notice(combatData.netuser,'⊗','You are not proficient with this weapon!',5)
+            local inv = rust.GetInventory( combatData.netuser )
+            if inv then inv:DeactivateItem() end
             spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = true
             timer.Once(6, function() spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = nil end)
         end

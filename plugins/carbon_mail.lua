@@ -168,7 +168,7 @@ function PLUGIN:MailPv( cmdData )
 	if not self.Concept[ cmdData.netuser ] then rust.Notice( cmdData.netuser, 'You\'ve no concept. Please create one with /mail new' ) return end
 	local concept = self.Concept[ cmdData.netuser ]
 	if not concept then rust.Notice( cmdData.netuser, 'Concept not found, please make a new concept with /mail new' ) return end
-	self:ShowMail( concept )
+	self:ShowMail( cmdData, concept )
 end
 
 function PLUGIN:MailSend( cmdData )
@@ -183,7 +183,13 @@ function PLUGIN:MailRead( cmdData )
 
 end
 
-function PLUGIN:ShowMail( mail )
+function PLUGIN:ShowMail( cmdData, mail )
+	--[[
+		 mail.subject
+		 mail.txt
+		 mail.money
+		 mail.items
+	 ]]
 
 end
 

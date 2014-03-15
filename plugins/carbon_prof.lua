@@ -31,7 +31,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
     if not inv then rust.Notice( netuser, 'Inventory not found, report to a GM. Unable to craft.') return false end
     if( self.craft[ blueprint.resultItem.name ] ) then
         local netuserID = rust.GetUserID( netuser )
-        if char[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
+        -- if char[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
         char[ netuserID ].crafting = true
         local data = self.craft[ blueprint.resultItem.name ]
         if not data then rust.Notice( netuser, 'No data found...' ) char[ netuserID ].crafting = false return false end
@@ -42,11 +42,13 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
 
         local roll = func:Roll(true, 100)
         if(roll < e) then
+	        rust.BroadcastChat( 'Before setting failed to true' )
+
             failed = true
-            rust.BroadcastChat( netuser, 'FAILED' )
+            rust.BroadcastChat('FAILED' )
         elseif (roll > d) then
             crit = true
-            rust.BroadcastChat( netuser, 'CRIT' )
+            rust.BroadcastChat( 'CRIT' )
         end
         local Time = data.ct * amount
         if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
@@ -54,6 +56,9 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         if Time == 0 then Time = 1 end
         timer.Repeat(1, Time , function()
             if Time > 0 then rust.InventoryNotice( netuser, tostring(i) ) end
+            local controllable = netuser.playerClient.controllable
+            local this = controllable:GetComponent("FallDamage")
+	        this:SetLegInjury(1000)
             i = i - 1
             if( i <= 0 ) then
                 for k,v in pairs( data.mats ) do
@@ -104,10 +109,11 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                 if failed then xp = math.floor(xp / 2) rust.Notice( netuser, 'Crafting failure!' ) end
                 timer.Once(2, function()
                     xp = self:AddCraftXP( netuser, data.prof, xp )
-                    if xp == 0 then char[ netuserID ].crafting = falsereturn end
+                    if xp == 0 then char[ netuserID ].crafting = false return end
                     rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
                 end)
-                char:Save(netuser )
+                timer.Once(1, function() this:ClearInjury() end)
+                char:Save( netuser )
                 char[ netuserID ].crafting = false
             end
         end )
@@ -137,7 +143,7 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
         local found = false
         for k, v in pairs(self.craft) do
             if v.prof == prof then
-                if v.lvl == calcLvl then
+                if v.req == calcLvl then
                     content.msg = content.msg .. ', ' .. k
                     found = true
                 end
@@ -148,7 +154,6 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
         local args = {}
         if not found then content.msg = 'There are no new researches available.' end
         func:TextBox(netuser,content,cmd,args) return
-        char:Save( netuser )
     end
     craftdata.xp = craftdata.xp + xp
     return xp
@@ -157,18 +162,31 @@ end
 -- inspect items. Crafting and maybe Economy.
 function PLUGIN:cmdInspect( netuser, cmd, args )
     if not args[1] then
-        if not args[1]then local content={['msg']=' With the inspect feature you\'re able inspect any item ingame. This will show the crafting information. \n \n Simply type /inspect "Item Name"' }
+        if not args[1]then local content={['msg']=' With the inspect feature you\'re able inspect any item ingame. This will show the crafting information. \n \n Simply type /inspect Item Name' }
         func:TextBox(netuser,content,cmd,args)return end
     elseif args[1] then
-        local itemname = tostring( args[1] )
+	    local itemname = ''
+	    local i = 1
+	    while args[i] do
+		    args[i] = args[i]:sub(1,1):upper()..args[i]:sub(2):lower()
+		    if itemname == '' then
+		        itemname = itemname .. args[i]
+		    else
+		        itemname = itemname .. ' ' .. args[i]
+		    end
+		    if i > 1 then args[i] = nil end
+		    i = i + 1
+	    end
+	    args[1] = itemname
+
         if( not self.craft[ itemname ] ) then -- item not found
             local content={['msg']=''.. itemname .. ' is not craftable!' }
             func:TextBoxError(netuser,content,cmd,args) return
         else
             local netuserID = rust.GetUserID( netuser )
             local data = self.craft[ itemname ]
-            local a,b,c=data.req, char[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
-
+            local craftdata = char[ netuserID ].prof[ data.prof ]
+            local a,b,c=craftdata.lvl, char[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
             local content = {
                 ['list']=
                 {
@@ -183,8 +201,20 @@ function PLUGIN:cmdInspect( netuser, cmd, args )
             local craftdata = char[ netuserID ].prof[ data.prof ]
             if data.req <= craftdata.lvl then
                 table.insert( content.list, 'Fail chance           : ' .. tostring(math.floor(e+0.5)) .. '%' )
-                table.insert( content.list, 'Critical chance     : ' .. tostring(math.floor((100 - d)+0.5)) .. '%' )
+                if math.floor((100 - d)+0.5) > 0 then
+                    table.insert( content.list, 'Critical chance     : ' .. tostring(math.floor((100 - d)+0.5)) .. '%' )
+                else
+	                table.insert( content.list, 'Critical chance     : ' .. '0%' )
+                end
             end
+            local msg
+            local diff = data.req - craftdata.lvl
+            if (diff < 0) then
+	            msg = 'You can craft this item'
+            else
+                msg = tostring( 'You need ' .. diff  .. ' ' .. data.prof .. ' levels to craft this.' )
+            end
+            content.cmds = {msg}
             table.insert( content.list, ' ')
             table.insert( content.list, 'Materials: ')
             for k, v in pairs( data.mats ) do table.insert( content.list, '- ' .. v .. 'x ' .. k ) end

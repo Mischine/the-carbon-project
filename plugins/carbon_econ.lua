@@ -72,8 +72,6 @@ function PLUGIN:Init()
 
 end
 
-
-
 function PLUGIN:OnKilled ( takedamage, dmg )
     if ( takedamage:GetComponent( "HumanController" )) then
         local victim = takedamage:GetComponent( "HumanController" )
@@ -107,12 +105,11 @@ function PLUGIN:OnKilled ( takedamage, dmg )
             local data = self:Convert( math.floor( math.random( npc.min, npc.max )))
             local pdata = party:getParty( netuser )
             if pdata then
-	            rust.BroadcastChat( 'Has party, begin DistributeBalance' )
 	            party:DistributeBalance( netuser, pdata, data.g, data.s, data.c )
             else
                 self:AddBalance( netuser, data.g, data.s, data.c )
             end
-            return end --break out of all loops after finding controller type
+        return end --break out of all loops after finding controller type
     end
 end
 

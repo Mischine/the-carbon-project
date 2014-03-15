@@ -193,9 +193,9 @@
             "max": 100
         },
         "ct": 20,
-        "req": 30,
+        "req": 7,
         "dif": 25,
-        "prof": "Armorsmith",
+        "prof": "Toolsmith",
         "mats": {
             "Metal Fragments": 10,
             "Wood": 40
@@ -947,6 +947,23 @@
         "mats": {
             "Stones": 8,
             "Wood": 50
+        }
+    },
+    "Repair Bench": {
+        "xp": {
+            "min": 20,
+            "max": 30
+        },
+        "ct": 30,
+        "req": 8,
+        "dif": 20,
+        "prof": "Toolsmith",
+        "mats": {
+            "Stones": 12,
+            "Wood": 60,
+            "Metal Fragments": 50,
+            "Low Grade Fuel": 6,
+
         }
     },
     "Camp Fire": {

@@ -307,7 +307,8 @@ function PLUGIN:GiveXp(combatData, xp, weplvl )
         if weplvl then combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp end
         rust.InventoryNotice( combatData.netuser, '+' .. xp .. 'xp' )
         self:PlayerLvl(combatData, xp)
-        if weplvl then self:WeaponLvl(combatData, xp) end
+        if weplvl then
+	        rust.BroadcastChat('6') self:WeaponLvl(combatData, xp) end
     else
         local xp = xp-combatData.netuserData.dp
         combatData.netuserData.xp = combatData.netuserData.xp+xp
@@ -364,7 +365,7 @@ function PLUGIN:PlayerLvl(combatData, xp)
         local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/3)
         local usedAp = 0
         local usedPp = 0
-        for k,v in pairs(cmdData.netuserData.attributes) do
+        for k,v in pairs(combatData.netuserData.attributes) do
 	        usedAp = usedAp+v
         end
         if (calcAp > (combatData.netuserData.ap+usedAp)) then
@@ -372,7 +373,7 @@ function PLUGIN:PlayerLvl(combatData, xp)
             timer.Once(2, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned an attribute point!') end)
         end
         local calcPp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/6)
-        for k,v in pairs(cmdData.netuserData.perks) do
+        for k,v in pairs(combatData.netuserData.perks) do
 	        usedPp = usedPp+v
         end
         if (calcPp > (combatData.netuserData.pp+usedPp)) then
@@ -477,7 +478,8 @@ end
 function PLUGIN:GetUserData( netuser )
 
 	local netuserID = tostring(rust.GetUserID( netuser ) )
-	local data = self:Load( netuserID )
+	local data = self[netuserID]
+	if not data then data = self:Load( netuserID ) else return data end
 
 	if (not data ) then -- if not, creates one
 		data = {}
@@ -511,9 +513,9 @@ function PLUGIN:GetUserData( netuser )
 			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
 			['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
 		}
+		self:Save( netuser )
 	end
 	self[netuserID] = data
-	self:Save( netuser )
 	return data
 end
 
@@ -536,6 +538,7 @@ end
 
 -- DATA UPDATE AND SAVE
 function PLUGIN:Load( netuserID )
+	rust.BroadcastChat( 'Loading data' )
 	self.CharFile = util.GetDatafile( tostring( netuserID ) )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
