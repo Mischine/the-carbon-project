@@ -1,6 +1,6 @@
 PLUGIN.Title = "carbon_econ"
 PLUGIN.Description = "econ module"
-PLUGIN.Version = "0.0.1 alpha"
+PLUGIN.Version = "0.0.2 alpha"
 PLUGIN.Author = "Mischa & CareX"
 
 

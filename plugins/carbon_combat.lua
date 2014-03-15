@@ -1,6 +1,6 @@
 PLUGIN.Title = 'carbon_core'
 PLUGIN.Description = 'combat module'
-PLUGIN.Version = '0.0.2'
+PLUGIN.Version = '0.0.3'
 PLUGIN.Author = 'mischa / carex'
 
 local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )

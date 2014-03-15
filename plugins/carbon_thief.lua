@@ -1,6 +1,6 @@
 PLUGIN.Title = 'carbon_thief'
 PLUGIN.Description = 'class thief module'
-PLUGIN.Version = '0.0.1'
+PLUGIN.Version = '0.0.2'
 PLUGIN.Author = 'mischa / carex'
 
 function PLUGIN:Init()
