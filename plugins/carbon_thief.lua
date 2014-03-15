@@ -57,8 +57,8 @@ end
 
 function PLUGIN:Steal( netuser, _, args )
 
-	if self.cs[ netuser ] then rust.Notice( netuser, 'Stealing is still on cooldown! ' .. tostring(self.cs[ netuser ] .. ' seconds remaining' )) return end
-	if not self:isThief( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
+	if self.cd[ netuser ] then rust.Notice( netuser, 'Stealing is still on cooldown! ' .. tostring(self.cd[ netuser ] .. ' seconds remaining' )) return end
+	-- if not self:isThief( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
 	if not args[1] then rust.SendChatToUser( netuser, '/steal "name" ' ) return end
 	local targname = tostring( args[1] )
 	local b, vicuser = rust.FindNetUsersByName( args[1] )
@@ -188,7 +188,7 @@ function PLUGIN:cmdStealth( netuser )
 end
 
 function PLUGIN:Stealth( netuser )
-	if not self:isStealth( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
+	if not self:hasStealth( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
 	local data = char:GetUserData( netuser )
 	if not data then return end
 	if data.stealth then rust.Notice( netuser, 'You\'re already stealth!' ) return end

@@ -138,10 +138,10 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		--rust.BroadcastChat('------------client vs pve------------')
 		combatData.dmg.amount = self:WeaponSkill(combatData)
 		if combatData.dmg.amount == 0 then return 0 end
-		combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on config s for player, weapon, npc, etc..
+		combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on config s for player, weapon, npc, etc...
 		combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
-		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
-		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
+		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.
+		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.
 		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
 		combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
     end

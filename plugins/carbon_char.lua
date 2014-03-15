@@ -23,8 +23,7 @@ function PLUGIN:PostInit()
 end
 
 function PLUGIN:loadchar( netuser, cmd, args)
-	local netuserID = rust.GetUserID( netuser )
-	local data = self:Load( tostring( netuserID ))
+	local data = self:GetUserData( netuser )
 	if data then
 		rust.SendChatToUser( netuser, 'Reloaded data for ' ..  data.name )
 	else
@@ -475,11 +474,19 @@ function PLUGIN:ThiefCmds( cmdData )
 	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
 end
 
+function PLUGIN:GetUserDataFromTable( netuser )
+	local netuserID = rust.GetUserID( netuser )
+	local data = self[ netuserID ]
+	if data then return data end
+	data = self:Load( netuser )
+	if data then return data end
+	return false
+end
+
 function PLUGIN:GetUserData( netuser )
 
 	local netuserID = tostring(rust.GetUserID( netuser ) )
-	local data = self[netuserID]
-	if not data then data = self:Load( netuserID ) else return data end
+	local data = self:Load( netuserID )
 
 	if (not data ) then -- if not, creates one
 		data = {}
@@ -513,7 +520,9 @@ function PLUGIN:GetUserData( netuser )
 			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
 			['Thief']={['lvl']=1,['xp']=0,['maxlvl']=70}            -- Disabled on default : When unlocked you get lvl 1
 		}
+		self[netuserID] = data
 		self:Save( netuser )
+		return data
 	end
 	self[netuserID] = data
 	return data
@@ -538,7 +547,6 @@ end
 
 -- DATA UPDATE AND SAVE
 function PLUGIN:Load( netuserID )
-	rust.BroadcastChat( 'Loading data' )
 	self.CharFile = util.GetDatafile( tostring( netuserID ) )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
