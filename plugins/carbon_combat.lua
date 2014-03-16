@@ -185,16 +185,17 @@ end
 
 function PLUGIN:ThiefMod( combatData )
 	if thief:isThief( combatData.netuser ) and thief:hasStealth( combatData.netuser ) then
-	rust.BroadcastChat('----Thief backstab----')
+		rust.BroadcastChat( '----PLUGIN:ThiefMod----')
 		local netchar = rust.GetCharacter(combatData.netuser)
 		local vicchar = rust.GetCharacter(combatData.vicuser)
-		if (type(netchar.eyesYaw == "number")) and (type(vichar.eyesYaw == "number")) then
+		if (type(netchar.eyesYaw == "number")) and (type(vicchar.eyesYaw == "number")) then
 			local netangle = (netchar.eyesYaw+90)%360
-			local vicangle = (vichar.eyesYaw+90)%360
-			if (((netangle - vicangle) >= -50) and ((netangle - vicangle) <= 50)) then
+			local vicangle = (vicchar.eyesYaw+90)%360
+			if (((netangle - vicangle) >= -40) and ((netangle - vicangle) <= 40)) then
+				rust.BroadcastChat( '----BACKSTAB!----')
 				combatData.dmg.amount = combatData.dmg.amount * (1 + combatData.netuserData.classdata.thief.backstab)
 				rust.InventoryNotice( combatData.netuser, 'Backstab!' )
-				rust.BroadcastChat(tostring(combatData.dmg.amount))
+				thief:Unstealth( combatData.netuser )
 				return combatData.dmg.amount
 			end
 		end

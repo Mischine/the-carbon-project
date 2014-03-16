@@ -10,7 +10,7 @@ function PLUGIN:Init()
 
 	self.cd = {}
 
-	self:AddChatCommand( 'stealth', self.Stealth )
+	self:AddChatCommand( 'stealth', self.cmdStealth )
 	self:AddChatCommand( 'unstealth', self.Unstealth )
 	self:AddChatCommand( 'steal', self.Steal )
 end
@@ -69,12 +69,10 @@ function PLUGIN:Steal( netuser, _, args )
 		local coords2 = vicuser.playerClient.lastKnownPosition
 		if ( coords2 ) and ( coords2.x ) and ( coords2.y ) and ( coords2.z ) then
 			if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= 50 ) then
-rust.BroadcastChat( 'Stealing!' )
 				self:StealFrom( netuser, vicuser )
 				IDLocalCharacter:set_lockMovement( true )
 				return
 			else
-rust.BroadcastChat( 'To far!' )
 				IDLocalCharacter:set_lockMovement( true )
 				return
 			end
@@ -184,21 +182,19 @@ function PLUGIN:StealFrom( netuser, vicuser )
 		end
 		if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
 		self.cd[ netuser ]['steal'] = netdata.classdata.thief.stealcd
-		timer.Once( netdata.classdata.thief.stealcd, function() if self.cd[ netuser ]['steal'] then self.cd[ netuser ]['steal'] = nil rust.InventoryNotice( netuser, '+ Steal' ) end end )
+		timer.Once( netdata.classdata.thief.stealcd, function() if self.cd[ netuser ]['steal'] then self.cd[ netuser ]['steal'] = nil rust.InventoryNotice( netuser, 'Steal ready!' ) end end )
 	end
 end
 
 function PLUGIN:cmdStealth( netuser )
 	if not self:isThief( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
-	if self.cd[ netuser ]['stealth'] then rust.Notice( netuser, 'Stealth is still on cooldown! ' .. tostring(self.cd[netuser]['stealth']) .. ' seconds remaining.' ) return end
+	if self.cd[netuser] and self.cd[ netuser ]['stealth'] then rust.Notice( netuser, 'Stealth is still on cooldown! ' .. tostring(self.cd[netuser]['stealth']) .. ' seconds remaining.' ) return end
 	if self:hasStealth( netuser ) then self:Unstealth( netuser ) else self:Stealth( netuser ) end
 end
 
 function PLUGIN:Stealth( netuser )
-	if not self:hasStealth( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
 	local data = char:GetUserDataFromTable( netuser )
 	if not data then return end
-	if data.stealth then rust.Notice( netuser, 'You\'re already stealth!' ) return end
 	local netuserID = rust.GetUserID( netuser )
 	local charid = rust.GetCharacter( netuser )
 	if not charid then rust.Notice( netuser ,'No char.' ) return end
@@ -266,10 +262,6 @@ function PLUGIN:Stealth( netuser )
 	inv:AddItemAmount( pants, 1, pref )
 	inv:AddItemAmount( boots, 1, pref )
 	rust.InventoryNotice( netuser, '+ Stealth' )
-
-	if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
-	self.cd[ netuser ]['stealth'] = netdata.classdata.thief.stealthcd
-	char:Save( netuser )
 end
 
 function PLUGIN:Unstealth( netuser )
@@ -300,8 +292,15 @@ function PLUGIN:Unstealth( netuser )
 	end
 	self.stealth[ netuserID ] = nil
 	rust.InventoryNotice( netuser, '- Stealth' )
-	timer.Once( netdata.classdata.thief.stealthcd, function() if self.cd[ netuser ]['stealth'] then self.cd[ netuser ]['stealth'] = nil  end end )
+	if not self.cd[netuser] then self.cd[netuser]={} end
+	self.cd[netuser]['stealth'] = true
+	timer.Once( data.classdata.thief.stealthcd, function() if self.cd[ netuser ]['stealth'] then rust.InventoryNotice( netuser, 'Stealth ready!' )self.cd[ netuser ]['stealth'] = nil  end end )
 	char:Save( netuser )
+end
+
+-- TODO: Make XP system | MISCHA GO DO UR MATH!
+function PLUGIN:GiveThiefXp( netuser, xp )
+
 end
 
 function PLUGIN:hasStealth( netuser )

@@ -70,6 +70,7 @@ function PLUGIN:SetLocalization()
 	            ['attrcmds'] = '',
             },
         },
+	    ['class'] = {}
     }
     self:TextSave()
 end
