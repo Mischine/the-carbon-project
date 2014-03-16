@@ -1076,7 +1076,6 @@ function PLUGIN:GuildWithdraw( name, guild, g, s, c )
 end
 
 function PLUGIN:GuildAttackMods( combatData, takedamage )
-	rust.BroadcastChat( tostring(combatData.dmg.amount) )
     if combatData.scenario == 1 then                                                -- Client vs Client
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
         if not guild then

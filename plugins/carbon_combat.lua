@@ -28,7 +28,8 @@ end
 
 
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-	-- Stealth check.
+	-- Stealth check
+	rust.BroadcastChat( 'Begin process' )
 	if damage.victim.controllable then
 		if thief:hasStealth( damage.victim.client.netUser ) then
 			if damage.attacker.controllable then   -- PLAYER
@@ -55,6 +56,10 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 
 	if ((combatData.bodyPart) and ( not combatData.npc )) then
 	 	rust.BroadcastChat( combatData.bodyPart )
+	end
+
+	if dmg.amount >= takedamage.health then
+		dmg.status = LifeStatus.WasKilled
 	end
 
 	if dmg.amount <= 0 then                                 -- Checks if they're proficient with the weapon.
@@ -99,6 +104,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
     if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
         combatData['scenario'] = 1 --client vs client
+        rust.BroadcastChat( 'Scenario 1 chooser....' )
     elseif dmg.victim.controllable and not dmg.attacker.controllable then
         combatData['scenario'] = 2 --npc vs client
     elseif dmg.attacker.controllable and not dmg.victim.controllable then
@@ -115,6 +121,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 	    --]]
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs client------------' ) end
 		--rust.BroadcastChat('------------client vs client------------')
+		rust.BroadcastChat( 'Scenario 1 start.' )
 		combatData.dmg.amount = self:WeaponSkill(combatData)
 		if combatData.dmg.amount == 0 then return 0 end
 		combatData.dmg.amount = self:PartyCheck( combatData )
@@ -126,8 +133,11 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
 		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
 		combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+		rust.BroadcastChat( 'Before Perks' )
 		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+		rust.BroadcastChat( 'After ThiefMod' )
 		--combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
+		rust.BroadcastChat( 'Before ThiefMod' )
 		combatData.dmg.amount = self:ThiefMod( combatData )
 		combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 2 then
@@ -184,15 +194,15 @@ function PLUGIN:GuildDefend(combatData)
 end
 
 function PLUGIN:ThiefMod( combatData )
+	rust.BroadcastChat( 'Thief start' )
 	if thief:isThief( combatData.netuser ) and thief:hasStealth( combatData.netuser ) then
-		rust.BroadcastChat( '----PLUGIN:ThiefMod----')
+		rust.BroadcastChat( 'Thief start' )
 		local netchar = rust.GetCharacter(combatData.netuser)
 		local vicchar = rust.GetCharacter(combatData.vicuser)
 		if (type(netchar.eyesYaw == "number")) and (type(vicchar.eyesYaw == "number")) then
 			local netangle = (netchar.eyesYaw+90)%360
 			local vicangle = (vicchar.eyesYaw+90)%360
 			if (((netangle - vicangle) >= -40) and ((netangle - vicangle) <= 40)) then
-				rust.BroadcastChat( '----BACKSTAB!----')
 				combatData.dmg.amount = combatData.dmg.amount * (1 + combatData.netuserData.classdata.thief.backstab)
 				rust.InventoryNotice( combatData.netuser, 'Backstab!' )
 				thief:Unstealth( combatData.netuser )

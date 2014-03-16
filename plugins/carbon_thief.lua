@@ -39,7 +39,7 @@ function PLUGIN:SpecThief( cmdData )
 				['picklock'] = 10,              -- 10% succes chance to picklock a door
 				['picklockfail'] = 90,          -- 90% chance to break picklock.
 				['picklockcd'] = 20,            -- 20 secs cooldown before you can picklock again
-				['backstab'] = 5,               -- 5% dmg increase when backstab.
+				['backstab'] = 0.1,               -- 10% dmg increase when backstab.
 			}
 		}
 	end
@@ -188,7 +188,7 @@ end
 
 function PLUGIN:cmdStealth( netuser )
 	if not self:isThief( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
-	if self.cd[netuser] and self.cd[ netuser ]['stealth'] then rust.Notice( netuser, 'Stealth is still on cooldown! ' .. tostring(self.cd[netuser]['stealth']) .. ' seconds remaining.' ) return end
+	if self.cd[netuser] and self.cd[ netuser ]['stealth'] then rust.Notice( netuser, 'Stealth is still on cooldown! ' ) return end
 	if self:hasStealth( netuser ) then self:Unstealth( netuser ) else self:Stealth( netuser ) end
 end
 
