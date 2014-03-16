@@ -139,7 +139,7 @@ function PLUGIN:SetDefaultConfig()
             ['glvlmodifier']=.1,
             ['clvlmodifier']=.5,
             ['maxguildlvl']=10,
-            ['untraincost']=500, --this is the cost in copper
+            ['untrainperkcost']=500, --this is the cost in copper
             ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.
             ['weaponlvlmodifier']=0.5,--0.5=Veteran | 1=hard | 1.5=normal | 2=easy
             ['xpmodifier']=1, -- multiplies values of npc xp given. (ie; 2 = 2x npc reward)

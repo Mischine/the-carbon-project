@@ -106,6 +106,10 @@ function PLUGIN:CharacterSkills(cmdData)
 
 end
 function PLUGIN:CharacterAttributes(cmdData)
+	local usedAp = 0
+	for k,v in pairs(cmdData.netuserData.attributes) do
+		usedAp = usedAp+v
+	end
     local content = {
     ['list']=
     {
@@ -117,8 +121,16 @@ function PLUGIN:CharacterAttributes(cmdData)
         func:xpbar(cmdData.netuserData.attributes.sta*10,10),
 	    cmdData.txt.intellect .. ':    ' .. cmdData.netuserData.attributes.int,
         func:xpbar(cmdData.netuserData.attributes.int*10,10),
+	    cmdData.txt.charisma .. ':    ' .. cmdData.netuserData.attributes.cha,
+	    func:xpbar(cmdData.netuserData.attributes.cha*10,10),
+	    cmdData.txt.wisdom .. ':    ' .. cmdData.netuserData.attributes.wis,
+	    func:xpbar(cmdData.netuserData.attributes.wis*10,10),
+	    cmdData.txt.perception .. ':    ' .. cmdData.netuserData.attributes.per,
+	    func:xpbar(cmdData.netuserData.attributes.per*10,10),
+	    cmdData.txt.luck .. ':    ' .. cmdData.netuserData.attributes.luc,
+	    func:xpbar(cmdData.netuserData.attributes.luc*10,10),
 	    ' ',
-	    'Available Attribute Points: ' .. cmdData.netuserData.ap .. ' / ' .. cmdData.netuserData.attributes.str+cmdData.netuserData.attributes.agi+cmdData.netuserData.attributes.sta+cmdData.netuserData.attributes.int+cmdData.netuserData.ap,
+	    'Available Attribute Points: ' .. cmdData.netuserData.ap .. ' / ' .. cmdData.netuserData.ap+usedAp,
     },
 	    ['cmds']=cmdData.txt['cmds_c_attr'],
     }
@@ -270,22 +282,33 @@ function PLUGIN:RequirementCheck(cmdData, desiredPerkLvl)
 end
 function PLUGIN:CharacterReset(cmdData)
 	local content = {
-		['msg']=cmdData.txt['C_RESET'],
+		['msg']=cmdData.txt['MSG_C_RESET'],
 		['cmds']=cmdData.txt['CMDS_C_RESET'],
 	}
-
 	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 end
 function PLUGIN:CharacterResetPerks(cmdData)
-	--TODO: ADD  CHAR RESET PERKS COMMAND
+	local availablePp = cmdData.netuserData.pp
+	local usedPp = 0
+	for k,v in pairs(cmdData.netuserData.perks) do
+		usedPp = usedPp+v
+		cmdData.netuserData.perks[k] = 0
+	end
+	cmdData.netuserData.pp = cmdData.netuserData.pp+usedPp
+	self:CharacterPerks(cmdData)
+	self:Save(cmdData.netuser)
 end
 function PLUGIN:CharacterResetAttributes(cmdData)
-	--TODO: ADD CHAR RESET ATTRIBUTES COMMAND
+	local availableAp = cmdData.netuserData.ap
+	local usedAp = 0
+	for k,v in pairs(cmdData.netuserData.attributes) do
+		usedAp = usedAp+v
+		cmdData.netuserData.attributes[k] = 0
+	end
+	cmdData.netuserData.ap = cmdData.netuserData.ap+usedAp
+	self:CharacterAttributes(cmdData)
+	self:Save(cmdData.netuser)
 end
-function PLUGIN:CharacterResetClass(cmdData)
-	--TODO: ADD CHAR RESET CLASS COMMAND
-end
-
 function PLUGIN:GiveXp(combatData, xp, weplvl )
 
     local guildname = guild:getGuild( combatData.netuser )
