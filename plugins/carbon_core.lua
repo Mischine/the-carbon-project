@@ -272,7 +272,7 @@ function PLUGIN:OnUserDisconnect( netplayer )
 		if self.tmpusers[netuser.displayName] then
 			self.tmpusers[ netuser.displayName] = nil
 			char[ netuserID ] = nil
-		return end
+		end
 	end
 	char:Save( netuser )
 	char[netuserID] = nil

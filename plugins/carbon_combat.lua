@@ -26,13 +26,11 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 
-
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	-- Stealth check
-	rust.BroadcastChat( 'Begin process' )
 	if damage.victim.controllable then
 		if thief:hasStealth( damage.victim.client.netUser ) then
-			if damage.attacker.controllable then   -- PLAYER
+			if damage.attacker.controllable then
 				thief:Unstealth( damage.victim.client.netUser )
 				damage.amount = damage.amount*1.5
 			else
@@ -46,34 +44,13 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 			end
 		end
 	end
-	local combatData = {}                     -- Define combatData so that it wont turn global. I cant local it in the if statement, cus then I cannot use it outside of it.
-	local dmg                                               -- Define dmg / We need to change this. Because I dont want to flood the server with people shooting dead NPC/Players.
-	local status = tostring( damage.status )
 
-	if ( status ~= IsDead ) then                            -- Prevent calculating even if they're dead. Less CPU usage. BETTAH PERFORMANCE!
-        dmg, combatData = self:CombatDamage( takedamage, damage )
-	end
-
-	if ((combatData.bodyPart) and ( not combatData.npc )) then
-	 	rust.BroadcastChat( combatData.bodyPart )
-	end
-
-	if dmg.amount >= takedamage.health then
-		dmg.status = LifeStatus.WasKilled
-	end
-
-	if dmg.amount <= 0 then                                 -- Checks if they're proficient with the weapon.
-		dmg.status = LifeStatus.IsAlive
-		rust.BroadcastChat( cancelagro )
-	end
-	if dmg.amount >= 100 then
-		dmg.status = LifeStatus.WasKilled
-	end
-	if status == WasKilled then
-		if dmg.amount < takedamage.health then              -- Revive when they are not actually dead. So they wont die with 25 hp. =) | I think even will counter headshots.
-			dmg.status = LifeStatus.IsAlive
-		end
-	end
+	local combatData, status, dmg = {}, tostring( damage.status )
+	if ( status ~= IsDead ) then dmg, combatData = self:CombatDamage( takedamage, damage ) end
+	if ((combatData.bodyPart) and ( not combatData.npc )) then rust.BroadcastChat( combatData.bodyPart ) end
+	if dmg.amount >= takedamage.health then	dmg.status = LifeStatus.WasKilled end
+	if dmg.amount <= 0 then	dmg.status = LifeStatus.IsAlive	rust.BroadcastChat( cancelagro ) end
+	if status == WasKilled then	if dmg.amount < takedamage.health then dmg.status = LifeStatus.IsAlive end end
 end
 
 
@@ -92,7 +69,10 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
 	local npc = core.Config.npc
 
+	-- Berserker plugin stuff ( Auto repair \ Auto ammo fill )
 	func:Repair( combatData.netuser, 1 )
+
+
     for k,v in pairs(npc) do
         if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
             combatData['npc'] = core.Config.npc[string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')]
@@ -104,7 +84,6 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 
     if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
         combatData['scenario'] = 1 --client vs client
-        rust.BroadcastChat( 'Scenario 1 chooser....' )
     elseif dmg.victim.controllable and not dmg.attacker.controllable then
         combatData['scenario'] = 2 --npc vs client
     elseif dmg.attacker.controllable and not dmg.victim.controllable then
@@ -121,7 +100,6 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 	    --]]
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs client------------' ) end
 		--rust.BroadcastChat('------------client vs client------------')
-		rust.BroadcastChat( 'Scenario 1 start.' )
 		combatData.dmg.amount = self:WeaponSkill(combatData)
 		if combatData.dmg.amount == 0 then return 0 end
 		combatData.dmg.amount = self:PartyCheck( combatData )
@@ -133,11 +111,8 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
 		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
 		combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-		rust.BroadcastChat( 'Before Perks' )
 		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
-		rust.BroadcastChat( 'After ThiefMod' )
 		--combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-		rust.BroadcastChat( 'Before ThiefMod' )
 		combatData.dmg.amount = self:ThiefMod( combatData )
 		combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
     elseif combatData.scenario == 2 then
@@ -304,6 +279,8 @@ function PLUGIN:WeaponSkill(combatData)
             timer.Once(6, function() spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = nil end)
         end
     end
+
+    -- TODO: Add dmg increase on higher weaponlvl.
     return combatData.dmg.amount
 end
 function PLUGIN:DmgModifier (combatData)

@@ -260,6 +260,7 @@ function PLUGIN:Poison(netuser, cmd, args)
         this:SubtractPosion(tonumber(args[3]))
     elseif args[3] and args[2] == 'add' and not this:IsPoisoned() then
         this:AddPoison(tonumber(args[3]))
+	    this:Vomit()
     elseif not args[3] and args[2] == 'check'  then
         rust.SendChatToUser(netuser,tostring( this:IsPoisoned() ))
     end
@@ -303,7 +304,6 @@ function PLUGIN:Rad(netuser, cmd, args)
         local radLevel = this:GetRadLevel()
         rust.SendChatToUser(netuser,tostring( radLevel ))
     end
-
 end
 function PLUGIN:Calories(netuser, cmd, args)
     local validate, vicuser = rust.FindNetUsersByName( args[1] )

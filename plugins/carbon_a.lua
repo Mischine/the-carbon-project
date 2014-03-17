@@ -6,6 +6,7 @@ PLUGIN.Author = 'Mischa & CareX'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
     self:AddChatCommand( 'a', self.a )
+    self:AddChatCommand( 'name', self.name )
 end
 
 
@@ -38,4 +39,18 @@ function PLUGIN:a(netuser,cmd, args)
 --]]
     -- recycler = avi.avatar.Recycler()
     --avatar:ClearBlueprints()
+    --avatar:ClearBlueprints()
+end
+
+function PLUGIN:name( netuser, cmd, args )
+	local char = rust.GetCharacter( netuser )
+	if not char then rust.Notice( netuser , 'char not found' ) return end
+
+	local trait = char:LoadTraitMapNonNetworked()
+	if not trait then rust.Notice( netuser, 'Trait not found! :(' )return end
+	print( trait )
+
+
+	-- local rs = char.recoilSimulation
+	-- rs:AddRecoil( 100, 50, 50)
 end

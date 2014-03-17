@@ -39,7 +39,7 @@ function PLUGIN:SpecThief( cmdData )
 				['picklock'] = 10,              -- 10% succes chance to picklock a door
 				['picklockfail'] = 90,          -- 90% chance to break picklock.
 				['picklockcd'] = 20,            -- 20 secs cooldown before you can picklock again
-				['backstab'] = 0.1,               -- 10% dmg increase when backstab.
+				['backstab'] = 0.1,             -- 10% dmg increase when backstab.
 			}
 		}
 	end
@@ -52,7 +52,7 @@ function PLUGIN:SpecThief( cmdData )
 end
 
 function PLUGIN:Steal( netuser, _, args )
-	-- if self.cd[ netuser ] and self.cd[ netuser ].steal then rust.Notice( netuser, 'Stealing is still on cooldown!' ) return end
+	if self.cd[ netuser ] and self.cd[ netuser ].steal then rust.Notice( netuser, 'Stealing is still on cooldown!' ) return end
 	if not self:isThief( netuser ) then rust.Notice( netuser, 'You\'re not a thief!' ) return end
 	if not args[1] then rust.SendChatToUser( netuser, '/steal "name" ' ) return end
 	local targname = tostring( args[1] )
@@ -279,7 +279,14 @@ function PLUGIN:Unstealth( netuser )
 	if not inv then rust.Notice( netuser, 'Inventory not found, try again!' ) return end
 	local pref = rust.InventorySlotPreference( InventorySlotKind.Armor, false, InventorySlotKindFlags.Armor )
 
-	inv:RemoveItem( 36 )inv:RemoveItem( 37 )inv:RemoveItem( 38 )inv:RemoveItem( 39 )
+	-- Deleting Invisible items
+	local a,b,c,d=rust.GetDatablockByName('Invisible Helmet'),rust.GetDatablockByName('Invisible Vest'),rust.GetDatablockByName('Invisible Pants'),rust.GetDatablockByName('Invisible Boots')
+	while true do local f=inv:FindItem(a)if f then inv:RemoveItem(f)else break end end
+	while true do local f=inv:FindItem(b)if f then inv:RemoveItem(f)else break end end
+	while true do local f=inv:FindItem(c)if f then inv:RemoveItem(f)else break end end
+	while true do local f=inv:FindItem(d)if f then inv:RemoveItem(f)else break end end
+
+	-- inv:RemoveItem( 36 )inv:RemoveItem( 37 )inv:RemoveItem( 38 )inv:RemoveItem( 39 )
 	if self.stealth[ netuserID ] then
 		for _, v in pairs ( self.stealth[netuserID] ) do
 			local datablock = v.item
@@ -290,12 +297,12 @@ function PLUGIN:Unstealth( netuser )
 			end
 		end
 	end
+
 	self.stealth[ netuserID ] = nil
 	rust.InventoryNotice( netuser, '- Stealth' )
 	if not self.cd[netuser] then self.cd[netuser]={} end
 	self.cd[netuser]['stealth'] = true
 	timer.Once( data.classdata.thief.stealthcd, function() if self.cd[ netuser ]['stealth'] then rust.InventoryNotice( netuser, 'Stealth ready!' )self.cd[ netuser ]['stealth'] = nil  end end )
-	char:Save( netuser )
 end
 
 -- TODO: Make XP system | MISCHA GO DO UR MATH!
