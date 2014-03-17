@@ -87,8 +87,6 @@ function PLUGIN:stoneskin(combatData)
     return damage
 end
 
-
-
 function PLUGIN:parry(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----perk:parry----' ) end
 	--CRITICAL HIT CHECK

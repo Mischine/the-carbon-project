@@ -305,6 +305,26 @@ function PLUGIN:Unstealth( netuser )
 	timer.Once( data.classdata.thief.stealthcd, function() if self.cd[ netuser ]['stealth'] then rust.InventoryNotice( netuser, 'Stealth ready!' )self.cd[ netuser ]['stealth'] = nil  end end )
 end
 
+function PLUGIN:StealthCheck( takedamage, damage )
+	if damage.victim.controllable then
+		if thief:hasStealth( damage.victim.client.netUser ) then
+			if damage.attacker.controllable then
+				thief:Unstealth( damage.victim.client.netUser )
+				damage.amount = damage.amount*1.5
+			else
+				local charid = rust.GetCharacter( damage.victim.client.netUser )
+				if charid then
+					local IDLocalCharacter = charid.idMain:GetComponent( "IDLocalCharacter" )
+					IDLocalCharacter:set_lockMovement( false )
+					timer.Once( 0.03, function () IDLocalCharacter:set_lockMovement( true ) end)
+					rust.BroadcastChat( cancelagro )
+				end
+			end
+		end
+	end
+	return damage.amount
+end
+
 -- TODO: Make XP system | MISCHA GO DO UR MATH!
 function PLUGIN:GiveThiefXp( netuser, xp )
 
