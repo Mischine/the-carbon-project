@@ -848,6 +848,7 @@ function PLUGIN:engageWar( guild, guild2, netuser )
 end
 
 function PLUGIN:GiveGXP( guild, xp )
+	-- TODO: Implement the new xp system
     local data = self:getGuildData( guild )
     if not data then return end
     if data.glvl == core.Config.guild.settings.GUILD_LEVEL_CAP then return 0 end

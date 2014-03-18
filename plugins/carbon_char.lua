@@ -370,114 +370,50 @@ function PLUGIN:GiveDp(combatData, dp)
 end
 
 --PLUGIN:PlayerLvl
-function PLUGIN:PlayerLvl(combatData)   -- We dont use then xp variable
-	-- for level = combatData.netuserData.lvl+5, 1, -1 do       -- handled further in the code, Less cpu usage?
-		local level = combatData.netuserData.lvl + 1
-		if combatData.netuserData.lvl >= core.Config.settings.PLAYER_LEVEL_CAP then combatData.netuserData.xp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)] return end -- Handles Max player lvl cap.
-		if combatData.netuserData.xp >= core.Config.level.player[tostring(level)] then
-			if combatData.netuserData.xp >= core.Config.level.player[tostring(level+1)] then    -- checks if it double level; If so, we loop trough all the levels just in case. ( double level is allmost impossible with Quests etc. )
-				for i = core.Config.settings.PLAYER_LEVEL_CAP, level, - 1 do
-					if combatData.netuserData.xp >= core.Config.level.player[tostring(i)] then
-						level = i
-						break
-						--[[
-							So what this does, When you double level, it's gonna check the whole table. so the first xp it gets is the level he has achieved.
-							This for loop will only fire if they're already double leveled. And if they're only just double leveled it will stop at that level anyway.
-							And it's dynamic, because we have a player level cap config. So we change that, it changes the for loop. ( just be sure to have the core.Config xp
-							tables updated. :P ( could also add a security for that... but meh. )
-						 ]]
-					end
+function PLUGIN:PlayerLvl(combatData)
+	local level = combatData.netuserData.lvl + 1
+	if combatData.netuserData.lvl >= core.Config.settings.PLAYER_LEVEL_CAP then combatData.netuserData.xp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)] return end
+	if combatData.netuserData.xp >= core.Config.level.player[tostring(level)] then
+		if combatData.netuserData.xp >= core.Config.level.player[tostring(level+1)] then
+			for i = core.Config.settings.PLAYER_LEVEL_CAP, level, - 1 do
+				if combatData.netuserData.xp >= core.Config.level.player[tostring(i)] then
+					level = i
+					break
 				end
 			end
+		end
+		--ADJUST LEVEL
+		combatData.netuserData.lvl = level
+		func:Notice(combatData.netuser,'✛','You are now level ' .. tostring(level),5)
 
-			-- Level up
-			-- if level ~= currentLvl then  -- Already handled by previous if statements. Also, you didn't have a currentLvl variable.
-
-				--ADJUST LEVEL
-				combatData.netuserData.lvl = level --set character level
-				func:Notice(combatData.netuser,'✛','You are now level ' .. tostring(level),5)
-
-				--ADJUST ATTRIBUTE POINTS
-				local usedAp = 0 --base attribute points
-				for k,v in pairs(combatData.netuserData.attributes) do usedAp = usedAp+v end --tally up used ap
-				if combatData.netuserData.ap ~= math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp then
-					combatData.netuserData.ap=combatData.netuserData.ap+(math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp) --set ap
--- Added timers to these, they were overlapping.
-					timer.Once( 5, function ()func:Notice(combatData.netuser,'✛','You have earned an attribute point!',5) end)
-				end
-
-				--ADJUST PERK POINTS
-				local usedPp = 0 --base perk points
-				for k,v in pairs(combatData.netuserData.perks) do usedPp = usedPp+v end -- tally up used pp
-				if combatData.netuserData.pp ~= math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp then
-					combatData.netuserData.pp=combatData.netuserData.pp+(math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp) --set pp
--- Added timers to these, they were overlapping.
-					timer.Once( 10, function ()func:Notice(combatData.netuser,'✛','You have earned a perk point!',5) end)
-				end
-
-				--UNLOCK CLASS CHECK
-				if level == 25 then
-					local content = {
-						['header'] = 'Classes unlock!',
-						['msg'] = 'You\'re now able to choose an class! Choosing a class will cost you 5 Gold. Classes give you extra abilities to play with. ',
-						['list'] = { 'To choose a class, type /class' },
-						['suffix'] = 'For more information about classes visit: www.tempusforge.com'
-					}
-					local cmd = 'Classes unlock!'
-					local args = {}
-					args[1] = 'Unlock message.'
-					func:TextBox( combatData.netuser, content, cmd, args )
-				end
-			-- end
+		--ADJUST ATTRIBUTE POINTS
+		local usedAp = 0
+		for k,v in pairs(combatData.netuserData.attributes) do usedAp = usedAp+v end --tally up used ap
+		if combatData.netuserData.ap ~= math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp then
+			combatData.netuserData.ap=combatData.netuserData.ap+(math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp) --set ap
+			timer.Once( 5, function ()func:Notice(combatData.netuser,'✛','You have earned an attribute point!',5) end)
 		end
 
-	-- end
-	--[[ OLD CALC LEVEL STUFF.. REWRITTEN
-
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)
-    if calcLvl <= core.Config.settings.maxplayerlvl then
-        if (calcLvl ~= combatData.netuserData.lvl) then
-            combatData.netuserData.lvl = calcLvl
-            rust.Notice( combatData.netuser, 'You are now level ' .. calcLvl .. '!', 5 )
-	        if calcLvl == 25 then       -- Unlock classes selection.
-		        local content = {
-			        ['header'] = 'Classes unlock!',
-			        ['msg'] = 'You\'re now able to choose an class! Choosing a class will cost you 5 Gold. Classes give you extra abilities to play with. ',
-			        ['list'] = { 'To choose a class, type /class' },
-			        ['suffix'] = 'For more information about classes visit: www.tempusforge.com'
-		        }
-		        local cmd = 'Classes unlock!'
-		        local args = {}
-		        args[1] = 'Unlock message.'
-		        func:TextBox( combatData.netuser, content, cmd, args )
-	        end
-        end
-        local calcAp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/3)
-        local usedAp = 0
-        local usedPp = 0
-        for k,v in pairs(combatData.netuserData.attributes) do
-	        usedAp = usedAp+v
-        end
-        if (calcAp > (combatData.netuserData.ap+usedAp)) then
-            combatData.netuserData.ap = calcAp
-            timer.Once(2, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned an attribute point!') end)
-        end
-        local calcPp = math.floor(((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)/6)
-        for k,v in pairs(combatData.netuserData.perks) do
-	        usedPp = usedPp+v
-        end
-        if (calcPp > (combatData.netuserData.pp+usedPp)) then
-            combatData.netuserData.pp = calcPp
-            timer.Once(3, function() rust.SendChatToUser( combatData.netuser, core.sysname, 'You have earned a perk point!') end)
-        end
-        -- rust.SendChatToUser( combatData.netuser, core.sysname, tostring(combatData.netuserData.ap) .. ' ' .. tostring(combatData.netuserData.pp) .. ' ' .. tostring(calcAp) .. ' ' .. tostring(calcPp))
-    else
-        local ab = core.Config.settings.maxplayerlvl
-        local b = core.Config.settings.lvlmodifier
-        local f = ((ab*ab)+ab)/b*100-(ab*100)
-        combatData.netuserData.xp = f
-    end
-    ]]
+		--ADJUST PERK POINTS
+		local usedPp = 0
+		for k,v in pairs(combatData.netuserData.perks) do usedPp = usedPp+v end -- tally up used pp
+		if combatData.netuserData.pp ~= math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp then
+			combatData.netuserData.pp=combatData.netuserData.pp+(math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp) --set pp
+			timer.Once( 10, function ()func:Notice(combatData.netuser,'✛','You have earned a perk point!',5) end)
+		end
+		if level == 25 then
+			local content = {
+				['header'] = 'Classes unlock!',
+				['msg'] = 'You\'re now able to choose an class! Choosing a class will cost you 5 Gold. Classes give you extra abilities to play with. ',
+				['list'] = { 'To choose a class, type /class' },
+				['suffix'] = 'For more information about classes visit: www.tempusforge.com'
+			}
+			local cmd = 'Classes unlock!'
+			local args = {}
+			args[1] = 'Unlock message.'
+			func:TextBox( combatData.netuser, content, cmd, args )
+		end
+	end
 end
 
 --PLUGIN:WeaponLvl
