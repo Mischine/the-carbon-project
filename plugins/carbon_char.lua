@@ -40,11 +40,10 @@ function PLUGIN:showchar( netuser, cmd, args)
 end
 
 function PLUGIN:Character(cmdData)
-	--TODO:REFINE XP CALCULATIONS ? MAKE A FUNCTION ?
+	--[[TODO:REFINE XP CALCULATIONS ? MAKE A FUNCTION ?
 
-	-- if cmdData.netuserData.lvl > 1 then local currentLVLxp = TODO: Check this Mischa.
 	local a=cmdData.netuserData.lvl -- current level
-	local b=core.Config.settings.lvlmodifier --level modifier
+	local b=core.Config.settings.PLAYER_LEVEL_MODIFIER --level modifier
 	local bb=(1*1+1)/b*100-(1)*100
 	rust.BroadcastChat(tostring(bb))
 	local c=((a+1)*a+1+a+1)/b*100-(a+1)*100-(((a-1)*a-1+a-1)/b*100-(a-1)*100)-100 -- total needed to level
@@ -54,15 +53,32 @@ function PLUGIN:Character(cmdData)
 	local g=(a*a+a)/b*100-a*100
 	local h=math.floor((((cmdData.netuserData.dp/c)*.5)*100)+0.5)
 	local i=c*.5;
-	if a==2 and core.Config.settings.lvlmodifier>=2 then g=0 end
+	if a==2 and core.Config.settings.PLAYER_LEVEL_MODIFIER>=2 then g=0 end
+	]]
+	local currentXp
+	if cmdData.netuserData.lvl > 1 then
+		local currentXp = cmdData.netuserData.xp-core.Config.settings.level.player[tostring(cmdData.netuserData.lvl-1)]
+	else
+		local currentXp = cmdData.netuserData.xp
+	end
+	local requiredXp
+	if cmdData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP then
+		local requiredXp = cmdData.netuserData.xp-core.Config.settings.level.player[tostring(cmdData.netuserData.lvl+1)]
+	else
+		local requiredXp = core.Config.settings.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
+	end
+	local xpPercentage = math.floor(((currentXp/requiredXp)*100)+.5)
+	local xpToGo = requiredXp-currentXp
+	local totalAllowedDp = requiredXp*.5
+	local dpPercentage = math.floor(((cmdData.netuserData.dp/totalAllowedDp)*100)+.5)
 	local j=
 			{
-				['list']={cmdData.txt.level..':                          '..tostring(a),
+				['list']={cmdData.txt.level..':                          '..tostring(cmdData.netuserData.lvl),
 				' ',
-				cmdData.txt.experience..':              ('..tostring(d)..'/'..tostring(c)..')   ['..tostring(e)..'%]   '..'('..tostring(f)..')',
-				tostring(func:xpbar(e,32)),
+				cmdData.txt.experience..':              ('..tostring(currentXp)..'/'..tostring(requiredXp)..')   ['..tostring(xpPercentage)..'%]   '..'('..tostring(xpToGo)..')',
+				tostring(func:xpbar(xpPercentage,32)),
 				' ',
-				cmdData.txt.deathpenalty..':         ('..tostring(cmdData.netuserData.dp)..'/'..tostring(i)..')   ['..tostring(h)..'%]',
+				cmdData.txt.deathpenalty..':         ('..tostring(cmdData.netuserData.dp)..'/'..tostring(totalAllowedDp)..')   ['..tostring(dpPercentage)..'%]',
 				tostring(func:xpbar(h,32))},['cmds']=cmdData.txt['cmds_c']
 			}
 
@@ -288,17 +304,19 @@ function PLUGIN:CharacterReset(cmdData)
 	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 end
 function PLUGIN:CharacterResetPerks(cmdData)
+	--TODO: ADD COST THAT GROWS EACH TIME        ['untrainperkcost']=500, --this is the cost in copper | ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.
 	local availablePp = cmdData.netuserData.pp
 	local usedPp = 0
 	for k,v in pairs(cmdData.netuserData.perks) do
 		usedPp = usedPp+v
-		cmdData.netuserData.perks[k] = 0
+		cmdData.netuserData.perks[k] = nil
 	end
 	cmdData.netuserData.pp = cmdData.netuserData.pp+usedPp
 	self:CharacterPerks(cmdData)
 	self:Save(cmdData.netuser)
 end
 function PLUGIN:CharacterResetAttributes(cmdData)
+	--TODO: ADD COST THAT GROWS              	['untrainattrcost']=500, --this is the cost in copper | ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.
 	local availableAp = cmdData.netuserData.ap
 	local usedAp = 0
 	for k,v in pairs(cmdData.netuserData.attributes) do
@@ -327,8 +345,7 @@ function PLUGIN:GiveXp(combatData, xp, weplvl )
         if weplvl then combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp end
         rust.InventoryNotice( combatData.netuser, '+' .. xp .. 'xp' )
         self:PlayerLvl(combatData, xp)
-        if weplvl then
-	        rust.BroadcastChat('6') self:WeaponLvl(combatData, xp) end
+        if weplvl then self:WeaponLvl(combatData, xp) end
     else
         local xp = xp-combatData.netuserData.dp
         combatData.netuserData.xp = combatData.netuserData.xp+xp
@@ -364,6 +381,50 @@ end
 
 --PLUGIN:PlayerLvl
 function PLUGIN:PlayerLvl(combatData, xp)
+	for level = combatData.netuserData.lvl+5, 1, -1 do
+		if combatData.netuserData.xp >= core.Config.level[tostring(level)] then
+			if level ~= currentLvl then
+
+				--ADJUST LEVEL
+				combatData.netuserData.lvl = level --set character level
+				func:Notice(combatData.netuser,'✛','You are now level ' .. tostring(level),5)
+
+				--ADJUST ATTRIBUTE POINTS
+				local usedAp = 0 --base attribute points
+				for k,v in pairs(combatData.netuserData.attributes) do usedAp = usedAp+v end --tally up used ap
+				if combatData.netuserData.ap ~= math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp then
+					combatData.netuserData.ap=combatData.netuserData.ap+(math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp) --set ap
+					func:Notice(combatData.netuser,'✛','You have earned an attribute point!',5)
+				end
+
+				--ADJUST PERK POINTS
+				local usedPp = 0 --base perk points
+				for k,v in pairs(combatData.netuserData.perks) do usedPp = usedPp+v end -- tally up used pp
+				if combatData.netuserData.pp ~= math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp then
+					combatData.netuserData.pp=combatData.netuserData.pp+(math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp) --set pp
+					func:Notice(combatData.netuser,'✛','You have earned a perk point!',5)
+				end
+
+				--UNLOCK CLASS CHECK
+				if level == 25 then
+					local content = {
+						['header'] = 'Classes unlock!',
+						['msg'] = 'You\'re now able to choose an class! Choosing a class will cost you 5 Gold. Classes give you extra abilities to play with. ',
+						['list'] = { 'To choose a class, type /class' },
+						['suffix'] = 'For more information about classes visit: www.tempusforge.com'
+					}
+					local cmd = 'Classes unlock!'
+					local args = {}
+					args[1] = 'Unlock message.'
+					func:TextBox( combatData.netuser, content, cmd, args )
+				end
+			end
+		else
+			combatData.netuserData.xp = core.Config.levels[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
+		end
+	end
+	--[[ OLD CALC LEVEL STUFF.. REWRITTEN
+
     local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)
     if calcLvl <= core.Config.settings.maxplayerlvl then
         if (calcLvl ~= combatData.netuserData.lvl) then
@@ -407,6 +468,7 @@ function PLUGIN:PlayerLvl(combatData, xp)
         local f = ((ab*ab)+ab)/b*100-(ab*100)
         combatData.netuserData.xp = f
     end
+    ]]
 end
 
 --PLUGIN:WeaponLvl

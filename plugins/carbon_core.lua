@@ -125,6 +125,9 @@ function PLUGIN:SetDefaultConfig()
             ['Uber Hatchet']={['name']='Uber Hatchet',['type']='c',['dmg']=1,['lvl']=1},
         },
         ['settings']={
+	        ['PP_PER_LEVEL'] = 4,
+	        ['AP_PER_LEVEL'] = 2,
+	        ['LEVELCAP'] = 70,
             ['ENABLE_LOCAL_CHAT'] = true,
             ['CHAT_DISTANCE'] = 20,
             ['filename']='carbon',
@@ -134,12 +137,16 @@ function PLUGIN:SetDefaultConfig()
             ['sleeperxppercent']=5,
             ['sleerperdppecent']=5,
             ['sleeperradius']=2,
-            ['lvlmodifier']=1, --0.5=Veteran | 1=hard | 1.5=normal | 2=easy
-            ['maxplayerlvl']=70,
-            ['glvlmodifier']=.1,
-            ['clvlmodifier']=.5,
-            ['maxguildlvl']=10,
+            ['PLAYER_LEVEL_MODIFIER']=1, --Increasing is a multiplier: i.e. level*level*100*MODIFIER (NOTE: Level 1 is always 0)
+            ['PLAYER_LEVEL_CAP']=70,
+            ['GUILD_LEVEL_MODIFIER']=50,
+	        ['GUILD_LEVEL_CAP']=10,
+            ['CLASS_LEVEL_MODIFIER']=12,
+	        ['CLASS_LEVEL_CAP']=20,
+	        ['WEAPON_LEVEL_MODIFIER']=12,
+	        ['WEAPON_LEVEL_CAP']=10,
             ['untrainperkcost']=500, --this is the cost in copper
+	        ['untrainattrcost']=500, --this is the cost in copper
             ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.
             ['weaponlvlmodifier']=0.5,--0.5=Veteran | 1=hard | 1.5=normal | 2=easy
             ['xpmodifier']=1, -- multiplies values of npc xp given. (ie; 2 = 2x npc reward)
@@ -178,8 +185,8 @@ function PLUGIN:SetDefaultConfig()
                 ['create']=25000
             },
             ['settings']={
-                ['glvlmodifier']= .1,
-                ['maxguildlvl']= 10,
+                ['GUILD_LEVEL_MODIFIER']= 10,
+                ['GUILD_LEVEL_CAP']= 10,
                 ['lvlreq']={
                     ['1']= 0,
                     ['2']= 3,
@@ -207,7 +214,41 @@ function PLUGIN:SetDefaultConfig()
 		    ['stoneskin']={['name']='Stoneskin',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
 		    ['knockdown']={['name']='knockdown',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
 	    },
+	    ['level']={
+		    ['player']={},
+		    ['guild']={},
+		    ['weapons']={},
+		    ['class']={},
+	    },
     }
+    for level = self.Config.settings.PLAYER_LEVEL_CAP, 1, -1 do
+	    if level == 1 then
+	        self.Config.level.player[tostring(level)] = 0
+	    else
+	        self.Config.level.player[tostring(level)] = math.floor((level*level*100)*self.Config.settings.PLAYER_LEVEL_MODIFIER)
+		end
+    end
+    for level = self.Config.settings.GUILD_LEVEL_CAP, 1, -1 do
+	    if level == 1 then
+		    self.Config.level.guild[tostring(level)] = 0
+	    else
+		    self.Config.level.guild[tostring(level)] = math.floor((level*level*100)*self.Config.settings.GUILD_LEVEL_MODIFIER)
+	    end
+    end
+    for level = self.Config.settings.CLASS_LEVEL_CAP, 1, -1 do
+	    if level == 1 then
+		    self.Config.level.class[tostring(level)] = 0
+	    else
+		    self.Config.level.class[tostring(level)] = math.floor((level*level*100)*self.Config.settings.CLASS_LEVEL_MODIFIER)
+	    end
+    end
+    for level = self.Config.settings.WEAPON_LEVEL_CAP, 1, -1 do
+	    if level == 1 then
+		    self.Config.level.weapon[tostring(level)] = 0
+	    else
+		    self.Config.level.weapon[tostring(level)] = math.floor((level*level*100)*self.Config.settings.WEAPON_LEVEL_MODIFIER)
+	    end
+    end
     self:ConfigSave()
 end
 

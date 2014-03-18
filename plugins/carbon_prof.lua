@@ -132,7 +132,7 @@ function PLUGIN:AddCraftXP(netuser, prof, xp)
     local craftdata = data.prof[ prof ]
     if not craftdata then return end
     if craftdata.lvl == craftdata.maxlvl then return 0 end
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.clvlmodifier*(craftdata.xp+xp))+25))+50)/100)
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.CLASS_LEVEL_MODIFIER*(craftdata.xp+xp))+25))+50)/100)
     if calcLvl ~= craftdata.lvl then
         craftdata.lvl = calcLvl
         -- LEVEL UP
@@ -266,12 +266,12 @@ function PLUGIN:InfoProf( netuser, cmd ,args )
         if v.lvl >= 1 then
             local a = v.lvl+1 --level +1
             local ab = v.lvl --level
-            local b = core.Config.settings.clvlmodifier
+            local b = core.Config.settings.CLASS_LEVEL_MODIFIER
             local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
             local d = math.floor(((v.xp/c)*100)+0.5) -- percent currently to next level.
             local e = c-v.xp -- left to go until level
             local f = ((ab*ab)+ab)/b*100-(ab*100) -- amount needed for current level
-            if (a == 2) and (core.Config.settings.clvlmodifier >= 2) then f = 0 end
+            if (a == 2) and (core.Config.settings.CLASS_LEVEL_MODIFIER >= 2) then f = 0 end
             table.insert(content.list, k .. ' level: ' .. tostring(ab) )
             table.insert(content.list, 'Experience: (' .. v.xp .. '/' .. tostring(c) .. ')  [' .. tostring(d) .. '%]   (+' .. tostring(e) .. ')' )
             table.insert(content.list, tostring(func:xpbar( d, 32 )))

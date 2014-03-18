@@ -127,13 +127,13 @@ function PLUGIN:GuildInfo( netuser )
     local data = self:getGuildData( guild )
     local a=data.glvl+1
     local b=data.glvl
-    local c=core.Config.guild.settings.glvlmodifier
+    local c=core.Config.guild.settings.GUILD_LEVEL_MODIFIER
     local d=(a*a+a)/c*100-a*100             -- xp required for next lvl
     local e=math.floor(data.xp/d*100+0.5)   -- Percent currently to next lvl
     local f=d-data.xp                       -- xp left to go until next lvl
     local g=(b*b+b)/c*100-b*100             -- Amount needed for current lvl
-    if a==2 and core.Config.guild.settings.glvlmodifier>=2 then g=0 end
-    if (a == 2) and (core.Config.guild.settings.glvlmodifier >= 2) then f = 0 end
+    if a==2 and core.Config.guild.settings.GUILD_LEVEL_MODIFIER>=2 then g=0 end
+    if (a == 2) and (core.Config.guild.settings.GUILD_LEVEL_MODIFIER >= 2) then f = 0 end
     rust.SendChatToUser(netuser,' ',' ')
     rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
     rust.SendChatToUser(netuser,core.sysname,'║ guild > ' .. guild .. ' > info')
@@ -848,9 +848,9 @@ end
 function PLUGIN:GiveGXP( guild, xp )
     local data = self:getGuildData( guild )
     if not data then return end
-    if data.glvl == core.Config.guild.settings.maxguildlvl then return 0 end
+    if data.glvl == core.Config.guild.settings.GUILD_LEVEL_CAP then return 0 end
     local members = func:count( data.members )
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.glvlmodifier*(data.xp+xp))+25))+50)/100)
+    local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.GUILD_LEVEL_MODIFIER*(data.xp+xp))+25))+50)/100)
     if( calcLvl ~= data.glvl ) then
         -- level up | check if allowed.
         if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
@@ -861,7 +861,7 @@ function PLUGIN:GiveGXP( guild, xp )
             self:CallUnlock(guild)
             return xp
         else
-            data.xp = (((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.glvlmodifier*100-(data.glvl*100))-1
+            data.xp = (((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.GUILD_LEVEL_MODIFIER*100-(data.glvl*100))-1
             xp = 0
             return xp
         end

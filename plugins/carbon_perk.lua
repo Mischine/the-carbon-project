@@ -64,22 +64,17 @@ function PLUGIN:stoneskin(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----perk:stoneskin----' ) end
 	local damage = combatData.dmg.amount
     if ((combatData.vicuser) and (combatData.vicuser ~= combatData.netuser) and (combatData.vicuserData.perks.stoneskin)) then
-        if (combatData.vicuserData.perk.stoneskin > 0) then
-            if (combatData.vicuserData.perk.stoneskin == 1) then
+        if (combatData.vicuserData.perks.stoneskin > 0) then
+            if (combatData.vicuserData.perks.stoneskin == 1) then
                 damage = tonumber(damage - (damage*.05))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (combatData.vicuserData.perk.stoneskin == 2) then
+            elseif (combatData.vicuserData.perks.stoneskin == 2) then
                 damage = tonumber(damage - (damage*.10))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (combatData.vicuserData.perk.stoneskin == 3) then
+            elseif (combatData.vicuserData.perks.stoneskin == 3) then
                 damage = tonumber(damage - (damage*.15))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (combatData.vicuserData.perk.stoneskin == 4) then
+            elseif (combatData.vicuserData.perks.stoneskin == 4) then
                 damage = tonumber(damage - (damage*.20))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
-            elseif (combatData.vicuserData.perk.stoneskin == 5) then
+           elseif (combatData.vicuserData.perks.stoneskin == 5) then
                 damage = tonumber(damage - (damage*.25))
-                if debug.list[ netuser.displayName ] then rust.SendChatToUser( debug.list[ netuser.displayName ].targnetuser,'perk:stoneskin (vicuser): ' .. tostring(damage)) end
             end
         end
     end
@@ -100,29 +95,35 @@ function PLUGIN:parry(combatData)
     if ((combatData.vicuser) and (combatData.vicuserData.perks.parry)) then
         if (combatData.vicuserData.perks.parry > 0) then
             local roll = func:Roll(true,0,100)
+            rust.BroadcastChat(tostring(roll))
             if ((combatData.vicuserData.perks.parry == 1) and (roll <= 3)) then
                 damage = 0
-                rust.Notice('PARRIED')
+                func:Notice(combatData.netuser,'☓','Your attack was parried by '.. combatData.vicuser.displayName,3)
+                func:Notice(combatData.vicuser,'✓','You parried ' .. combatData.netuser.displayName,3)
                 self:GiveTimedBuff( combatData.vicuserData.id, 5 ,'ParryCrit' )
                 if debug.list[ combatData.netuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.netuser.displayName ].targnetuser,'PERK PARRY: ' .. tostring(damage)) end
             elseif ((combatData.vicuserData.perks.parry == 2) and (roll <= 6)) then
                 damage = 0
-                rust.Notice('PARRIED')
+                func:Notice(combatData.netuser,'☓','Your attack was parried by '.. combatData.vicuser.displayName,3)
+                func:Notice(combatData.vicuser,'✓','You parried ' .. combatData.netuser.displayName,3)
                 self:GiveTimedBuff( combatData.vicuserData.id, 5 ,'ParryCrit' )
                 if debug.list[ combatData.netuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.netuser.displayName ].targnetuser,'PERK PARRY: ' .. tostring(damage)) end
             elseif ((combatData.vicuserData.perks.parry == 3) and (roll <= 9)) then
                 damage = 0
-                rust.Notice('PARRIED')
+                func:Notice(combatData.netuser,'☓','Your attack was parried by '.. combatData.vicuser.displayName,3)
+                func:Notice(combatData.vicuser,'✓','You parried ' .. combatData.netuser.displayName,3)
                 self:GiveTimedBuff( combatData.vicuserData.id, 5 ,'ParryCrit' )
                 if debug.list[ combatData.netuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.netuser.displayName ].targnetuser,'PERK PARRY: ' .. tostring(damage)) end
             elseif ((combatData.vicuserData.perks.parry == 4) and (roll <= 12)) then
                 damage = 0
-                rust.Notice('PARRIED')
+                func:Notice(combatData.netuser,'☓','Your attack was parried by '.. combatData.vicuser.displayName,3)
+                func:Notice(combatData.vicuser,'✓','You parried ' .. combatData.netuser.displayName,3)
                 self:GiveTimedBuff( combatData.vicuserData.id, 5 ,'ParryCrit' )
                 if debug.list[ combatData.netuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.netuser.displayName ].targnetuser,'PERK PARRY: ' .. tostring(damage)) end
             elseif ((combatData.vicuserData.perks.parry == 5) and (roll <= 15)) then
                 damage = 0
-                rust.Notice('PARRIED')
+                func:Notice(combatData.netuser,'☓','Your attack was parried by '.. combatData.vicuser.displayName,3)
+                func:Notice(combatData.vicuser,'✓','You parried ' .. combatData.netuser.displayName,3)
                 self:GiveTimedBuff( combatData.vicuserData.id, 5 ,'ParryCrit' )
                 if debug.list[ combatData.netuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.netuser.displayName ].targnetuser,'PERK PARRY: ' .. tostring(damage)) end
             end
@@ -134,12 +135,10 @@ end
 
 --PLUGIN:GiveTimedBuff
 function PLUGIN:GiveTimedBuff( vicuserID, time, buff )
-	if buff == 'ParryCrit' then
-	    if not char[ vicuserID ].buffs['ParryCrit'] then
-	        char[ vicuserID ].buffs['ParryCrit']=true
-	        timer.Once( time, function()
-	            if( char[ vicuserID ].buffs[ buff ] ) then char[ vicuserID ].buffs[ buff ] = nil end
-	        end )
-	    end
+	if not char[ vicuserID ].buffs[buff] then
+		char[ vicuserID ].buffs[buff]=true
+		timer.Once( time, function()
+			if( char[ vicuserID ].buffs[ buff ] ) then char[ vicuserID ].buffs[ buff ] = nil end
+		end )
 	end
 end
