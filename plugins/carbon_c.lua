@@ -8,8 +8,14 @@ function PLUGIN:Init()
 	self:AddChatCommand( 'sc', self.sc )
 	self:AddChatCommand( 'mdisarm', self.MagicDisarm )
 	self:AddChatCommand( 'testxp', self.TestXP )
+	self:AddChatCommand('location', self.loc)
+	self:AddChatCommand('tp', self.tel)
 end
-
+--local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
+--local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
+local get_flSprintSpeed, set_flSprintSpeed = typesystem.GetField( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
+--local testD = util.GetPropertyGetter( Rust.PlayerMovement_Mecanim._type, "flSprintSpeed", true )
+local get_name, set_name = typesystem.GetField( RustProto.Item, "Name", bf.public_instance )
 function PLUGIN:sc(netuser, cmd, args)
 	local i = 1
 	while i <= 1 do
@@ -27,22 +33,20 @@ function PLUGIN:sc(netuser, cmd, args)
 	local ProtectionTakeDamage = controllable:GetComponent( "ProtectionTakeDamage" )
 	local PlayerInventory = controllable:GetComponent( "PlayerInventory" )
 	local EquipmentWearer = controllable:GetComponent( "EquipmentWearer" )
-	local PlayerController = controllable:GetComponent( "PlayerController" )
 
-	--local CharacterLoadoutTrait = controllable:GetComponent( "CharacterLoadoutTrait" )
+	rust.SendChatToUser(netuser, tostring(Inventory.activeItem.toolTip))
+	local testthis = get_flSprintSpeed(CharacterController)
+	rust.SendChatToUser(netuser, tostring(testthis)) --Generic
 
 
-	local str = Rust
-	for k, v in ipairs( str ) do
-		print(tostring(k .. ' | ' .. v))
-	end
-	rust.SendChatToUser(netuser, tostring(str))
-	Character:set_blind(false)
-	Character:set_deaf(false)
-	Character:set_mute(false)
-	print(tostring(Character:get_blind()))
-	print(tostring(Character:get_deaf()))
-	print(tostring(Character:get_mute()))
+
+	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(0))) --Generic
+	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(1))) --Bullet
+	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(2))) --Melee
+	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(3))) --Explosion
+	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(4))) --Radiation
+	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(5))) --Cold
+
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(0))) --Generic
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(1))) --Bullet
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(2))) --Melee
@@ -132,5 +136,46 @@ function PLUGIN:TestXP(netuser, cmd, args)
 			rust.BroadcastChat(tostring(level))
 			return
 		end
+	end
+end
+function PLUGIN:loc(netuser, cmd)
+	if (netuser.playerClient.hasLastKnownPosition) then
+		local coords = netuser.playerClient.lastKnownPosition;
+		rust.SendChatToUser( netuser, "Location", "X: " .. math.floor(coords.x) .. "   Y: " .. math.floor(coords.y) .. "   Z: " .. math.floor(coords.z) )
+
+		print( netuser, "Location", "X: " .. coords.x .. "   Y: " .. coords.y .. "   Z: " .. coords.z )
+	end
+end
+-- -316304384 Location X: 6396.3525390625   Y: 371.41613769531   Z: -4756.615234375
+function PLUGIN:tel(netuser, cmd, args)
+	local locations = {
+		['devrock']='"6396.3525390625" "371.41613769531" "-4756.615234375"',
+
+	}
+	if #args==0 then
+		rust.SendChatToUser(netuser,'/tp [LOCATION] | /tp [NAME] [LOCATION] | /tp list' )
+	elseif #args == 1 and locations[ args[1] ] then
+		local isAdmin = netuser.admin
+		if not isAdmin then netuser.admin = true end
+		rust.RunServerCommand( 'teleport.topos "'..netuser.displayName..'" '.. locations[tostring(args[1])])
+		if not isAdmin then netuser.admin = false end
+	elseif #args == 1 and args[1] == 'list' then
+		for k,v in pairs (locations) do
+			rust.SendChatToUser( netuser, core.Config.settings.sysname,tostring(k))
+		end
+	elseif #args == 2 and locations[ args[2] ] then
+		local validate, targetuser = rust.FindNetUsersByName( args[1] )
+		if (not validate) then
+			if (targetuser == 0) then
+				print( "No player found with that name: " .. tostring( args[1] ))
+			else
+				print( "Multiple players found with name: " .. tostring( args[1] ))
+			end
+			return false
+		end
+		local isAdmin = netuser.admin
+		if not isAdmin then netuser.admin = true end
+		rust.RunServerCommand( 'teleport.topos "'..targetuser.displayName..'" '.. locations[tostring(args[2])])
+		if not isAdmin then netuser.admin = false end
 	end
 end

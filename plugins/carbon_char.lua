@@ -40,38 +40,30 @@ function PLUGIN:showchar( netuser, cmd, args)
 end
 
 function PLUGIN:Character(cmdData)
-	--[[TODO:REFINE XP CALCULATIONS ? MAKE A FUNCTION ?
-
-	local a=cmdData.netuserData.lvl -- current level
-	local b=core.Config.settings.PLAYER_LEVEL_MODIFIER --level modifier
-	local bb=(1*1+1)/b*100-(1)*100
-	rust.BroadcastChat(tostring(bb))
-	local c=((a+1)*a+1+a+1)/b*100-(a+1)*100-(((a-1)*a-1+a-1)/b*100-(a-1)*100)-100 -- total needed to level
-	local d=cmdData.netuserData.xp-((a-1)*a-1+a-1)/b*100-(a-1)*100-100
-	local e=math.floor(d/c*100+0.5)
-	local f=c-d
-	local g=(a*a+a)/b*100-a*100
-	local h=math.floor((((cmdData.netuserData.dp/c)*.5)*100)+0.5)
-	local i=c*.5;
-	if a==2 and core.Config.settings.PLAYER_LEVEL_MODIFIER>=2 then g=0 end
-	]]
+	--GET CURRENT XP (WITHOUT SHOWING PAST LEVEL XP)
 	local currentXp
 	if cmdData.netuserData.lvl > 1 then
-		local currentXp = cmdData.netuserData.xp-core.Config.settings.level.player[tostring(cmdData.netuserData.lvl-1)]
+		currentXp = cmdData.netuserData.xp-core.Config.level.player[tostring(cmdData.netuserData.lvl-1)]
 	else
-		local currentXp = cmdData.netuserData.xp
+		currentXp = cmdData.netuserData.xp
 	end
+
+	--GET REQUIRED XP FOR SPECIFIC LEVEL ONLY
 	local requiredXp
-	if cmdData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP then
-		local requiredXp = cmdData.netuserData.xp-core.Config.settings.level.player[tostring(cmdData.netuserData.lvl+1)]
+	if cmdData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.lvl > 1 then
+		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl-1)]-core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]
+	elseif cmdData.netuserData.lvl == 1 then
+		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]
 	else
-		local requiredXp = core.Config.settings.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
+		requiredXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
 	end
+
+	--CALCULATE SOME STUFF
 	local xpPercentage = math.floor(((currentXp/requiredXp)*100)+.5)
 	local xpToGo = requiredXp-currentXp
 	local totalAllowedDp = requiredXp*.5
 	local dpPercentage = math.floor(((cmdData.netuserData.dp/totalAllowedDp)*100)+.5)
-	local j=
+	local content=
 			{
 				['list']={cmdData.txt.level..':                          '..tostring(cmdData.netuserData.lvl),
 				' ',
@@ -79,10 +71,9 @@ function PLUGIN:Character(cmdData)
 				tostring(func:xpbar(xpPercentage,32)),
 				' ',
 				cmdData.txt.deathpenalty..':         ('..tostring(cmdData.netuserData.dp)..'/'..tostring(totalAllowedDp)..')   ['..tostring(dpPercentage)..'%]',
-				tostring(func:xpbar(h,32))},['cmds']=cmdData.txt['cmds_c']
+				tostring(func:xpbar(dpPercentage,32))},['cmds']=cmdData.txt['cmds_c']
 			}
-
-	func:TextBox(cmdData.netuser,j,cmdData.cmd,cmdData.args)
+	func:TextBox(cmdData.netuser,content,cmdData.cmd,cmdData.args)
 end
 function PLUGIN:CharacterSkills(cmdData)
 

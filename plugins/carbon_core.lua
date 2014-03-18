@@ -217,7 +217,7 @@ function PLUGIN:SetDefaultConfig()
 	    ['level']={
 		    ['player']={},
 		    ['guild']={},
-		    ['weapons']={},
+		    ['weapon']={},
 		    ['class']={},
 	    },
     }
