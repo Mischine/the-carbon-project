@@ -10,9 +10,7 @@ function PLUGIN:Init()
 
 	self.cd = {}
 
-	self:AddChatCommand( 'stealth', self.cmdStealth )
-	self:AddChatCommand( 'unstealth', self.Unstealth )
-	self:AddChatCommand( 'steal', self.Steal )
+
 end
 
 function PLUGIN:ThiefInfo( netuser, cmd, args )
@@ -87,6 +85,13 @@ function PLUGIN:StealFrom( netuser, vicuser )
 	if netuser and vicuser then
 		local netdata = char:GetUserDataFromTable( netuser )
 		if not netdata then Notice( netuser, 'Failed to load data, try again' ) return end
+		if func:Roll( false, 100 ) > data.classdata.steal then
+			rust.Notice( netuser, 'Failed to steal!' )
+			if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
+			self.cd[ netuser ]['steal'] = netdata.classdata.thief.stealcd
+			timer.Once( netdata.classdata.thief.stealcd, function() if self.cd[ netuser ]['steal'] then self.cd[ netuser ]['steal'] = nil rust.InventoryNotice( netuser, 'Steal ready!' ) end end )
+			return
+		end
 		local vicdata = char:GetUserDataFromTable( vicuser )
 		if not vicdata then rust.Notice( netuser, 'Failed to load victems data, try again.' ) return end
 		local data = econ:getBalance( vicuser )
@@ -177,9 +182,7 @@ function PLUGIN:StealFrom( netuser, vicuser )
 				end
 			end
 		end
-		if self:hasStealth( netuser ) then
-			self:Unstealth( netuser )
-		end
+		if self:hasStealth( netuser ) then self:Unstealth( netuser ) end
 		if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
 		self.cd[ netuser ]['steal'] = netdata.classdata.thief.stealcd
 		timer.Once( netdata.classdata.thief.stealcd, function() if self.cd[ netuser ]['steal'] then self.cd[ netuser ]['steal'] = nil rust.InventoryNotice( netuser, 'Steal ready!' ) end end )
@@ -262,6 +265,7 @@ function PLUGIN:Stealth( netuser )
 	inv:AddItemAmount( pants, 1, pref )
 	inv:AddItemAmount( boots, 1, pref )
 	rust.InventoryNotice( netuser, '+ Stealth' )
+	timer.Once( data.classdata.thief.stealth, function() if self:hasStealth( netuser ) then self:Unstealth( netuser ) end end)
 end
 
 function PLUGIN:Unstealth( netuser )
@@ -325,9 +329,25 @@ function PLUGIN:StealthCheck( takedamage, damage )
 	return damage.amount
 end
 
--- TODO: Make XP system | MISCHA GO DO UR MATH!
 function PLUGIN:GiveThiefXp( netuser, xp )
-
+	local data = char:GetUserDataFromTable( netuser )
+	if not data then rust.Notice( netuser, 'Player data not found, try relogging!' ) return end
+	if data.classdata.thief.lvl < 20 then
+		if ((data.classdata.thief.xp + xp ) >= core.Config.level.class[ tostring( data.classdata.thief.lvl+1 )]) then
+			func:Notice(combatData.netuser,'✛','You are now a level ' .. tostring(level) .. ' thief!',5)
+			data.classdata.thief.lvl = data.classdata.thief.lvl+1                           -- Max lvl 20
+			data.classdata.thief.steal = data.classdata.thief.steal + 3                     -- Max 65% success
+			data.classdata.thief.stealcd = data.classdata.thief.stealcd - 1                 -- Max 20 sec cd
+			data.classdata.thief.stealth = data.classdata.thief.stealth + 1                 -- Max 50 sec Stealth
+			data.classdata.thief.stealthcd = data.classdata.thief.stealthcd - 0.5           -- Max 10 sec Stealth cooldown
+			data.classdata.thief.picklock = data.classdata.thief.picklock + 1               -- Max 30% change to picklock a door
+			data.classdata.thief.picklockfail = data.classdata.thief.picklockfail - 3       -- Max 30% chance to break lockpick
+			data.classdata.thief.picklockcd = data.classdata.thief.picklockcd - 0.5         -- Max 10 sec Picklock Cooldown
+			data.classdata.thief.backstab = data.classdata.thief.backstab + 0.07            -- Max 140% Damage increase.
+		end
+		data.classdata.thief.xp = data.classdata.thief.xp + xp
+		char:Save( netuser )
+	end
 end
 
 function PLUGIN:hasStealth( netuser )

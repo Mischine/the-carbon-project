@@ -125,29 +125,31 @@ function PLUGIN:GuildInfo( netuser )
     local guild = self:getGuild( netuser )
     if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
     local data = self:getGuildData( guild )
-    local a=data.glvl+1
-    local b=data.glvl
-    local c=core.Config.guild.settings.GUILD_LEVEL_MODIFIER
-    local d=(a*a+a)/c*100-a*100             -- xp required for next lvl
-    local e=math.floor(data.xp/d*100+0.5)   -- Percent currently to next lvl
-    local f=d-data.xp                       -- xp left to go until next lvl
-    local g=(b*b+b)/c*100-b*100             -- Amount needed for current lvl
-    if a==2 and core.Config.guild.settings.GUILD_LEVEL_MODIFIER>=2 then g=0 end
-    if (a == 2) and (core.Config.guild.settings.GUILD_LEVEL_MODIFIER >= 2) then f = 0 end
+    local currentXp
+    if data.glvl > 1 then currentXp = data.xp-core.Config.level.guild[tostring(data.glvl)] else currentXp = data.xp end
+    local requiredXp
+    if data.glvl < core.Config.settings.GUILD_LEVEL_CAP and data.glvl > 1 then
+	    requiredXp = core.Config.level.guild[tostring(data.glvl+1)]-core.Config.level.guild[tostring(data.glvl)]
+    elseif data.glvl == 1 then
+	    requiredXp = core.Config.level.guild[tostring(data.glvl+1)]
+    else
+	    requiredXp = core.Config.level.guild[tostring(core.Config.settings.GUILD_LEVEL_CAP)]
+    end
+    local xpPercentage, xpToGo, a = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp, data.glvl+1
     rust.SendChatToUser(netuser,' ',' ')
     rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
     rust.SendChatToUser(netuser,core.sysname,'║ guild > ' .. guild .. ' > info')
     rust.SendChatToUser(netuser,core.sysname,'╟────────────────────────')
     rust.SendChatToUser(netuser,core.sysname,'║ Guild Name    : ' .. guild)
     rust.SendChatToUser(netuser,core.sysname,'║ Guild Tag        : ' .. data.tag)
-    rust.SendChatToUser(netuser,core.sysname,'║ Guild Level     : ' .. b)
+    rust.SendChatToUser(netuser,core.sysname,'║ Guild Level     : ' .. data.glvl)
     if data.glvl ~= 10 then
         rust.SendChatToUser(netuser,core.sysname,'║ Required for guild level ' .. tostring(a) )
         rust.SendChatToUser(netuser,core.sysname,'║ members: ( ' .. func:count( data.members ) .. '/' .. core.Config.guild.settings.lvlreq[tostring(a)] .. ' )' )
         rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor( func:count( data.members ) / core.Config.guild.settings.lvlreq[tostring(a)] * 100), 32))
     end
-    rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. data.xp .. '/' .. d .. ')   [' .. e .. '%]   (+' .. f .. ')')
-    rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar( e, 32))
+    rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. currentXp .. '/' .. requiredXp .. ')   [' .. xpPercentage .. '%]   (+' .. xpToGo .. ')')
+    rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar( xpPercentage, 32))
     rust.SendChatToUser(netuser,core.sysname,'║ ')
     rust.SendChatToUser(netuser,core.sysname,'║ Vault lvl: ' .. tostring(data.vault.lvl))
     rust.SendChatToUser(netuser,core.sysname,'║ [ Gold: ' .. data.vault.money.g .. ' ] [ Silver: ' .. data.vault.money.s .. ' ] [ Copper: ' .. data.vault.money.c .. ' ]')

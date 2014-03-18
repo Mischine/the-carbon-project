@@ -40,18 +40,11 @@ function PLUGIN:showchar( netuser, cmd, args)
 end
 
 function PLUGIN:Character(cmdData)
-	--GET CURRENT XP (WITHOUT SHOWING PAST LEVEL XP)
 	local currentXp
-	if cmdData.netuserData.lvl > 1 then
-		currentXp = cmdData.netuserData.xp-core.Config.level.player[tostring(cmdData.netuserData.lvl-1)]
-	else
-		currentXp = cmdData.netuserData.xp
-	end
-
-	--GET REQUIRED XP FOR SPECIFIC LEVEL ONLY
+	if cmdData.netuserData.lvl > 1 then	currentXp = cmdData.netuserData.xp-core.Config.level.player[tostring(cmdData.netuserData.lvl)] else	currentXp = cmdData.netuserData.xp end
 	local requiredXp
 	if cmdData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.lvl > 1 then
-		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl-1)]-core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]
+		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]-core.Config.level.player[tostring(cmdData.netuserData.lvl)]
 	elseif cmdData.netuserData.lvl == 1 then
 		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]
 	else
@@ -59,19 +52,18 @@ function PLUGIN:Character(cmdData)
 	end
 
 	--CALCULATE SOME STUFF
-	local xpPercentage = math.floor(((currentXp/requiredXp)*100)+.5)
-	local xpToGo = requiredXp-currentXp
+	local xpPercentage, xpToGo = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp
 	local totalAllowedDp = requiredXp*.5
 	local dpPercentage = math.floor(((cmdData.netuserData.dp/totalAllowedDp)*100)+.5)
 	local content=
 			{
 				['list']={cmdData.txt.level..':                          '..tostring(cmdData.netuserData.lvl),
 				' ',
-				cmdData.txt.experience..':              ('..tostring(currentXp)..'/'..tostring(requiredXp)..')   ['..tostring(xpPercentage)..'%]   '..'('..tostring(xpToGo)..')',
+				cmdData.txt.experience..':              ('..currentXp..'/'..requiredXp..')   ['..xpPercentage..'%]   '..'('..xpToGo..')',
 				tostring(func:xpbar(xpPercentage,32)),
 				' ',
-				cmdData.txt.deathpenalty..':         ('..tostring(cmdData.netuserData.dp)..'/'..tostring(totalAllowedDp)..')   ['..tostring(dpPercentage)..'%]',
-				tostring(func:xpbar(dpPercentage,32))},['cmds']=cmdData.txt['cmds_c']
+				cmdData.txt.deathpenalty..':         ('..cmdData.netuserData.dp..'/'..totalAllowedDp..')   ['..dpPercentage..'%]',
+				func:xpbar(dpPercentage,32)},['cmds']=cmdData.txt['cmds_c']
 			}
 	func:TextBox(cmdData.netuser,content,cmdData.cmd,cmdData.args)
 end
@@ -79,34 +71,41 @@ function PLUGIN:CharacterSkills(cmdData)
 
 	local skillData = cmdData.netuserData.skills[ cmdData.args[2] ]
 	if skillData then
-		local a = skillData.lvl --level +1
-		local b = core.Config.settings.weaponlvlmodifier --level modifier
-		local c = (((a+1)*(a+1))+(a+1))/b*100-((a+1)*100)-((a*a)+a)/b*100-(a*100) --xp required for next level
-		local d = math.floor(((skillData.xp/c)*100)+0.5) -- percent currently to next level.
-		local e = c-skillData.xp -- left to go until level
+		local currentXp
+		if skillData.lvl > 1 then currentXp = skillData.xp-core.Config.level.weapon[tostring(skillData.lvl)] else currentXp = skillData.xp end
+		local requiredXp
+		if skillData.lvl < core.Config.settings.WEAPON_LEVEL_CAP and skillData.lvl > 1 then
+			requiredXp = core.Config.level.weapon[tostring(skillData.lvl+1)]-core.Config.level.weapon[tostring(skillData.lvl)]
+		elseif skillData.lvl == 1 then
+			requiredXp = core.Config.level.weapon[tostring(skillData.lvl+1)]
+		else
+			requiredXp = core.Config.level.weapon[tostring(core.Config.settings.WEAPON_LEVEL_CAP)]
+		end
+		local xpPercentage, xpToGo = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp
 		local content = {
-			['list'] = {cmdData.txt.skill .. ':  ' .. skillData.name,cmdData.txt.level':  ' .. skillData.lvl,cmdData.txt.experience':  (' .. skillData.xp .. '/' .. c .. ')  [' .. d .. '%]  (' .. e .. ')', func:xpbar( d, 32 ) },
+			['list'] = {cmdData.txt.skill .. ':  ' .. skillData.name,cmdData.txt.level .. ':  ' .. skillData.lvl,cmdData.txt.experience .. ':  (' .. currentXp .. '/' .. requiredXp .. ')  [' .. xpPercentage .. '%]  (' .. xpToGo .. ')', func:xpbar( xpPercentage, 32 ) },
 			['cmds']=cmdData.txt['cmds_c_skills'],
 		}
 		func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 	else
 		local content = {
-			--['prefix']='This is any prefix you would like to enter.',
-			--['breadcrumbs']=args,
-			--['header']='Header',
-			--['subheader']='Subheader',
-			--['msg']={},
 			['list']={},
-			['cmds']=cmdData.txt['cmds_c_skills'],
-			--['suffix']='this is the suffix',
+			['cmds']=cmdData.txt['cmds_c_skills']
 		}
 		for k,v in pairs(cmdData.netuserData.skills) do
-			local a = v.lvl+1 --level +1
-			local b = core.Config.settings.weaponlvlmodifier --level modifier
-			local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
-			local d = math.floor(((v.xp/c)*100)+0.5) -- percent currently to next level.
-			table.insert( content.list, tostring('   ' .. v.name .. '    •    Level: ' .. v.lvl .. '    •    ' .. 'Exp: ' .. v.xp ))
-			table.insert( content.list, tostring(func:xpbar( d, 32 )))
+			local currentXp
+			if v.lvl > 1 then currentXp = v.xp-core.Config.level.weapon[tostring(v.lvl)] else currentXp = v.xp end
+			local requiredXp
+			if v.lvl < core.Config.settings.WEAPON_LEVEL_CAP and v.lvl > 1 then
+				requiredXp = core.Config.level.weapon[tostring(v.lvl+1)]-core.Config.level.weapon[tostring(v.lvl)]
+			elseif v.lvl == 1 then
+				requiredXp = core.Config.level.weapon[tostring(v.lvl+1)]
+			else
+				requiredXp = core.Config.level.weapon[tostring(core.Config.settings.WEAPON_LEVEL_CAP)]
+			end
+			local xpPercentage, xpToGO = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp
+			table.insert( content.list, tostring('   ' .. v.name .. '    •    Level: ' .. v.lvl .. '    •    ' .. xpPercentage .. '%' ))
+			table.insert( content.list, tostring(func:xpbar( xpPercentage, 32 )))
 		end
 		func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 	end
@@ -344,7 +343,7 @@ function PLUGIN:GiveXp(combatData, xp, weplvl )
         combatData.netuserData.dp = 0
         rust.InventoryNotice( combatData.netuser, '-' .. combatData.netuserData.dp .. 'dp' )
         rust.InventoryNotice( combatData.netuser, '+' .. xp .. 'xp' )
-        self:PlayerLvl(combatData, xp)
+        self:PlayerLvl(combatData)
         if weplvl then self:WeaponLvl(combatData, xp) end
     end
     if combatData.netuser then self:Save( combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuser ) end
@@ -371,10 +370,28 @@ function PLUGIN:GiveDp(combatData, dp)
 end
 
 --PLUGIN:PlayerLvl
-function PLUGIN:PlayerLvl(combatData, xp)
-	for level = combatData.netuserData.lvl+5, 1, -1 do
-		if combatData.netuserData.xp >= core.Config.level[tostring(level)] then
-			if level ~= currentLvl then
+function PLUGIN:PlayerLvl(combatData)   -- We dont use then xp variable
+	-- for level = combatData.netuserData.lvl+5, 1, -1 do       -- handled further in the code, Less cpu usage?
+		local level = combatData.netuserData.lvl + 1
+		if combatData.netuserData.lvl >= core.Config.settings.PLAYER_LEVEL_CAP then combatData.netuserData.xp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)] return end -- Handles Max player lvl cap.
+		if combatData.netuserData.xp >= core.Config.level.player[tostring(level)] then
+			if combatData.netuserData.xp >= core.Config.level.player[tostring(level+1)] then    -- checks if it double level; If so, we loop trough all the levels just in case. ( double level is allmost impossible with Quests etc. )
+				for i = core.Config.settings.PLAYER_LEVEL_CAP, level, - 1 do
+					if combatData.netuserData.xp >= core.Config.level.player[tostring(i)] then
+						level = i
+						break
+						--[[
+							So what this does, When you double level, it's gonna check the whole table. so the first xp it gets is the level he has achieved.
+							This for loop will only fire if they're already double leveled. And if they're only just double leveled it will stop at that level anyway.
+							And it's dynamic, because we have a player level cap config. So we change that, it changes the for loop. ( just be sure to have the core.Config xp
+							tables updated. :P ( could also add a security for that... but meh. )
+						 ]]
+					end
+				end
+			end
+
+			-- Level up
+			-- if level ~= currentLvl then  -- Already handled by previous if statements. Also, you didn't have a currentLvl variable.
 
 				--ADJUST LEVEL
 				combatData.netuserData.lvl = level --set character level
@@ -385,7 +402,8 @@ function PLUGIN:PlayerLvl(combatData, xp)
 				for k,v in pairs(combatData.netuserData.attributes) do usedAp = usedAp+v end --tally up used ap
 				if combatData.netuserData.ap ~= math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp then
 					combatData.netuserData.ap=combatData.netuserData.ap+(math.floor(level/core.Config.settings.AP_PER_LEVEL)-usedAp) --set ap
-					func:Notice(combatData.netuser,'✛','You have earned an attribute point!',5)
+-- Added timers to these, they were overlapping.
+					timer.Once( 5, function ()func:Notice(combatData.netuser,'✛','You have earned an attribute point!',5) end)
 				end
 
 				--ADJUST PERK POINTS
@@ -393,7 +411,8 @@ function PLUGIN:PlayerLvl(combatData, xp)
 				for k,v in pairs(combatData.netuserData.perks) do usedPp = usedPp+v end -- tally up used pp
 				if combatData.netuserData.pp ~= math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp then
 					combatData.netuserData.pp=combatData.netuserData.pp+(math.floor(level/core.Config.settings.PP_PER_LEVEL)-usedPp) --set pp
-					func:Notice(combatData.netuser,'✛','You have earned a perk point!',5)
+-- Added timers to these, they were overlapping.
+					timer.Once( 10, function ()func:Notice(combatData.netuser,'✛','You have earned a perk point!',5) end)
 				end
 
 				--UNLOCK CLASS CHECK
@@ -409,11 +428,10 @@ function PLUGIN:PlayerLvl(combatData, xp)
 					args[1] = 'Unlock message.'
 					func:TextBox( combatData.netuser, content, cmd, args )
 				end
-			end
-		else
-			combatData.netuserData.xp = core.Config.levels[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
+			-- end
 		end
-	end
+
+	-- end
 	--[[ OLD CALC LEVEL STUFF.. REWRITTEN
 
     local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.lvlmodifier*(combatData.netuserData.xp+xp))+25))+50)/100)

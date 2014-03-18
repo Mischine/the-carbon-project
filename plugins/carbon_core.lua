@@ -99,6 +99,33 @@ function PLUGIN:SetDefaultConfig()
             ['Chicken']={['id']='Chicken',['ai']='ChickenAI',['name']='Chicken',['xp']=5,['dmg']=1,['attributes']={['sta']=1,['agi']=1,['str']=1}},
             ['Rabbit']={['id']='Rabbit',['ai']='RabbitAI',['name']='Rabbit',['xp']=5,['dmg']=1,['attributes']={['sta']=1,['agi']=1,['str']=1}},
         },
+        ['entities'] = {
+	        -- Wood structures
+		    ['WoodGateway(Clone)'] = {['name']='Wood Gateway',['maxhealth']=2000,['dmg']=5,},
+		    ['WoodGate(Clone)'] = {['name']='Wood Gate',['maxhealth']=1800,['dmg']=6,},
+		    ['Barricade_Fence_Deplayable(Clone)'] = {['name']='Barricade',['maxhealth']=1000,['dmg']=25,},
+		    ['Wood_Shelter(Clone)'] = {['name']='Wood Shelter',['maxhealth']=1000,['dmg']=3,},
+		    ['WoodFoundation(Clone)'] = {['name']='Wood Foundation',['maxhealth']=2500,['dmg']=5,},
+		    ['WoodWindowFrame(Clone)'] = {['name']='Wood Window',['maxhealth']=1000,['dmg']=5,},
+		    ['WoodStairs(Clone)'] = {['name']='Wood Stairs',['maxhealth']=1000,['dmg']=19,},
+		    ['WoodWall(Clone)'] = {['name']='Wood Wall',['maxhealth']=1000,['dmg']=5,},
+		    ['WoodenDoor(Clone)'] = {['name']='Wooden Door',['maxhealth']=500,['dmg']=3,},
+		    ['WoodDoorFrame(Clone)'] = {['name']='Wood Door Frame',['maxhealth']=1000,['dmg']=5,},
+		    ['WoodCeiling(Clone)'] = {['name']='Wood Ceiling',['maxhealth']=1000,['dmg']=5,},
+		    ['WoodRamp(Clone)'] = {['name']='Wood Ramp',['maxhealth']=1000,['dmg']=5,},
+		    ['WoodPillar(Clone)'] = {['name']='Wood Pillar',['maxhealth']=5000,['dmg']=5,},
+		    ['LargeWoodSpikeWall(Clone)'] = {['name']='Large Wood Spike Wall',['maxhealth']=1500,['dmg']=5,},
+		    ['WoodSpikeWall(Clone)']={['name']='Wood Spike Wall',['maxhealth']=750,['dmg']=15,},
+	        -- Utilities
+		    ['Furnace(Clone)']={['name']='Furnace',['maxhealth']=500,['dmg']=25,},
+		    ['WorkBench(Clone)']={['name']='Workbench',['maxhealth']=1000,['dmg']=25,},
+		    ['SleepingBagA(Clone)']={['name']='Sleeping Bag',['maxhealth']=500,['dmg']=25,},
+		    ['SmallStash(Clone)']={['name']='Small Stash',['maxhealth']=100,['dmg']=25,},
+		    ['SingleBed(Clone)']={['name']='Bed',['maxhealth']=500,['dmg']=5,},
+		    ['Campfire(Clone)']={['name']='Campfire',['maxhealth']=500,['dmg']=25,},
+		    ['WoodBoxLarge(Clone)']={['name']='Large Storage Box',['maxhealth']=1000,['dmg']=5,},
+		    ['WoodBox(Clone)']={['name']='Storage Box',['maxhealth']=500,['dmg']=5,},
+        },
         ['weapon']={
             ['Unarmed']={['name']='Unarmed',['type']='m',['dmg']=1,['lvl']=1},
             ['Uber Hunting Bow']={['name']='Uber Hunting Bow',['type']='l',['dmg']=1,['lvl']=1},
@@ -385,7 +412,8 @@ function PLUGIN:CanOpenDoor( netuser, door )
 	-- Need handmade Lockpick and luck to open doors. -- Maybe have a cooldown on it when fail?
 	if thief:isThief( netuser ) then
 		local inv = rust.GetInventory( netuser )
-		if not inv then return end
+		if not inv then return false end
+
 
 	end
 end

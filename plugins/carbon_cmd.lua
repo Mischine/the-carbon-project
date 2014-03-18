@@ -43,6 +43,11 @@ function PLUGIN:PostInit()
 
     -- Statistics (stats)
 
+  -- Classes
+    -- thief
+    self:AddChatCommand( 'stealth', thief.cmdStealth )
+    self:AddChatCommand( 'steal', thief.Steal )
+
     -- Mail
     self:AddChatCommand( 'mail', self.cmdMail )
 

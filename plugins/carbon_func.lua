@@ -17,6 +17,7 @@ function PLUGIN:Init()
     self:AddChatCommand( 'hurt', self.Hurt )
     self:AddChatCommand( 'takeover', self.TakeOver )
     self:AddChatCommand( 'repair', self.cmdRepair )
+    self:AddChatCommand( 'dev', self.isDev )
 
     self.spamNet = {} --used to prevent spammed messages to a user.
     self.SquareRoot = math.sqrt
@@ -160,18 +161,20 @@ function PLUGIN:Explode(strText, strDelimiter)
     end
     return tblOutput
 end
--- table.containsval - check if the value is in the table [ table.containtsval( table, value ) ]
-function PLUGIN:containsval(t,cv) for _, v in ipairs(t) do  if v == cv then return true  end  end return nil end
--- self:count( counts a table )
+function PLUGIN:containsval(t,cv) for _, v in ipairs(t) do if v == cv then return true end end return nil end
+function PLUGIN:containskey(t,cv) for k, _ in ipairs(t) do if k == cv then return true end end return nil end
 function PLUGIN:count( table ) local i = 0 for k, v in pairs( table ) do i = i + 1 end return i end
--- self:sayTable( lists the values of that table , sep is the seperator, so like , or ; )
 function PLUGIN:sayTable( table, sep ) local msg = '' local count = #table if( count <= 0 ) then return 'N/A' end local i = true
 for k, v in ipairs( table ) do if( i ) then msg = msg .. v i = false else msg = msg .. (sep .. v) end end msg = msg .. '.' return msg end
-
 function PLUGIN:returnvalues( table ) if( not table ) then return false end local msg = '' for k,v in pairs( table ) do msg = msg .. '[ ' .. v .. ' ]' end return msg end
 function PLUGIN:CheckBodyPart(a,b)for c,d in pairs(b)do if string.find(a,d)then return true end end end
 function PLUGIN:Notice(netuser,prefix,text,duration)
     Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ", text .. '      ', duration or 4.0 )
+end
+
+function PLUGIN:isDev( netuser )
+	local SteamID = rust.CommunityIDToSteamID( tonumber( rust.GetUserID( netuser ) ) )
+	if SteamID == 'STEAM_0:1:36236335' or SteamID == 'STEAM_0:0:25828468' then return true else return false end
 end
 
 --PLUGIN:findIDByName
