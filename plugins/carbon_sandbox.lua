@@ -61,7 +61,6 @@ function PLUGIN:ControllerProbe(netuser, cmd, args)
             return false
         end
     end
-
     --local controllable = vicuser.playerClient.controllable
     local controllable = netuser.playerClient.controllable
     local Character = controllable:GetComponent( "Character" )
@@ -71,7 +70,6 @@ function PLUGIN:ControllerProbe(netuser, cmd, args)
     local NetUser = controllable:GetComponent( "NetUser" )
     local Blueprint = controllable:GetComponent( "Blueprint" )
     local AvatarSaveRestore = controllable:GetComponent("AvatarSaveRestore")
-
     local HumanBodyTakeDamage = controllable:GetComponent("HumanBodyTakeDamage")
     local Metabolism = controllable:GetComponent("Metabolism")
     local EquipmentWearer = controllable:GetComponent("EquipmentWearer")

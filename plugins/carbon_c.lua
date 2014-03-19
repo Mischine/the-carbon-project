@@ -14,8 +14,8 @@ end
 --local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
 local get_flSprintSpeed, set_flSprintSpeed = typesystem.GetField( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
+local weaponRecoil = typesystem.GetField( Rust.BulletWeaponDataBlock, "weaponRecoil", bf.private_instance )
 --local testD = util.GetPropertyGetter( Rust.PlayerMovement_Mecanim._type, "flSprintSpeed", true )
-local get_name, set_name = typesystem.GetField( RustProto.Item, "Name", bf.public_instance )
 function PLUGIN:sc(netuser, cmd, args)
 	local i = 1
 	while i <= 1 do
@@ -24,6 +24,7 @@ function PLUGIN:sc(netuser, cmd, args)
 		i = i+1
 	end
 	local controllable = netuser.playerClient.controllable
+	local avatar = netuser:LoadAvatar()
 	local netuserID = rust.GetCharacter( netuser )
 	local Character = controllable:GetComponent( "Character" )
 	local Inventory = controllable:GetComponent( "Inventory" )
@@ -33,13 +34,33 @@ function PLUGIN:sc(netuser, cmd, args)
 	local ProtectionTakeDamage = controllable:GetComponent( "ProtectionTakeDamage" )
 	local PlayerInventory = controllable:GetComponent( "PlayerInventory" )
 	local EquipmentWearer = controllable:GetComponent( "EquipmentWearer" )
-
-	rust.SendChatToUser(netuser, tostring(Inventory.activeItem.toolTip))
-	local testthis = get_flSprintSpeed(CharacterController)
-	rust.SendChatToUser(netuser, tostring(testthis)) --Generic
+	local HeldItemDataBlock = controllable:GetComponent( "HeldItemDataBlock" )
+	local Metabolism = controllable:GetComponent("Metabolism")
 
 
+	--local testthis = set_flSprintSpeed()
+	--rust.SendChatToUser(netuser, tostring(testthis))
+	-- Inventory.activeItem.datablock.caloriesPerSwing = 2 -- change calories per swing =)
+	--Inventory.activeItem.datablock.midSwingDelay = 1.25 -- change swing delay
+	-- Inventory.activeItem.datablock.worldSwingAnimationSpeed = 0.75 -- doesnt do anything.. . ?
+	--Inventory.activeItem.datablock.midSwingDelay = 1.25
+	--Inventory.activeItem.datablock.gathersResources = true
+	--THIS IS FOR BULLETWEAPONDATABLOCKS
+	--Inventory.activeItem.datablock.aimingRecoilSubtract = 0.5 --0.5
+	--Inventory.activeItem.datablock.recoilDuration = 0.20000000298023
+	--Inventory.activeItem.datablock.maxEligableSlots = 5 -- This works for new weapons only..
+	--Inventory.activeItem.datablock.recoilPitchMax = 5
+	--Inventory.activeItem.datablock.recoilPitchMin = 2
+	--Inventory.activeItem.datablock.recoilYawMax = 3
+	--Inventory.activeItem.datablock.recoilYawMin = -3
+	--Inventory.activeItem.datablock.fireRate = 0.125 -- prevents damage output to happen at this time
+	--Inventory.activeItem.datablock.fireRateSecondary = 1
+	--Metabolism:AddWater(tonumber(-5))
+	--rust.SendChatToUser(netuser, tostring(avatar.vitals.hydration))
 
+
+	rust.BroadcastChat(tostring(Inventory.activeItem.datablock.creatorID))
+--[[
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(0))) --Generic
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(1))) --Bullet
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(2))) --Melee
@@ -53,7 +74,7 @@ function PLUGIN:sc(netuser, cmd, args)
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(3))) --Explosion
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(4))) --Radiation
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(5))) --Cold
-
+]]
 
 
 --[[

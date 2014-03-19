@@ -3,9 +3,17 @@ PLUGIN.Description = 'combat module'
 PLUGIN.Version = '0.0.3'
 PLUGIN.Author = 'mischa / carex'
 
+local structureMaster_ownerID = util.GetFieldGetter(Rust.StructureMaster, "ownerID", true)
+local structureMaster_gridSpacingXZ = util.GetStaticFieldGetter(Rust.StructureMaster, "gridSpacingXZ", true)
+local structureMaster_gridSpacingY = util.GetStaticFieldGetter(Rust.StructureMaster, "gridSpacingY", true)
+local deployableObject_ownerID = util.GetFieldGetter(Rust.DeployableObject, "ownerID", true)
+
 local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )
 typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
-
+--[[
+local StructureComponentType = cs.gettype( "StructureComponent.StructureComponentType, Assembly-CSharp" )
+typesystem.LoadEnum(StructureComponentType, "StructureComponent.StructureComponentType" )
+]]
 local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 
@@ -17,6 +25,8 @@ local damage_radiation = 16
 local damage_cold = 32
 local spamNet = {}
 
+local Pillar = tostring(StructureComponentType.Pillar)
+
 local IsAlive = tostring(LifeStatus.IsAlive)
 local IsDead = tostring(LifeStatus.IsDead)
 local WasKilled = tostring(LifeStatus.WasKilled)
@@ -27,6 +37,7 @@ function PLUGIN:Init()
 end
 
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+	rust.BroadcastChat( tostring( takedamage ))
 	rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )
 	damage.amount = thief:StealthCheck( takedamage, damage )  -- Stealth check
 	local combatData, status, dmg = {}, tostring( damage.status )
@@ -41,7 +52,33 @@ local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 function PLUGIN:CombatDamage (takedamage, dmg)
 	-- Object check
+	local DeployableObject = takedamage:GetComponent("DeployableObject")
+	local StructureComponent = takedamage:GetComponent("StructureComponent")
+
+	--local structureOwnerId = getStructureMasterOwnerId(StructureMaster)
+
 	if takedamage.gameObject then
+		if DeployableObject then
+
+		elseif StructureComponent then
+			--[[
+			local StructureMaster = StructureComponent._master
+			rust.BroadcastChat( 'Name: ' .. tostring( takedamage.gameObject.Name ))
+			rust.BroadcastChat( 'Health: ' .. tostring( takedamage.health) )
+			rust.BroadcastChat( 'Damage: ' .. tostring( dmg.amount) )
+			rust.BroadcastChat( 'StructureComponent: ' .. tostring( StructureComponent ))
+			rust.BroadcastChat( 'OwnerID: ' .. tostring( tonumber(structureMaster_ownerID(StructureMaster)) ))
+			rust.BroadcastChat( 'Structure Type: ' .. tostring( StructureComponent.type ))
+			rust.BroadcastChat( 'Material Type: ' .. tostring( StructureComponent._materialType ))
+			]]
+			if StructureComponent.type == 'Pillar' then
+				--rust.BroadcastChat('Nice! this is a pillar')
+			end
+			--rust.BroadcastChat( tostring( tostring(StructureMaster.gridSpacingXZ)))
+			--rust.BroadcastChat( tostring( tostring(StructureMaster.gridSpacingY) ))
+			--rust.BroadcastChat( tostring( tostring(StructureMaster.foundationSize) ))
+			--rust.BroadcastChat( tostring( StructureComponent.deathEffect ))
+		end
 		rust.BroadcastChat( 'Name: ' .. tostring( takedamage.gameObject.Name ))
 		rust.BroadcastChat( 'Health: ' .. tostring( takedamage.health) )
 		rust.BroadcastChat( 'Damage: ' .. tostring( dmg.amount) )
@@ -93,11 +130,11 @@ function PLUGIN:CombatDamage (takedamage, dmg)
     elseif dmg.attacker.controllable and not dmg.victim.controllable and not combatData.entity then
         combatData['scenario'] = 3 --client vs npc
         rust.BroadcastChat( 'Scenario: 3' )
-    elseif dmg.attacker.contrallable and combatData.entity and combatData.weapon.type == 'm' then
+    elseif dmg.attacker.controllable and combatData.entity and combatData.weapon.type == 'm' then
 	    combatData['scenario'] = 4 --client vs entity
 	    combatData.dmg.amount = combatData.entity.dmg           -- setting base damage for each object.
 	    rust.BroadcastChat( 'Scenario: 4' )
-    elseif dmg.attacker.contrallable and combatData.entity then
+    elseif dmg.attacker.controllable and combatData.entity then
 	    combatData['scenario'] = 5 --client vs entity
 	    rust.BroadcastChat( 'Scenario: 5' )
 	    return combatData.dmg, combatData
@@ -212,11 +249,11 @@ function PLUGIN:OnKilled (takedamage, dmg)
 	elseif dmg.attacker.controllable and not dmg.victim.controllable and not combatData.entity then
 		combatData['scenario'] = 3 --client vs npc
 		rust.BroadcastChat( 'Scenario: 3' )
-	elseif dmg.attacker.contrallable and combatData.entity and combatData.weapon.type == 'm' then
+	elseif dmg.attacker.controllable and combatData.entity and combatData.weapon.type == 'm' then
 		combatData['scenario'] = 4 --client vs entity
 		combatData.dmg.amount = combatData.entity.dmg           -- setting base damage for each object.
 		rust.BroadcastChat( 'Scenario: 4' )
-	elseif dmg.attacker.contrallable and combatData.entity then
+	elseif dmg.attacker.controllable and combatData.entity then
 		combatData['scenario'] = 5 --client vs entity
 		rust.BroadcastChat( 'Scenario: 5' )
 	else

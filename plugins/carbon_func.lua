@@ -323,7 +323,7 @@ function PLUGIN:Calories(netuser, cmd, args)
     if(#args==0)then
         rust.SendChatToUser(netuser,'/calories "name" add|remove|check #[amount]' )
     end
-    if args[3] and args[2] == 'remove' and this:IsPoisoned() then
+    if args[3] and args[2] == 'remove' then
         this:SubtractCalories(tonumber(args[3]))
     elseif args[3] and args[2] == 'add' then
         this:AddCalories(tonumber(args[3]))
