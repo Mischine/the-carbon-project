@@ -47,6 +47,7 @@ function PLUGIN:MailNew( cmdData )
 		}
 	}
 	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
+	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
 end
 
 -- /mail subject
@@ -64,7 +65,7 @@ function PLUGIN:MailSubject( cmdData )
 	if concept.subject ~= '' then rust.SendChatToUser( cmdData.netuser, 'Subject changed from: ' .. concept.subject .. ' to: ' .. msg ) end
 	concept.subject = tostring(msg)
 	self.Concept[ cmdData.netuser ] = concept
-	timer.Once( 2, function() rust.SendChatToUser( cmdData.netuser, 'Concept saved.' ) end )
+	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
 end
 
 -- /mail txt
@@ -82,7 +83,7 @@ function PLUGIN:MailTxt( cmdData )
 	end
 	concept.txt = tostring(msg)
 	self.Concept[ cmdData.netuser ] = concept
-	timer.Once( 2, function() rust.SendChatToUser( cmdData.netuser, 'Concept saved.' ) end )
+	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
 end
 
 function PLUGIN:MailMoney( cmdData )
@@ -110,7 +111,7 @@ function PLUGIN:MailMoney( cmdData )
 	rust.SendChatToUser( cmdData.netuser, tostring('Concept now contains: Gold: ' .. data.g .. ' Silver: ' .. data.s .. ' Copper: ' .. data.c ))
 	concept.money = data
 	self.Concept[ cmdData.netuser ] = concept
-	timer.Once( 2, function() rust.SendChatToUser( cmdData.netuser, 'Concept saved.' ) end )
+	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
 end
 
 function PLUGIN:MailItem( cmdData )
@@ -160,7 +161,7 @@ function PLUGIN:MailItem( cmdData )
 	end
 	rust.SendChatToUser( cmdData.netuser, tostring(i .. 'x ' .. cmdData.args[3] .. ' added to the concept.' ))
 	self.Concept[ cmdData.netuser ] = concept
-	timer.Once( 2, function() rust.SendChatToUser( cmdData.netuser, 'Concept saved.' ) end )
+	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
 end
 
 function PLUGIN:MailPv( cmdData )
@@ -184,13 +185,47 @@ function PLUGIN:MailRead( cmdData )
 end
 
 function PLUGIN:ShowMail( cmdData, mail )
-	--[[
-		 mail.subject
-		 mail.txt
-		 mail.money
-		 mail.items
-	 ]]
-
+	if mail.subject then mail.subject = func:WordWrap(mail.subject, 100) end
+	if mail.txt then mail.txt = func:WordWrap(mail.txt, 100) end
+	rust.SendChatToUser(cmdData.netuser,core.sysname,' ')
+	rust.SendChatToUser(cmdData.netuser,core.sysname,'╔════════════════════════════════════════════════')
+	rust.SendChatToUser(cmdData.netuser,core.sysname,'║ Mail overview')
+	rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
+	if mail.subject then
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ ' .. tostring(mail.subject))
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
+	else
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ No subject.')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­­')
+	end
+	if mail.txt then
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ ' .. tostring(mail.txt))
+	else
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ No text attached.')
+	end
+	if mail.money then
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ Money attached: ' .. tostring( mail.money ))
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
+	end
+	if mail.items then
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ items attached: ')
+		for k,v in pairs( mail.items ) do
+			rust.SendChatToUser(cmdData.netuser,core.sysname,'║ - ' .. tostring(v) .. 'x ' .. tostring(k))
+		end
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ To claim the items attached to this mail; /mail claim [#ID]')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
+	end
+	if mail.date then
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟════════════════════════════════════════════════')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ Send date: ' .. tostring( mail.date ))
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╚════════════════════════════════════════════════')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,' ')
+	else
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╚════════════════════════════════════════════════')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,' ')
+	end
 end
 
 function PLUGIN:MailDel( cmdData )

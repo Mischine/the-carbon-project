@@ -848,26 +848,23 @@ function PLUGIN:engageWar( guild, guild2, netuser )
 end
 
 function PLUGIN:GiveGXP( guild, xp )
-	-- TODO: Implement the new xp system
+	-- TODO: Test the
     local data = self:getGuildData( guild )
-    if not data then return end
+    if not data then rust.BroadcastChat( 'GuildData not found!' ) return 0 end
     if data.glvl == core.Config.guild.settings.GUILD_LEVEL_CAP then return 0 end
     local members = func:count( data.members )
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.guild.settings.GUILD_LEVEL_MODIFIER*(data.xp+xp))+25))+50)/100)
-    if( calcLvl ~= data.glvl ) then
-        -- level up | check if allowed.
-        if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
-            data.xp = data.xp + xp
-            data.glvl = calcLvl
-            chat:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(calcLvl) .. ' reached! ::::::::::::::::' )
-            self:GuildSave()
-            self:CallUnlock(guild)
-            return xp
-        else
-            data.xp = (((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.GUILD_LEVEL_MODIFIER*100-(data.glvl*100))-1
-            xp = 0
-            return xp
-        end
+    if data.glvl >= core.Config.level.guild[ tostring(data.glvl+1) ] then
+	    if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
+		    data.xp = data.xp + xp
+		    data.glvl = data.glvl + 1
+		    chat:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(calcLvl) .. ' reached! ::::::::::::::::' )
+		    self:CallUnlock(guild)
+		    self:GuildSave()
+		    return xp
+	    else
+		    data.xp = (((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.GUILD_LEVEL_MODIFIER*100-(data.glvl*100))-1
+		    return 0
+	    end
     end
     data.xp = data.xp + xp
     self:GuildSave()
@@ -882,7 +879,6 @@ function PLUGIN:CallUnlock( guild )
             -- unlocked!
             table.insert( data.unlockedcalls, k )
             chat:sendGuildMsg( guild, 'CALL UNLOCK!', v.name .. ' is now unlocked!' )
-            self:GuildSave()
         end
     end
 end
