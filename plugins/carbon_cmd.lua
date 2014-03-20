@@ -61,25 +61,39 @@ end
 function PLUGIN:cmdMail( netuser, cmd ,args )
 	local cmdData = self:GetCmdData( netuser, cmd, args )
 	if not args[1] then
-		mail.MailInfo( cmdData )
+		mail:MailInfo( cmdData )
+		return
 	end
 	local option = args[1]:lower()
 
 	if option == 'new' then             -- /mail new [Optional subject]         To create a new mail, subject is optional
+		mail:MailNew( cmdData )
 	elseif option == 'item' then        -- /mail item #amount "ItemName"        To add items
+		mail:MailItem( cmdData )
 	elseif option == 'subject' then     -- /mail subject txt                    To add a subject
+		mail:MailSubject( cmdData )
 	elseif option == 'txt' then         -- /mail txt txt                        To add new text
+		mail:MailTxt( cmdData )
 	elseif option == 'money' then       -- /mail money g s c                    To add money to the mail
+		mail:MailMoney( cmdData )
 	elseif option == 'read' then        -- /mail read #ID                       To read an mail
+		mail:MailRead( cmdData )
 	elseif option == 'pv' then          -- /mail pv                             To preview your mail that you\'re about to send
+		mail:MailPv( cmdData )
 	elseif option == 'cancel' then      -- /mail cancel                         To cancel the concept. return items/money in concept
+		mail.MailCancel( cmdData )
 	elseif option == 'del' then         -- /mail del #ID                        To delete a mail
+		mail:MailDel( cmdData )
 	elseif option == 'clear' then       -- /mail clear                          To clear your whole inbox. Even the one with items in it
+		mail:MailClear( cmdData )
 	elseif option == 'fw' then          -- /mail fw                             To forward a mail
+		mail:MailFw( cmdData )
 	elseif option == 'collect' then     -- /mail collect                        To collect the items/money/donation
+		mail:MailCollect( cmdData )
 	elseif option == 'send' then        -- /mail send "Name"                    To send mail to a player
+		mail:MailCollect( cmdData )
 	else
-		mail.MailInfo( cmdData )
+		mail:MailInfo( cmdData )
 	end
 end
 

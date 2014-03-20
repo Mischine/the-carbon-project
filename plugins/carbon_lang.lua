@@ -70,7 +70,8 @@ function PLUGIN:SetLocalization()
 	            ['attrcmds'] = '',
             },
         },
-	    ['class'] = {}
+	    ['class'] = {},
+	    ['mail'] = {}
     }
     self:TextSave()
 end

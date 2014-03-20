@@ -289,7 +289,6 @@ function PLUGIN:Unstealth( netuser )
 	while true do local f=inv:FindItem(b)if f then inv:RemoveItem(f)else break end end
 	while true do local f=inv:FindItem(c)if f then inv:RemoveItem(f)else break end end
 	while true do local f=inv:FindItem(d)if f then inv:RemoveItem(f)else break end end
-
 	-- inv:RemoveItem( 36 )inv:RemoveItem( 37 )inv:RemoveItem( 38 )inv:RemoveItem( 39 )
 	if self.stealth[ netuserID ] then
 		for _, v in pairs ( self.stealth[netuserID] ) do
@@ -301,7 +300,6 @@ function PLUGIN:Unstealth( netuser )
 			end
 		end
 	end
-
 	self.stealth[ netuserID ] = nil
 	rust.InventoryNotice( netuser, '- Stealth' )
 	if not self.cd[netuser] then self.cd[netuser]={} end

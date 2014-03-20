@@ -184,7 +184,7 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 		return combatData.dmg.amount, combatData
 	else
 		rust.BroadcastChat( 'Scenario: Invalid' )
-		self:PrintInvalidScenario( combatData,dmg, takedamage )
+		-- self:PrintInvalidScenario( combatData,dmg, takedamage )
 		return combatData.dmg.amount, combatData
 	end
 	return combatData
@@ -227,7 +227,7 @@ function PLUGIN:PrintInvalidScenario( combatData, dmg, takedamage )
 	if combatData then
 		if takedamage.gameObject then print('gameObject: ' .. tostring(takedamage.gameObject.Name)) end
 		if takedamage.health then print('health: ' .. tostring(combatData)) end
-		if dmg and dmg.amount then print('Damage: ' .. tostring(dmg.amount)) end
+		if dmg and dmg.amount then print('Damage: ' .. tostring(dmg.amount.amount)) end
 
 		if combatData.netuser then print( 'netuser: ' .. tostring(combatData.netuser) ) end
 		if combatData.vicuser then print( 'vicuser: ' .. tostring(combatData.vicuser)) end

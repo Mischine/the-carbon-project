@@ -42,8 +42,6 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
 
         local roll = func:Roll(true, 100)
         if(roll < e) then
-	        rust.BroadcastChat( 'Before setting failed to true' )
-
             failed = true
             rust.BroadcastChat('FAILED' )
         elseif (roll > d) then
