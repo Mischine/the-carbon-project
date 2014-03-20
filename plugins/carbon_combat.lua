@@ -109,7 +109,6 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:DmgRandomizer(combatData)
 		combatData.dmg.amount = self:Attack(combatData)
 		combatData.dmg.amount = self:CritCheck(combatData) --TODO: MOVE INTO ATTACK
-		rust.BroadcastChat('before activateperks')
 		combatData.dmg.amount = self:ActivatePerks(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildDefend(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
@@ -280,6 +279,7 @@ end
 function PLUGIN:ActivatePerks(combatData)
 	if combatData.scenario == 1 then
 		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
 	elseif combatData.scenario == 2 then
 		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
 	elseif combatData.scenario == 3 then
