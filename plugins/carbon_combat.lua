@@ -1,19 +1,14 @@
 PLUGIN.Title = 'carbon_core'
 PLUGIN.Description = 'combat module'
-PLUGIN.Version = '0.0.3'
+PLUGIN.Version = '140319' --ADDED NEW VERSION CONTROL USING DATE 2DIGIT([YR][MO][DA].[24HRTIME])
 PLUGIN.Author = 'mischa / carex'
 
 local structureMaster_ownerID = util.GetFieldGetter(Rust.StructureMaster, "ownerID", true)
-local structureMaster_gridSpacingXZ = util.GetStaticFieldGetter(Rust.StructureMaster, "gridSpacingXZ", true)
-local structureMaster_gridSpacingY = util.GetStaticFieldGetter(Rust.StructureMaster, "gridSpacingY", true)
 local deployableObject_ownerID = util.GetFieldGetter(Rust.DeployableObject, "ownerID", true)
 
 local LifeStatusType = cs.gettype( "LifeStatus, Assembly-CSharp" )
 typesystem.LoadEnum(LifeStatusType, "LifeStatus" )
---[[
-local StructureComponentType = cs.gettype( "StructureComponent.StructureComponentType, Assembly-CSharp" )
-typesystem.LoadEnum(StructureComponentType, "StructureComponent.StructureComponentType" )
-]]
+
 local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
 local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 
@@ -23,19 +18,28 @@ local damage_melee = 4
 local damage_explosion = 8
 local damage_radiation = 16
 local damage_cold = 32
-local spamNet = {}
 
-local Pillar = tostring(StructureComponentType.Pillar)
+local structure_ceiling = 3
+local structure_doorway = 2
+local structure_foundation = 5
+local structure_last = 8
+local structure_pillar = 0
+local structure_ramp = 7
+local structure_stairs = 4
+local structure_wall = 1
+local structure_windowwall = 6
 
 local IsAlive = tostring(LifeStatus.IsAlive)
 local IsDead = tostring(LifeStatus.IsDead)
 local WasKilled = tostring(LifeStatus.WasKilled)
 local Failed = tostring(LifeStatus.Failed)
 
+
+local spamNet = {}
+
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
-
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	rust.BroadcastChat( tostring( takedamage ))
 	rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )
@@ -44,156 +48,83 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	if ( status ~= IsDead ) then dmg, combatData = self:CombatDamage( takedamage, damage ) end
 	if (( combatData and combatData.bodyPart) and ( not combatData.npc )) and not combatData.entity then rust.BroadcastChat( combatData.bodyPart ) end
 	if dmg.amount >= takedamage.health then	if dmg.status then dmg.status = LifeStatus.WasKilled end end
-	if dmg.amount <= 0 then	dmg.status = LifeStatus.IsAlive	rust.BroadcastChat( cancelagro ) end
+	if dmg.amount <= 0 then	dmg.status = LifeStatus.IsAlive	return end
 	if status and dmg.status then if status == WasKilled then	if dmg.amount < takedamage.health then dmg.status = LifeStatus.IsAlive end end end
 end
 
-local _BodyParts = cs.gettype( "BodyParts, Facepunch.HitBox" )
-local _GetNiceName = util.GetStaticMethod( _BodyParts, "GetNiceName" )
 function PLUGIN:CombatDamage (takedamage, dmg)
-	-- Object check
-	local DeployableObject = takedamage:GetComponent("DeployableObject")
-	local StructureComponent = takedamage:GetComponent("StructureComponent")
 
-	--local structureOwnerId = getStructureMasterOwnerId(StructureMaster)
 
-	if takedamage.gameObject then
+		local combatData = self:GetCombatData(takedamage,dmg)
+
+		--perk:knockback(combatData)
+
+		--[[
+		local StructureComponent = takedamage:GetComponent("StructureComponent")
+		local DeployableObject = takedamage:GetComponent("DeployableObject")
 		if DeployableObject then
 
 		elseif StructureComponent then
-			--[[
 			local StructureMaster = StructureComponent._master
 			rust.BroadcastChat( 'Name: ' .. tostring( takedamage.gameObject.Name ))
 			rust.BroadcastChat( 'Health: ' .. tostring( takedamage.health) )
 			rust.BroadcastChat( 'Damage: ' .. tostring( dmg.amount) )
 			rust.BroadcastChat( 'StructureComponent: ' .. tostring( StructureComponent ))
 			rust.BroadcastChat( 'OwnerID: ' .. tostring( tonumber(structureMaster_ownerID(StructureMaster)) ))
-			rust.BroadcastChat( 'Structure Type: ' .. tostring( StructureComponent.type ))
+
+			local foundNetUser = func:FindNetUserById(tonumber(structureMaster_ownerID(StructureMaster)))
+			rust.BroadcastChat( tostring(foundNetUser))
+			rust.BroadcastChat( 'Structure Type: ' .. tostring( StructureComponent.type.value__ ))
 			rust.BroadcastChat( 'Material Type: ' .. tostring( StructureComponent._materialType ))
-			]]
-			if StructureComponent.type == 'Pillar' then
-				--rust.BroadcastChat('Nice! this is a pillar')
-			end
 			--rust.BroadcastChat( tostring( tostring(StructureMaster.gridSpacingXZ)))
 			--rust.BroadcastChat( tostring( tostring(StructureMaster.gridSpacingY) ))
 			--rust.BroadcastChat( tostring( tostring(StructureMaster.foundationSize) ))
 			--rust.BroadcastChat( tostring( StructureComponent.deathEffect ))
 		end
-		rust.BroadcastChat( 'Name: ' .. tostring( takedamage.gameObject.Name ))
-		rust.BroadcastChat( 'Health: ' .. tostring( takedamage.health) )
-		rust.BroadcastChat( 'Damage: ' .. tostring( dmg.amount) )
-		if dmg.attacker then rust.BroadcastChat( 'Attacker: ' .. tostring( dmg.attacker) ) else rust.BroadcastChat( 'No attacker' ) end
-	end
-	local randMultiplier = func:Roll(false,0.50123456789,0.59876543210) dmg.amount = func:Roll(false,dmg.amount*randMultiplier,dmg.amount)
+--]]
+		--if dmg.attacker then rust.BroadcastChat( 'Attacker: ' .. tostring( dmg.attacker) ) else rust.BroadcastChat( 'No attacker' ) end
 
-    local combatData = {}
-    if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
-    if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
-    if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
-    if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char[rust.GetUserID(dmg.victim.client.netUser)] end
 
-    if dmg.bodyPart ~= nil then if(dmg.bodyPart:GetType().Name == "BodyPart" and _GetNiceName(dmg.bodyPart) ~= nil) then combatData['bodyPart'] = _GetNiceName(dmg.bodyPart) end end
-    if combatData.netuser then combatData['debug'] = combatData.netuser.displayName elseif (not (combatData.netuser) and (combatData.vicuser )) then combatData['debug'] = combatData.vicuser.displayName end
 
 	-- Berserker plugin stuff ( Auto repair \ Auto ammo fill )
-	func:Repair( combatData.netuser, 1 )
-
-    for k,v in pairs(core.Config.npc) do
-	    if dmg.attacker and dmg.attacker.networkView then
-	        if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
-	            combatData['npc'] = core.Config.npc[string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')]
-		        break
-	        end
-	    end
-	    if dmg.victim and dmg.victim.networkView then
-	        if (k == string.gsub(dmg.victim.networkView.name,'%(Clone%)', '')) then
-	            combatData['npc'] = core.Config.npc[string.gsub(dmg.victim.networkView.name,'%(Clone%)', '')]
-		        break
-	        end
-	    end
-    end
-	if takedamage.gameObject then
-		for k, v in pairs( core.Config.entities ) do
-			if dmg.attacker and dmg.attacker.networkView then
-				if dmg.victim then
-					if k == takedamage.gameObject.Name then	combatData['entity'] = v break end
-				end
-			end
-		end
-	end
-    if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
-        combatData['scenario'] = 1 --client vs client
-        rust.BroadcastChat( 'Scenario: 1' )
-    elseif dmg.victim.controllable and not dmg.attacker.controllable then
-        combatData['scenario'] = 2 --npc vs client
-        rust.BroadcastChat( 'Scenario: 2' )
-    elseif dmg.attacker.controllable and not dmg.victim.controllable and not combatData.entity then
-        combatData['scenario'] = 3 --client vs npc
-        rust.BroadcastChat( 'Scenario: 3' )
-    elseif dmg.attacker.controllable and combatData.entity and combatData.weapon.type == 'm' then
-	    combatData['scenario'] = 4 --client vs entity
-	    combatData.dmg.amount = combatData.entity.dmg           -- setting base damage for each object.
-	    rust.BroadcastChat( 'Scenario: 4' )
-    elseif dmg.attacker.controllable and combatData.entity then
-	    combatData['scenario'] = 5 --client vs entity
-	    rust.BroadcastChat( 'Scenario: 5' )
-	    return combatData.dmg, combatData
-    else
-	    rust.BroadcastChat( 'Scenario: Invalid' )
-	    self:PrintInvalidScenario( combatData,dmg, takedamage )
-	    return combatData.dmg, combatData
-    end
-
+	--func:Repair( combatData.netuser, 1 )
     --BEGIN BATTLE SYSTEM
-    if combatData.scenario == 1 then                                                                                        -- client vs client
-	    --[[ TODO: FIX ARMOR REQUIREMENTS
-	    local controllable = combatData.netuser.playerClient.controllable
-	    local ProtectionTakeDamage = controllable:GetComponent( "ProtectionTakeDamage" )
-	    local acValue = ProtectionTakeDamage.GetArmorValues
-	    rust.BroadcastChat(tostring(acValue))
-	    --]]
-		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs client------------' ) end
-		--rust.BroadcastChat('------------client vs client------------')
-		combatData.dmg.amount = self:WeaponSkill(combatData)
-		if combatData.dmg.amount == 0 then return combatData.dmg end
-		combatData.dmg.amount = self:PartyCheck( combatData )
-		if combatData.dmg.amount == 0 then return combatData.dmg end
-		combatData.dmg.amount = self:GuildCheck( combatData )
-		if combatData.dmg.amount == 0 then return combatData.dmg end
-		combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
-		combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
-		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-		combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
-		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
-		--combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-		combatData.dmg.amount = self:ThiefMod( combatData )
-		combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
-    elseif combatData.scenario == 2 then                                                                                        -- pve vs client
-		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------pve vs client------------' ) end
-		--rust.BroadcastChat('------------pve vs client------------')
-		combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on configs for player, weapon, npc, etc..
-		combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
-		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.,
-		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.,
-		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
-		combatData.dmg.amount = self:GuildDefend(combatData)--all guild DEFENSIVE calls and modifiers
-		combatData.dmg.amount = self:Defend(combatData) --attributes, skills, perks, dp, dodge
-    elseif combatData.scenario == 3 then                                                                                        -- client vs pve
-		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs pve------------' ) end
-		--rust.BroadcastChat('------------client vs pve------------')
-		combatData.dmg.amount = self:WeaponSkill(combatData)
-		if combatData.dmg.amount == 0 then return combatData.dmg end
-		combatData.dmg.amount = self:DmgModifier(combatData) --modifies based on config s for player, weapon, npc, etc...
-		combatData.dmg.amount = self:DmgRandomizer(combatData) --randomizes the damage output to create realism!
-		combatData.dmg.amount = self:Attack(combatData) --+attributes, +skills, +/- perks, +/- dp.
-		combatData.dmg.amount = self:CritCheck(combatData) --+attributes, +skills,  function:perks, +/- dp.
-		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
-		combatData.dmg.amount = self:GuildAttack(combatData) --all guild offensive calls and modifiers
+    if combatData.scenario == 1 then
+		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------PVP------------' ) end
+		combatData.dmg.amount = self:WeaponSkill(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:PartyCheck(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:GuildCheck(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:DmgModifier(combatData)
+		combatData.dmg.amount = self:DmgRandomizer(combatData)
+		combatData.dmg.amount = self:Attack(combatData)
+		combatData.dmg.amount = self:CritCheck(combatData) --TODO: MOVE INTO ATTACK
+		combatData.dmg.amount = self:GuildAttack(combatData)
+		combatData.dmg.amount = self:ActivatePerks(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:ThiefMod(combatData)
+		combatData.dmg.amount = self:GuildDefend(combatData)
+		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
+    elseif combatData.scenario == 2 then
+		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------EVP------------' ) end
+		combatData.dmg.amount = self:DmgModifier(combatData)
+		combatData.dmg.amount = self:DmgRandomizer(combatData)
+		combatData.dmg.amount = self:Attack(combatData)
+		combatData.dmg.amount = self:CritCheck(combatData) --TODO: MOVE INTO ATTACK
+		rust.BroadcastChat('before activateperks')
+		combatData.dmg.amount = self:ActivatePerks(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:GuildDefend(combatData)
+		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
+    elseif combatData.scenario == 3 then
+		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------PVE------------' ) end
+		combatData.dmg.amount = self:WeaponSkill(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:DmgModifier(combatData)
+		combatData.dmg.amount = self:DmgRandomizer(combatData)
+		combatData.dmg.amount = self:Attack(combatData)
+		combatData.dmg.amount = self:CritCheck(combatData)--TODO: MOVE INTO ATTACK
+		combatData.dmg.amount = self:ActivatePerks(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:GuildAttack(combatData)
+		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
 	elseif combatData.scenario == 4 then                                                                                        -- client vs entity
 	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs entity------------' ) end
-	    --rust.BroadcastChat('------------client vs entity------------')
-
     end
     if debug.list[ combatData.debug] then debug:SendDebug(combatData.debug, 'Final Damage: ' .. tostring(combatData.dmg.amount)) end
     rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
@@ -201,21 +132,17 @@ function PLUGIN:CombatDamage (takedamage, dmg)
     return dmg, combatData
 end
 
------------------------------------------------------------------
---http://wiki.rustoxide.com/index.php?title=Hooks/OnKilled
-function PLUGIN:OnKilled (takedamage, dmg)
-	--SET UP COMBATDATA
-	--local combatData = {['dmg']={}}
-	--combatData = setmetatable({}, {__newindex = function(t, k, v) rawset(t, k, v) end })
+function PLUGIN:GetCombatData(takedamage, dmg)
 	local combatData = {}
+	if takedamage:GetComponent("DeployableObject") then combatData['objectData'] = takedamage:GetComponent("DeployableObject") end
+	if takedamage:GetComponent("StructureComponent") then combatData['structureData'] = takedamage:GetComponent("StructureComponent") end
 
-	if dmg.amount then combatData['dmg'] = {['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__} end
+	if dmg.amount then combatData['dmg'] = dmg --[[{['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__}]] end
 	if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
-	if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser  combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
+	if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
 	if dmg.victim.controllable then combatData['vicuser'] = dmg.victim.client.netUser combatData['vicuserData'] = char[rust.GetUserID(dmg.victim.client.netUser)] end
 	if dmg.bodyPart ~= nil then if(dmg.bodyPart:GetType().Name == "BodyPart" and _GetNiceName(dmg.bodyPart) ~= nil) then combatData['bodyPart'] = _GetNiceName(dmg.bodyPart) end end
 	if combatData.netuser then combatData['debug'] = combatData.netuser.displayName elseif (not (combatData.netuser) and (combatData.vicuser )) then combatData['debug'] = combatData.vicuser.displayName end
-
 	for k,v in pairs(core.Config.npc) do
 		if dmg.attacker and dmg.attacker.networkView then
 			if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
@@ -239,28 +166,32 @@ function PLUGIN:OnKilled (takedamage, dmg)
 			end
 		end
 	end
-
 	if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
-		combatData['scenario'] = 1 --client vs client
+		combatData['scenario'] = 1 --PVP
 		rust.BroadcastChat( 'Scenario: 1' )
 	elseif dmg.victim.controllable and not dmg.attacker.controllable then
-		combatData['scenario'] = 2 --npc vs client
+		combatData['scenario'] = 2 --EVP
 		rust.BroadcastChat( 'Scenario: 2' )
 	elseif dmg.attacker.controllable and not dmg.victim.controllable and not combatData.entity then
-		combatData['scenario'] = 3 --client vs npc
+		combatData['scenario'] = 3 --PVE
 		rust.BroadcastChat( 'Scenario: 3' )
-	elseif dmg.attacker.controllable and combatData.entity and combatData.weapon.type == 'm' then
-		combatData['scenario'] = 4 --client vs entity
+	elseif dmg.attacker.controllable and (combatData.objectData or combatData.structureData) and combatData.weapon.type == 'm' then
+		combatData['scenario'] = 4 --PVO & --PVS
 		combatData.dmg.amount = combatData.entity.dmg           -- setting base damage for each object.
 		rust.BroadcastChat( 'Scenario: 4' )
 	elseif dmg.attacker.controllable and combatData.entity then
-		combatData['scenario'] = 5 --client vs entity
+		combatData['scenario'] = 5
 		rust.BroadcastChat( 'Scenario: 5' )
+		return combatData.dmg, combatData
 	else
 		rust.BroadcastChat( 'Scenario: Invalid' )
-		self:PrintInvalidScenario( combatData, dmg, takedamage )
+		self:PrintInvalidScenario( combatData,dmg, takedamage )
+		return combatData.dmg, combatData
 	end
-
+	return combatData
+end
+function PLUGIN:OnKilled (takedamage, dmg)
+	local combatData = self:GetCombatData(takedamage,dmg)
 	--BEGIN BATTLE SYSTEM
 	if combatData.scenario == 1 then
 		combatData.netuserData.stats.kills.pvp = combatData.netuserData.stats.kills.pvp+1
@@ -291,6 +222,7 @@ end
 
 -- When there is an invalid Scenario, it will print some info to help use create a new scenario or smash a bug.
 -- TODO: Add more debugs to it. I dont know them all.
+
 function PLUGIN:PrintInvalidScenario( combatData, dmg, takedamage )
 	print( '----- Begin: Invalid Scenario Print -----' )
 	if combatData then
@@ -310,16 +242,6 @@ function PLUGIN:PrintInvalidScenario( combatData, dmg, takedamage )
 	print( '----- End: Invalid Scenario Print -----' )
 end
 
-function PLUGIN:ActivatePerks(combatData)
-	--BEGIN BATTLE SYSTEM
-	if combatData.scenario == 1 then
-
-	elseif combatData.scenario == 2 then
-
-	elseif combatData.scenario == 3 then
-
-	end
-end
 function PLUGIN:GuildAttack(combatData, takedamage )
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:GuildAttack----' ) end
     --rust.BroadcastChat('----PLUGIN:GuildAttack----')
@@ -355,7 +277,16 @@ function PLUGIN:ThiefMod( combatData )
 	end
 	return combatData.dmg.amount
 end
-
+function PLUGIN:ActivatePerks(combatData)
+	if combatData.scenario == 1 then
+		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+	elseif combatData.scenario == 2 then
+		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+	elseif combatData.scenario == 3 then
+		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+	end
+	return combatData.dmg.amount
+end
 function PLUGIN:PartyCheck( combatData )
 	local NetParty = party:getParty( combatData.netuser )
 	if not NetParty then return combatData.dmg.amount end
@@ -432,8 +363,8 @@ end
 function PLUGIN:DmgRandomizer(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:DmgRandomizer----' ) end
     --rust.BroadcastChat('----PLUGIN:DmgRandomizer----')
-    local min, max = combatData.dmg.amount*.5,combatData.dmg.amount
-    combatData.dmg.amount = func:Roll(false,min,max)
+	local min,max = combatData.dmg.amount*(func:Roll(false,0.5,0.6)),combatData.dmg.amount*(func:Roll(false,0.9,1))
+	combatData.dmg.amount = func:Roll(false,min,max)
     if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     --rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
@@ -491,6 +422,23 @@ function PLUGIN:Attack(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     --rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
+end
+function PLUGIN:Defend(combatData)
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:Defend----' ) end
+
+	if (combatData.vicuserData) then
+		if (combatData.vicuserData.attributes.sta>0) then
+			combatData.dmg.amount = combatData.dmg.amount-((combatData.vicuserData.attributes.sta+combatData.vicuserData.lvl)*0.1)
+			if combatData.dmg.amount < 0 then combatData.dmg.amount = 0 end
+		end
+	end
+	if (combatData.npc) and (not combatData.vicuserData) then
+		if (combatData.npc.attributes.sta>0) then
+			combatData.dmg.amount = combatData.dmg.amount-((combatData.npc.attributes.sta)*0.1)
+			if combatData.dmg.amount < 0 then combatData.dmg.amount = 0 end
+		end
+	end
+	return combatData.dmg.amount
 end
 function PLUGIN:CritCheck(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:CritCheck----' ) end

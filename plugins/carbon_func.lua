@@ -219,6 +219,27 @@ function PLUGIN:Roll(a,b,c)
         return result
     end
 end
+function PLUGIN:FindNetUserById(netuserID)
+	local findUserName
+	rust.BroadcastChat('searching..')
+	if char[tostring(netuserID)].name then
+		findUserName = char[tostring(netuserID)].name
+	elseif not findUserName then
+		if core.Reg[tostring(netuserID)] then
+			findUserName = core.Reg[tostring(netuserID)]
+		end
+	end
+	local validate, findUser = rust.FindNetUsersByName( findUserName )
+	if (not validate) then
+		if (findUser == 0) then
+			print( "No player found with that name: " .. tostring( findUser ))
+		else
+			print( "Multiple players found with name: " .. tostring( findUser ))
+		end
+		return false
+	end
+	return findUser
+end
 -- DATA UPDATE AND SAVE
 function PLUGIN:Save(name, dir)
 	print('Saving: ' .. name)

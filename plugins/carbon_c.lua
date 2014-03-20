@@ -10,6 +10,7 @@ function PLUGIN:Init()
 	self:AddChatCommand( 'testxp', self.TestXP )
 	self:AddChatCommand('location', self.loc)
 	self:AddChatCommand('tp', self.tel)
+	self:AddChatCommand('rage', self.Rage)
 end
 --local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
@@ -37,7 +38,8 @@ function PLUGIN:sc(netuser, cmd, args)
 	local HeldItemDataBlock = controllable:GetComponent( "HeldItemDataBlock" )
 	local Metabolism = controllable:GetComponent("Metabolism")
 
-
+	Character._takedamage.maxHealth = 200
+	rust.SendChatToUser(netuser, tostring(Character._takedamage.maxHealth))
 	--local testthis = set_flSprintSpeed()
 	--rust.SendChatToUser(netuser, tostring(testthis))
 	-- Inventory.activeItem.datablock.caloriesPerSwing = 2 -- change calories per swing =)
@@ -59,7 +61,6 @@ function PLUGIN:sc(netuser, cmd, args)
 	--rust.SendChatToUser(netuser, tostring(avatar.vitals.hydration))
 
 
-	rust.BroadcastChat(tostring(Inventory.activeItem.datablock.creatorID))
 --[[
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(0))) --Generic
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(1))) --Bullet
@@ -116,7 +117,19 @@ function PLUGIN:Disarm(takedamage, dmg)
 	func:Notice(vicuser,'»','You have been disarmed!',5)
 	Inventory:DeactivateItem()
 end
+function PLUGIN:Rage(netuser, cmd, args)
+	local controllable = vicuser.playerClient.controllable
+	local Metabolism = controllable:GetComponent("Metabolism")
 
+	local activeItem = rust.GetInventory( netuser ).activeItem
+	local returnCondition = activeItem.condition
+	local returnUses = activeItem.uses
+	timer.Repeat(0.25, 20, function()
+		activeItem:SetCondition(returnCondition)
+		activeItem.uses = returnUses
+	end)
+	func:Notice(netuser,'☣','Rage!',5)
+end
 function PLUGIN:MagicDisarm(netuser, cmd, args)
 	local validate, vicuser = rust.FindNetUsersByName( args[1] )
 	if (not validate) then
@@ -130,6 +143,7 @@ function PLUGIN:MagicDisarm(netuser, cmd, args)
 	local controllable = vicuser.playerClient.controllable
 	local Inventory = controllable:GetComponent( "Inventory" )
 	local activeItem = Inventory.activeItem
+	rust.BroadcastChat(tostring(activeItem.condition))
 	func:Notice(vicuser,'»','You have been disarmed!',5)
 	Inventory:DeactivateItem()
 end

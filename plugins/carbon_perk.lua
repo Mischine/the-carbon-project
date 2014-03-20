@@ -6,7 +6,73 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
+function PLUGIN:knockback(combatData)
+	-- Get a function that gives us the ground at a particular position.
+	--
+	-- public static bool GetGroundInfoNavMesh(Vector3 startPos, out Vector3 pos)
+	--
+	rust.BroadcastChat('startfindground')
 
+	local pos = new(UnityEngine.Vector3)
+	pos.x = 396.3525390625
+	pos.y = 371.41613769531
+	pos.z = -4756.615234375
+
+	local RefParam2 = cs.gettype("UnityEngine.Vector3&, UnityEngine" )
+	--rust.SendChatToUser( combatData.netuser, "REFERENCE TYPE: " .. tostring(RefTypeA))
+	local _GetGroundInfoNavMesh = util.FindOverloadedMethod( Rust.TransformHelpers, "GetGroundInfoNavMesh", bf.public_static, { pos, RefTypeA } )
+
+	-- Convert from "userdata" to LUA function
+	cs.registerstaticmethod( "tmp", _GetGroundInfoNavMesh )
+	local GetGroundInfoNavMesh = tmp
+	tmp = nil
+
+	local boolResult, refParam2Result = GetGroundInfoNavMesh( pos )
+	rust.BroadcastChat(refParam2Result)
+end
+
+function PLUGIN:rage(combatData)
+	rust.BroadcastChat('rage: START')
+	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----perk:rage----' ) end
+	if (combatData.vicuserData) and (combatData.vicuserData.perks.rage) and (combatData.dmg.attacker) then
+		rust.BroadcastChat(combatData.bodyPart)
+		if( char[ combatData.vicuserData.id ].buffs[ 'Rage' ] ) then
+			if combatData.bodyPart == 'Head' then char[ combatData.vicuserData.id ].buffs[ 'Rage' ] = nil rust.BroadcastChat('rage: ended HEADSHOT!')  return combatData.dmg.amount end
+			rust.BroadcastChat('rage: Has Rage, set damage to 0')
+			combatData.dmg.amount = 0
+			return combatData.dmg.amount
+		end
+		local function rage(a,b,combatData)
+			if rust.GetInventory( combatData.vicuser ).activeItem then
+				local activeItem = rust.GetInventory( combatData.vicuser ).activeItem
+				local returnCondition = activeItem.condition
+				local returnUses = activeItem.uses
+				timer.Repeat(a, b, function() activeItem:SetCondition(returnCondition) activeItem.uses = returnUses end)
+			end
+			local time = a*b
+			self:GiveTimedBuff( combatData.vicuserData.id, time ,'Rage' )
+			func:Notice(combatData.vicuser,'☣','Rage!',(b*a))
+		end
+		if (combatData.vicuserData.perks.rage > 0) then
+			if debug.list[ combatData.vicuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.vicuser.displayName ].targnetuser,'PERK RAGE: ' .. tostring(combatData.dmg.amount)) end
+			local roll = func:Roll(true,0,100)
+			rust.BroadcastChat(tostring(roll))
+			if ((combatData.vicuserData.perks.rage == 1) and (roll <= 3)) then
+				rage(0.25, 20, combatData)
+			elseif ((combatData.vicuserData.perks.rage == 2) and (roll <= 6)) then
+				rage(0.25, 40, combatData)
+			elseif ((combatData.vicuserData.perks.rage == 3) and (roll <= 9)) then
+				rage(0.25, 60, combatData)
+			elseif ((combatData.vicuserData.perks.rage == 4) and (roll <= 12)) then
+				rage(0.25, 80, combatData)
+			elseif ((combatData.vicuserData.perks.rage == 5) and (roll <= 15)) then
+				rage(0.25, 100, combatData)
+			end
+		end
+	end
+	rust.BroadcastChat('rage: END')
+	return combatData.dmg.amount
+end
 function PLUGIN:disarm(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----perk:disarm----' ) end
 	local damage = combatData.dmg.amount

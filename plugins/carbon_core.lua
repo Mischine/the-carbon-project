@@ -239,7 +239,8 @@ function PLUGIN:SetDefaultConfig()
 		    ['parry']={['name']='Parry',['req']={['attr']={['str']=nil,['sta']=nil,['agi']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil}},
 		    ['disarm']={['name']='Disarm',['req']={['attr']={['str']=nil,['sta']=nil,['agi']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
 		    ['stoneskin']={['name']='Stoneskin',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
-		    ['knockdown']={['name']='knockdown',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
+		    ['knockdown']={['name']='Knockdown',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
+		    ['rage']={['name']='Rage',['req']={['attr']={['str']={['1']=2,['2']=4,['3']=6,['4']=8,['5']=10,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']={['1']=10,['2']=20,['3']=30,['4']=40,['5']=50,},['class']=nil,['achievement']=nil,['quest']=nil,}},
 	    },
 	    ['level']={
 		    ['player']={},

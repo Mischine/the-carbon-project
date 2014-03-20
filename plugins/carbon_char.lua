@@ -173,6 +173,34 @@ function PLUGIN:CharacterAttributesTrain(cmdData)
 		func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 	end
 end
+function PLUGIN:CharacterPerksList(cmdData)
+	local content = {
+		['list']={},
+		['cmds']=cmdData.txt['cmds_c_perks'],
+	}
+	local usedpp = 0
+	for k,v in pairs(cmdData.netuserData.perks) do
+		usedpp = usedpp+v
+	end
+	for k,v in pairs(core.Config.perks) do
+		local desiredPerkLvl = 1
+		if cmdData.netuserData.perks[tostring(k)] then
+			if cmdData.netuserData.perks[tostring(k)] < 5 then desiredPerkLvl = cmdData.netuserData.perks[tostring(k)]+1 end
+		end
+		cmdData.args[4] = k
+		local res = self:RequirementCheck(cmdData, desiredPerkLvl)
+		if res then
+			if not cmdData.netuserData.perks[tostring(k)] or cmdData.netuserData.perks[tostring(k)] ~= 5 then
+				table.insert( content.list, tostring(v.name))
+				table.insert( content.list, tostring(func:xpbar( (desiredPerkLvl-1)*20, 5 )))
+			end
+		end
+	end
+	cmdData.args[4] = nil
+	table.insert( content.list, ' ')
+	table.insert( content.list, ' Available Perk Points: ' .. cmdData.netuserData.pp .. ' / ' .. usedpp+cmdData.netuserData.pp )
+	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
+end
 function PLUGIN:CharacterPerks(cmdData)
 	local content = {
 		['list']={},
@@ -191,7 +219,7 @@ function PLUGIN:CharacterPerksTrain(cmdData)
 	cmdData.args[3] = tonumber(cmdData.args[3])
 	cmdData.args[4] = tostring(cmdData.args[4])
 	if cmdData.args[3] >= 1 then
-		if debug.list[ cmdData.netuser.displayName ] then debug:SendDebug( combatData.debug, '' ) end
+		if debug.list[ cmdData.netuser.displayName ] then debug:SendDebug( cmdData.netuser.displayName, '' ) end
 		if (core.Config.perks[cmdData.args[4]]) then
 			local currentPerkLvl = 0
 			if cmdData.netuserData.perks[cmdData.args[4]] then currentPerkLvl = cmdData.netuserData.perks[cmdData.args[4]] end
@@ -264,7 +292,7 @@ function PLUGIN:RequirementCheck(cmdData, desiredPerkLvl)
 	end
 	-- check character lvl
 	if core.Config.perks[ cmdData.args[4] ].req.lvl then
-		if cmdData.netuserData.lvl < core.Config.perks[cmdData.args[4]].req.lvl then return false, 'Level', cmdData.netuserData.lvl, core.Config.perks[cmdData.args[4]].req.lvl end
+		if cmdData.netuserData.lvl < core.Config.perks[cmdData.args[4]].req.lvl[tostring(desiredPerkLvl)] then return false, 'Level', cmdData.netuserData.lvl, core.Config.perks[cmdData.args[4]].req.lvl end
 	end
 	-- check class
 	if core.Config.perks[ cmdData.args[4] ].req.class then

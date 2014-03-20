@@ -210,7 +210,9 @@ function PLUGIN:cmdCharacter(netuser, cmd ,args)
 			char:CharacterAttributes( cmdData )
 		end
 	elseif args[1] == 'perks' then
-		if #args == 4 and args[2] == 'train' then
+		if #args == 2 and args[2] == 'list' then
+			char:CharacterPerksList(cmdData)
+		elseif #args == 4 and args[2] == 'train' then
 			char:CharacterPerksTrain(cmdData)
 		elseif #args == 1 then
 			char:CharacterPerks(cmdData)
