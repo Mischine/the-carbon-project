@@ -32,12 +32,12 @@ function PLUGIN:knockback(combatData)
 end
 
 function PLUGIN:rage(combatData)
-	rust.BroadcastChat('rage: START')
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----perk:rage----' ) end
 	if (combatData.vicuserData) and (combatData.vicuserData.perks.rage) and (combatData.dmg.attacker) then
+		local rageNotice = function(a,b) rust.Notice(combatData.vicuser, 'Rage!',(a*b)) end
 		rust.BroadcastChat(combatData.bodyPart)
 		if( char[ combatData.vicuserData.id ].buffs[ 'Rage' ] ) then
-			if combatData.bodyPart == 'Head' then char[ combatData.vicuserData.id ].buffs[ 'Rage' ] = nil rust.BroadcastChat('rage: ended HEADSHOT!')  return combatData.dmg.amount end
+			if combatData.bodyPart == 'head' then rageNotice:destroy() char[ combatData.vicuserData.id ].buffs[ 'Rage' ] = nil rust.BroadcastChat('rage: ended HEADSHOT!')  return combatData.dmg.amount end
 			rust.BroadcastChat('rage: Has Rage, set damage to 0')
 			combatData.dmg.amount = 0
 			return combatData.dmg.amount
@@ -50,8 +50,8 @@ function PLUGIN:rage(combatData)
 				timer.Repeat(a, b, function() activeItem:SetCondition(returnCondition) activeItem.uses = returnUses end)
 			end
 			local time = a*b
-			self:GiveTimedBuff( combatData.vicuserData.id, time ,'Rage' )
-			func:Notice(combatData.vicuser,'☣','Rage!',(b*a))
+			-- local rageNotice = func:Notice(combatData.vicuser,'☣','Rage!',(b*a))
+			rageNotice(a,b)
 		end
 		if (combatData.vicuserData.perks.rage > 0) then
 			if debug.list[ combatData.vicuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.vicuser.displayName ].targnetuser,'PERK RAGE: ' .. tostring(combatData.dmg.amount)) end
@@ -70,7 +70,6 @@ function PLUGIN:rage(combatData)
 			end
 		end
 	end
-	rust.BroadcastChat('rage: END')
 	return combatData.dmg.amount
 end
 function PLUGIN:disarm(combatData)

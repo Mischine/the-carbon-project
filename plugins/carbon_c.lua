@@ -11,6 +11,7 @@ function PLUGIN:Init()
 	self:AddChatCommand('location', self.loc)
 	self:AddChatCommand('tp', self.tel)
 	self:AddChatCommand('rage', self.Rage)
+	self:AddChatCommand('kb', self.knockback)
 end
 --local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
@@ -213,4 +214,39 @@ function PLUGIN:tel(netuser, cmd, args)
 		rust.RunServerCommand( 'teleport.topos "'..targetuser.displayName..'" '.. locations[tostring(args[2])])
 		if not isAdmin then netuser.admin = false end
 	end
+end
+
+
+local Raycastp = util.FindOverloadedMethod( UnityEngine.Physics, "RaycastAll", bf.public_static, { UnityEngine.Ray } )
+cs.registerstaticmethod( "tmp", Raycastp )
+local RaycastAll = tmp
+tmp = nil
+function TraceEyesp( netuser )
+	local hits = RaycastAll( rust.GetCharacter( netuser ).eyesRay )
+	local tbl = cs.createtablefromarray( hits )
+	if (#tbl == 0) then return end
+	local closest = tbl[1]
+	local closestdist = closest.distance
+	for i=2, #tbl do
+		if (tbl[i].distance < closestdist) then
+			closest = tbl[i]
+			closestdist = closest.distance
+		end
+	end
+	return closest
+end
+function PLUGIN:knockback(netuser, cmd, args)
+	self.agodMap = {}
+	self.jumpheight = 3
+	local offset = self.jumpheight if args[1] and tonumber(args[1]) then offset = tonumber(args[1]) end
+	local uid = rust.GetUserID( netuser )
+	self.agodMap[uid] =  timer.Once(6, function()  self.agodMap[uid] = nil end )
+
+	local  trace = TraceEyesp(netuser)
+	if not trace then return end
+	local p = trace.point
+
+	local coords = netuser.playerClient.lastKnownPosition
+	coords.x ,coords.y ,coords.z = p.x,p.y+offset,p.z
+	rust.ServerManagement():TeleportPlayer(netuser.playerClient.netPlayer, coords)
 end

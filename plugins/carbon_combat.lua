@@ -41,8 +41,8 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
-	rust.BroadcastChat( tostring( takedamage ))
-	rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )
+	--rust.BroadcastChat( tostring( takedamage ))
+	--rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )
 	damage.amount = thief:StealthCheck( takedamage, damage )  -- Stealth check
 	local combatData, status, dmg = {}, tostring( damage.status )
 	if ( status ~= IsDead ) then dmg, combatData = self:CombatDamage( takedamage, damage ) end
@@ -181,11 +181,11 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 	elseif dmg.attacker.controllable and combatData.entity then
 		combatData['scenario'] = 5
 		rust.BroadcastChat( 'Scenario: 5' )
-		return combatData.dmg, combatData
+		return combatData.dmg.amount, combatData
 	else
 		rust.BroadcastChat( 'Scenario: Invalid' )
 		self:PrintInvalidScenario( combatData,dmg, takedamage )
-		return combatData.dmg, combatData
+		return combatData.dmg.amount, combatData
 	end
 	return combatData
 end

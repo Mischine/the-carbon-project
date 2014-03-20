@@ -13,8 +13,6 @@ function PLUGIN:PostInit()
     -- Character
     self:AddChatCommand( 'c', self.cmdCharacter ) -- will show level, xp to go (w/bar), dp, available commands >
     self:AddChatCommand( 'class', self.cmdClass )
-    -- Perks
-    self:AddChatCommand( 'perks', self.cmdPerks )
 
     -- Guild
     self:AddChatCommand( 'guild', self.cmdGuild )       -- TESTED
