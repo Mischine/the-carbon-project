@@ -7,6 +7,33 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
     self:AddChatCommand( 'a', self.a )
     self:AddChatCommand( 'name', self.name )
+    self:AddChatCommand( 'move', self.move )
+    self:AddChatCommand( 'lamp', self.lamp )
+    self:AddChatCommand( 'attack', self.attack )
+end
+
+-- Detects if someone is moving.
+function PLUGIN:move( netuser, cmd ,args )
+	local char = rust.GetCharacter( netuser )
+	if not char then rust.BroadcastChat( 'char not found')return end
+
+	timer.Repeat( 1, 10, function () rust.BroadcastChat( 'moving check.' )rust.BroadcastChat( 'Moving: ' .. tostring(char.stateFlags.movement)) end)
+end
+-- Dunno yet.. It's not when you have a torch on or something.
+function PLUGIN:lamp( netuser, cmd ,args )
+	local char = rust.GetCharacter( netuser )
+	if not char then rust.BroadcastChat( 'char not found')return end
+
+	timer.Repeat( 1, 10, function () rust.BroadcastChat( 'lamp check.' )rust.BroadcastChat( 'Lamp: ' .. tostring(char.stateFlags.lamp)) end)
+end
+-- Check if someone is attacking
+function PLUGIN:attack( netuser, cmd ,args )
+	local char = rust.GetCharacter( netuser )
+	if not char then rust.BroadcastChat( 'char not found')return end
+
+	timer.Repeat( 1, 10, function () rust.BroadcastChat( 'attack check.' )
+	rust.BroadcastChat( 'attack: ' .. tostring(char.stateFlags.attack))
+	rust.BroadcastChat( 'attack2: ' .. tostring(char.stateFlags.attack2)) end)
 end
 
 

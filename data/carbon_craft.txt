@@ -543,7 +543,7 @@
             "Wood": 50
         }
     },
-    "Wooden Foundation": {
+    "Wood Foundation": {
         "xp": {
             "min": 30,
             "max": 50

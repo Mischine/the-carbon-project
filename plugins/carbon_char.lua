@@ -144,7 +144,8 @@ function PLUGIN:CharacterAttributes(cmdData)
 end
 function PLUGIN:CharacterAttributesTrain(cmdData)
 	cmdData.args[3] = tonumber(cmdData.args[3])
-	cmdData.args[4] = tostring(cmdData.args[4])
+	if not cmdData.args[3] then rust.Notice( cmdData.netuser, 'Invalid amount!' ) return end
+	cmdData.args[4] = tostring(cmdData.args[4]:lower())
 	if cmdData.args[3] >= 1 and ( self[ cmdData.netuserData.id ].attributes[ cmdData.args[4] ] ) then
 		if cmdData.netuserData.ap >= cmdData.args[3] then
 			if cmdData.netuserData.attributes[ cmdData.args[4] ] + cmdData.args[3]<=10 then
@@ -217,7 +218,8 @@ function PLUGIN:CharacterPerks(cmdData)
 end
 function PLUGIN:CharacterPerksTrain(cmdData)
 	cmdData.args[3] = tonumber(cmdData.args[3])
-	cmdData.args[4] = tostring(cmdData.args[4])
+	if not cmdData.args[3] then rust.Notice( cmdData.netuser, 'Invalid amount!' ) return end
+	cmdData.args[4] = tostring(cmdData.args[4]:lower())
 	if cmdData.args[3] >= 1 then
 		if debug.list[ cmdData.netuser.displayName ] then debug:SendDebug( cmdData.netuser.displayName, '' ) end
 		if (core.Config.perks[cmdData.args[4]]) then
@@ -322,26 +324,59 @@ function PLUGIN:CharacterReset(cmdData)
 	func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 end
 function PLUGIN:CharacterResetPerks(cmdData)
-	--TODO: ADD COST THAT GROWS EACH TIME        ['untrainperkcost']=500, --this is the cost in copper | ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.
+	local mod = cmdData.netuserData.utp * core.Config.settings.untraincostgrowth
+	local cost = core.Config.settings.untrainperkcost
+	if mod > 0 then cost = cost * (1+ mod) end
+	local price = econ:Convert( cost )
+	local canbuy = econ:canBuy( cmdData.netuser, price.g, price.s ,price.c )
+	local str = ''
+	if( price.g > 0 ) then
+		str = tostring( '[ Gold: ' .. price.g .. ' ] ' )
+	elseif( price.s > 0 ) then
+		str = str .. tostring(  '[ Silver: ' .. price.s .. ' ] ' )
+	elseif( price.c > 0 ) then
+		str = str .. tostring( '[ Copper: ' .. price.c .. ' ] ' )
+	end
+	if( not canbuy ) then rust.SendChatToUser( cmdData.netuser, 'Insufficient funds! Resetting Perks will cost you: ' .. str ) end
+
 	local availablePp = cmdData.netuserData.pp
 	local usedPp = 0
 	for k,v in pairs(cmdData.netuserData.perks) do
 		usedPp = usedPp+v
 		cmdData.netuserData.perks[k] = nil
 	end
+	if usedPp <= 0 then rust.Notice( cmdData.netuser, 'You have no perk points to reset' ) return end
 	cmdData.netuserData.pp = cmdData.netuserData.pp+usedPp
+	cmdData.netuserData.utp = cmdData.netuserData.utp + 1
+	econ:RemoveBalance( cmdData.netuser, price.g,price.s,price.c )
 	self:CharacterPerks(cmdData)
 	self:Save(cmdData.netuser)
 end
 function PLUGIN:CharacterResetAttributes(cmdData)
-	--TODO: ADD COST THAT GROWS              	['untrainattrcost']=500, --this is the cost in copper | ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.
+	local mod = cmdData.netuserData.uta * core.Config.settings.untraincostgrowth
+	local cost = core.Config.settings.untrainattrcost
+	if mod > 0 then cost = cost * (1+ mod) end
+	local price = econ:Convert( cost )
+	local canbuy = econ:canBuy( cmdData.netuser, price.g, price.s ,price.c )
+	local str = ''
+	if( price.g > 0 ) then
+		str = tostring( '[ Gold: ' .. price.g .. ' ] ' )
+	elseif( price.s > 0 ) then
+		str = str .. tostring(  '[ Silver: ' .. price.s .. ' ] ' )
+	elseif( price.c > 0 ) then
+		str = str .. tostring( '[ Copper: ' .. price.c .. ' ] ' )
+	end
+	if( not canbuy ) then rust.SendChatToUser( cmdData.netuser, 'Insufficient funds! Resetting Perks will cost you: ' .. str ) end
 	local availableAp = cmdData.netuserData.ap
 	local usedAp = 0
 	for k,v in pairs(cmdData.netuserData.attributes) do
 		usedAp = usedAp+v
 		cmdData.netuserData.attributes[k] = 0
 	end
+	if usedAp <= 0 then rust.Notice( cmdData.netuser, 'You have no attribute points to reset' ) return end
 	cmdData.netuserData.ap = cmdData.netuserData.ap+usedAp
+	cmdData.netuserData.uta = cmdData.netuserData.uta + 1
+	econ:RemoveBalance( cmdData.netuser, price.g,price.s,price.c )
 	self:CharacterAttributes(cmdData)
 	self:Save(cmdData.netuser)
 end
@@ -474,7 +509,7 @@ function PLUGIN:SetDpPercentById(netuser, netuserID, percent)
 end
 
 
--- TODO: Add more classes. Medic before alpha maybe?
+
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 --              CLASS COMMANDS
 -->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -562,7 +597,8 @@ function PLUGIN:GetUserData( netuser )
 		data.dp = 0
 		data.ap = 0
 		data.dmg = 1
-		data.ut = 0 --the amount of times this user has untrained his/her attributes.
+		data.utp = 0 --the amount of times this user has untrained his/her attributes.
+		data.uta = 0 --the amount of times this user has untrained his/her attributes.
 		data.attributes = {['str']=0,['sta']=0,['agi']=0,['int']=0,['cha']=0,['wis']=0,['wil']=0,['per']=0,['luc']=0 }
 		data.buffs = {}
 		data.skills = {}

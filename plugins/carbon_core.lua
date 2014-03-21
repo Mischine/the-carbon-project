@@ -333,8 +333,8 @@ function PLUGIN:OnUserConnect( netuser )
 end
 
 function PLUGIN:OnUserDisconnect( netplayer )
-	if thief:hasStealth( netuser )  then thief:Unstealth( netuser ) end
 	local netuser = rust.NetUserFromNetPlayer(netplayer)
+	if thief:hasStealth( netuser )  then thief:Unstealth( netuser ) end
 	local netuserID = tostring(rust.GetUserID( netuser ) )
 	rust.BroadcastChat( netuser.displayName .. ' has left the server!' )
 	if not char[netuserID].reg then
@@ -399,7 +399,7 @@ function PLUGIN:CanOpenDoor( netuser, door )
 	-- check if user is owner.
 	if (ownerID == userID) then return true end
 
-	-- if not, get guilds           TODO: Test this.
+	-- if not, get guilds
 	local guildname = guild:getGuild( netuser )
 	if guildname then
 		local guilddata = guild:getGuildData( guildname )
@@ -410,12 +410,10 @@ function PLUGIN:CanOpenDoor( netuser, door )
 		end
 	end
 	-- TODO : Finish the thieving. I need a cfg file and how they lvl up.
-	-- Need handmade Lockpick and luck to open doors. -- Maybe have a cooldown on it when fail?
-	if thief:isThief( netuser ) then
-		local inv = rust.GetInventory( netuser )
-		if not inv then return false end
-
-
+	-- Need Handmade Lockpick and luck to open doors. -- Maybe have a cooldown on it when fail?
+	if thief:isThief( netuser ) then -- Check if online!
+		local open = thief:PickLock( netuser,ownerID )
+		if open then return true else return false end
 	end
 end
 

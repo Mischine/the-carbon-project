@@ -848,7 +848,6 @@ function PLUGIN:engageWar( guild, guild2, netuser )
 end
 
 function PLUGIN:GiveGXP( guild, xp )
-	-- TODO: Test the
     local data = self:getGuildData( guild )
     if not data then rust.BroadcastChat( 'GuildData not found!' ) return 0 end
     if data.glvl == core.Config.guild.settings.GUILD_LEVEL_CAP then return 0 end
