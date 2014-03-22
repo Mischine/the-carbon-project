@@ -565,6 +565,18 @@ function PLUGIN:ThiefCmds( cmdData )
 	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
 end
 
+function PLUGIN:OnSpawnPlayer(playerclient, usecamp, avatar)
+	timer.Once(1, function() self:SetPlayerHealth(playerclient.netUser) end)
+end
+function PLUGIN:SetPlayerHealth( netuser )
+	local Character = rust.GetCharacter( netuser )
+	local netuserID = rust.GetUserID( netuser )
+	local TakeDamage = Character:GetComponent( "TakeDamage" )
+	local ClientVitalsSync = Character:GetComponent( "ClientVitalsSync" )
+	TakeDamage.maxHealth = 100+((char[netuserID].lvl-1)*(1+(char[netuserID].attributes.sta*.25)))
+	TakeDamage.health = TakeDamage.maxHealth
+	ClientVitalsSync:SendClientItsHealth()
+end
 function PLUGIN:GetUserDataFromTable( netuser )
 	local netuserID = rust.GetUserID( netuser )
 	if self[ netuserID ] then
