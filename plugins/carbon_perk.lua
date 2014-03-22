@@ -51,7 +51,7 @@ function PLUGIN:rage(combatData)
 		if (combatData.vicuserData.perks.rage > 0) then
 			if debug.list[ combatData.vicuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.vicuser.displayName ].targnetuser,'PERK RAGE: ' .. tostring(combatData.dmg.amount)) end
 			local roll = func:Roll(true,0,100)
-			rust.BroadcastChat(tostring(roll))
+			--rust.BroadcastChat(tostring(roll))
 			if ((combatData.vicuserData.perks.rage == 1) and (roll <= 3)) then
 				rage(1, 5, combatData)
 			elseif ((combatData.vicuserData.perks.rage == 2) and (roll <= 6)) then
@@ -155,7 +155,7 @@ function PLUGIN:parry(combatData)
     if ((combatData.vicuser) and (combatData.vicuserData.perks.parry)) then
         if (combatData.vicuserData.perks.parry > 0) then
             local roll = func:Roll(true,0,100)
-            rust.BroadcastChat(tostring(roll))
+            --rust.BroadcastChat(tostring(roll))
             if ((combatData.vicuserData.perks.parry == 1) and (roll <= 3)) then
                 damage = 0
                 func:Notice(combatData.netuser,'☓','Your attack was parried by '.. combatData.vicuser.displayName,3)

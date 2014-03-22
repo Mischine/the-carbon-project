@@ -12,6 +12,7 @@ function PLUGIN:Init()
 	self:AddChatCommand('tp', self.tel)
 	self:AddChatCommand('rage', self.Rage)
 	self:AddChatCommand('kb', self.knockback)
+	self:AddChatCommand('kill', self.Kill)
 end
 --local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
@@ -24,6 +25,7 @@ local get_waterLevelLitre = typesystem.GetField( Rust.Metabolism, "waterLevelLit
 local _forwardsPlayerClientInput = typesystem.GetField( Rust.Controller, "_forwardsPlayerClientInput", bf.private_instance )
 local get_maxWaterLevelLitre, set_maxWaterLevelLitre, test = typesystem.GetField( Rust.Metabolism, "maxWaterLevelLitre", bf.private_instance )
 local AddWater = util.GetStaticMethod( Rust.Metabolism, "AddWater")
+local Hurt = util.GetStaticMethod( Rust.TakeDamage, "Hurt")
 --local get_maxAudioDist, set_maxAudioDist = typesystem.GetField( Rust.CharacterFootstepTrait, "_maxAudioDist", bf.private_static )
 local getTrait = typesystem.GetField( Rust.FootstepEmitter, "trait", bf.private_instance )
 --local CharacterFootstepTrait = util.GetPropertyGetter( Rust.PlayerMovement_Mecanim._type, "flSprintSpeed", true )
@@ -38,7 +40,31 @@ function dump (prefix, a)
 	end
 end
 
-
+function PLUGIN:Kill(netuser, cmd, args)
+	if(#args==0)then
+		rust.SendChatToUser(netuser,'/hurt "name" #[amount]' )
+	else
+		local validate, vicuser = rust.FindNetUsersByName( args[1] )
+		if (not validate) then
+			if (vicuser == 0) then
+				print( "No player found with that name: " .. tostring( args[1] ))
+			else
+				print( "Multiple players found with name: " .. tostring( args[1] ))
+			end
+			return false
+		end
+		local Character = rust.GetCharacter( vicuser )
+		local vicuserID = rust.GetUserID( vicuser )
+		local netuserID = rust.GetUserID( netuser )
+		local TakeDamage = Character:GetComponent( "TakeDamage" )
+		local ClientVitalsSync = Character:GetComponent( "ClientVitalsSync" )
+		local HumanBodyTakeDamage = Character:GetComponent("HumanBodyTakeDamage")
+		HumanBodyTakeDamage:SetBleedingLevel(999)
+		TakeDamage.health = 0.01
+		HumanBodyTakeDamage:DoBleed(netuser.idMain)
+		ClientVitalsSync:SendClientItsHealth()
+	end
+end
 function PLUGIN:sc(netuser, cmd, args)
 	local i = 1
 	while i <= 1 do
@@ -71,8 +97,10 @@ function PLUGIN:sc(netuser, cmd, args)
 	--Metabolism.maxWaterLevelLitre = 40
 	--Metabolism:AddWater(10)
 
-	local args = cs.newarray(System.Object._type, 0)
-	Metabolism.networkView:RPC("Vomit", Metabolism.networkView.owner, args);
+
+
+	--local args = cs.newarray(System.Object._type, 0)
+	--Metabolism.networkView:RPC("Vomit", Metabolism.networkView.owner, args);
 
 	--TakeDamage.maxHealth = 999
 	--TakeDamage.health = 999

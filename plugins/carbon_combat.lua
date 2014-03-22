@@ -45,12 +45,18 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	--rust.BroadcastChat( tostring( takedamage ))
 	--rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )
 	damage.amount = thief:StealthCheck( takedamage, damage )  -- Stealth check
+
 	local combatData, status, dmg = {}, tostring( damage.status )
+
 	if ( status ~= IsDead ) then dmg, combatData = self:CombatDamage( takedamage, damage ) end
+
 	if (( combatData and combatData.bodyPart) and ( not combatData.npc )) and not combatData.entity then --[[rust.BroadcastChat( combatData.bodyPart )]] end
+
 	if dmg.amount >= takedamage.health then	if dmg.status then dmg.status = LifeStatus.WasKilled end end
-	if dmg.amount <= 0 then	dmg.status = LifeStatus.IsAlive	return end
+
+	if dmg.amount <= 0 then	dmg.status = LifeStatus.IsAlive	end
 	if status and dmg.status then if status == WasKilled then	if dmg.amount < takedamage.health then dmg.status = LifeStatus.IsAlive end end end
+
 end
 
 
@@ -118,6 +124,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:GuildCheck(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:DmgModifier(combatData)
 		combatData.dmg.amount = self:DmgRandomizer(combatData)
+		combatData.dmg.amount = self:RangeModifier(combatData)
 		combatData.dmg.amount = self:Attack(combatData)
 		combatData.dmg.amount = self:CritCheck(combatData) --TODO: MOVE INTO ATTACK
 		combatData.dmg.amount = self:GuildAttack(combatData)
@@ -162,7 +169,7 @@ function PLUGIN:RangeModifier(combatData)
 	local crouchBonus = 0
 	local perBonus = 0
  	--rust.BroadcastChat(tostring(rust.GetCharacter(combatData.netuser).stateFlags.aim))
-	if rust.GetCharacter(combatData.netuser).stateFlags.movement then
+	if rust.GetCharacter(combatData.netuser).stateFlags.crouch then
 		crouchBonus = (combatData.dmg.amount - rangeModifier)*.5
 		perBonus = ((combatData.dmg.amount - rangeModifier)*.5)*(combatData.netuserData.attributes.per*.1)
 		--[[
@@ -175,14 +182,14 @@ function PLUGIN:RangeModifier(combatData)
 		--rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
 		--print(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
 	end
-	--[[
-	print(tostring('Distance: ' .. distance .. 'm'))
-	print(tostring('Original Damage: ' .. combatData.dmg.amount))
-	print(tostring('Crouch Bonus: ' .. crouchBonus))
-	print(tostring('Perception Bonus: ' .. perBonus ..'  @  ' ..combatData.netuserData.attributes.per.. ' perception'))
-	print(tostring('Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus))
-	print(tostring('Damage Loss: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
-	]]
+--[[
+	rust.BroadcastChat(tostring('Distance: ' .. distance .. 'm'))
+	rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount))
+	rust.BroadcastChat(tostring('Crouch Bonus: ' .. crouchBonus))
+	rust.BroadcastChat(tostring('Perception Bonus: ' .. perBonus ..'  @  ' ..combatData.netuserData.attributes.per.. ' perception'))
+	rust.BroadcastChat(tostring('Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus))
+	rust.BroadcastChat(tostring('Damage Loss: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
+]]
 	combatData.dmg.amount = combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus
 	return combatData.dmg.amount
 end
@@ -222,29 +229,27 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 	end
 	if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
 		combatData['scenario'] = 1 --PVP
-	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.victim.controllable and not dmg.attacker.controllable then
 		combatData['scenario'] = 2 --EVP
-	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and not dmg.victim.controllable and not combatData.entity then
 		combatData['scenario'] = 3 --PVE
-	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and (combatData.objectData or combatData.structureData) and combatData.weapon.type == 'm' then
 		combatData['scenario'] = 4 --PVO & --PVS
 		combatData.dmg.amount = combatData.entity.dmg           -- setting base damage for each object.
-	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and combatData.entity then
 		combatData['scenario'] = 5
-	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
-		return combatData.dmg.amount, combatData
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif string.find((tostring(combatData.dmg.attacker.id)), "(Metabolism)", 1, true) then
 		combatData['scenario'] = 6
-	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
-		--return combatData.dmg.amount, combatData
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	else
-	 	--rust.BroadcastChat( 'Scenario: Invalid' )
+		combatData['scenario'] = false
+		--rust.BroadcastChat( 'Scenario: Invalid' )
 		-- self:PrintInvalidScenario( combatData,dmg, takedamage )
-		return combatData.dmg.amount, combatData
 	end
 	return combatData
 end

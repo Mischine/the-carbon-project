@@ -44,7 +44,6 @@ function PLUGIN:Character(cmdData)
 	if cmdData.netuserData.lvl > 1 and not cmdData.netuserData.xp == core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]  then
 		currentXp = cmdData.netuserData.xp-core.Config.level.player[tostring(cmdData.netuserData.lvl)]
 	elseif cmdData.netuserData.lvl == core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.xp > core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]  then
-		rust.BroadcastChat('this one')
 		currentXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
 	else
 		currentXp = cmdData.netuserData.xp
@@ -442,7 +441,8 @@ function PLUGIN:GiveDp(combatData, dp)
         rust.InventoryNotice( combatData.vicuser, '+' .. (dp) .. 'dp' )
     end
 
-    if combatData.netuser then self:Save( combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuser ) end
+    if combatData.netuser then self:Save( combatData.netuser ) end
+    if combatData.vicuser then self:Save( combatData.vicuser ) end
 end
 
 --PLUGIN:PlayerLvl
