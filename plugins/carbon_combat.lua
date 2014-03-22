@@ -34,7 +34,6 @@ local IsDead = tostring(LifeStatus.IsDead)
 local WasKilled = tostring(LifeStatus.WasKilled)
 local Failed = tostring(LifeStatus.Failed)
 
-
 local spamNet = {}
 
 function PLUGIN:Init()
@@ -48,7 +47,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	damage.amount = thief:StealthCheck( takedamage, damage )  -- Stealth check
 	local combatData, status, dmg = {}, tostring( damage.status )
 	if ( status ~= IsDead ) then dmg, combatData = self:CombatDamage( takedamage, damage ) end
-	if (( combatData and combatData.bodyPart) and ( not combatData.npc )) and not combatData.entity then rust.BroadcastChat( combatData.bodyPart ) end
+	if (( combatData and combatData.bodyPart) and ( not combatData.npc )) and not combatData.entity then --[[rust.BroadcastChat( combatData.bodyPart )]] end
 	if dmg.amount >= takedamage.health then	if dmg.status then dmg.status = LifeStatus.WasKilled end end
 	if dmg.amount <= 0 then	dmg.status = LifeStatus.IsAlive	return end
 	if status and dmg.status then if status == WasKilled then	if dmg.amount < takedamage.health then dmg.status = LifeStatus.IsAlive end end end
@@ -114,10 +113,6 @@ function PLUGIN:CombatDamage (takedamage, dmg)
     --BEGIN BATTLE SYSTEM
     if combatData.scenario == 1 then
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------PVP------------' ) end
-		local distance = self:GetDistance(dmg.attacker.client.netUser)
-		rust.BroadcastChat('Distance: '..tostring(distance).. 'm')
-
-		rust.SendChatToUser(netuser, tostring(rust.GetInventory(combatData.netuser).activeItem.datablock.bulletRange))
 		combatData.dmg.amount = self:WeaponSkill(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:PartyCheck(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildCheck(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
@@ -156,7 +151,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
     if debug.list[ combatData.debug] then debug:SendDebug(combatData.debug, 'Final Damage: ' .. tostring(combatData.dmg.amount)) end
 
     dmg.amount = combatData.dmg.amount
-	rust.BroadcastChat('Final Damage: ' .. tostring(func:round(dmg.amount,2)))
+ 	--rust.BroadcastChat('Final Damage: ' .. tostring(func:round(dmg.amount,2)))
     return dmg, combatData
 end
 function PLUGIN:RangeModifier(combatData)
@@ -166,24 +161,28 @@ function PLUGIN:RangeModifier(combatData)
 	local rangeModifier = combatData.dmg.amount*(percRange*.01)
 	local crouchBonus = 0
 	local perBonus = 0
-	if rust.GetCharacter(combatData.netuser).stateFlags.crouch then
+ 	--rust.BroadcastChat(tostring(rust.GetCharacter(combatData.netuser).stateFlags.aim))
+	if rust.GetCharacter(combatData.netuser).stateFlags.movement then
 		crouchBonus = (combatData.dmg.amount - rangeModifier)*.5
-		rust.BroadcastChat(tostring('Crouch Bonus: ' .. crouchBonus))
 		perBonus = ((combatData.dmg.amount - rangeModifier)*.5)*(combatData.netuserData.attributes.per*.1)
+		--[[
+		rust.BroadcastChat(tostring('Crouch Bonus: ' .. crouchBonus))
 		rust.BroadcastChat(tostring('Perception Bonus: ' .. perBonus))
 		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus.. '  |  Lost Damage: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
+		]]
 	else
 		perBonus = ((combatData.dmg.amount - rangeModifier)*.5)*(combatData.netuserData.attributes.per*.05)
-		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
-
+		--rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
 		--print(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
 	end
+	--[[
 	print(tostring('Distance: ' .. distance .. 'm'))
 	print(tostring('Original Damage: ' .. combatData.dmg.amount))
 	print(tostring('Crouch Bonus: ' .. crouchBonus))
 	print(tostring('Perception Bonus: ' .. perBonus ..'  @  ' ..combatData.netuserData.attributes.per.. ' perception'))
 	print(tostring('Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus))
 	print(tostring('Damage Loss: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
+	]]
 	combatData.dmg.amount = combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus
 	return combatData.dmg.amount
 end
@@ -223,27 +222,27 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 	end
 	if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
 		combatData['scenario'] = 1 --PVP
-		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.victim.controllable and not dmg.attacker.controllable then
 		combatData['scenario'] = 2 --EVP
-		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and not dmg.victim.controllable and not combatData.entity then
 		combatData['scenario'] = 3 --PVE
-		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and (combatData.objectData or combatData.structureData) and combatData.weapon.type == 'm' then
 		combatData['scenario'] = 4 --PVO & --PVS
 		combatData.dmg.amount = combatData.entity.dmg           -- setting base damage for each object.
-		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and combatData.entity then
 		combatData['scenario'] = 5
-		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 		return combatData.dmg.amount, combatData
 	elseif string.find((tostring(combatData.dmg.attacker.id)), "(Metabolism)", 1, true) then
 		combatData['scenario'] = 6
-		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+	 	--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 		--return combatData.dmg.amount, combatData
 	else
-		rust.BroadcastChat( 'Scenario: Invalid' )
+	 	--rust.BroadcastChat( 'Scenario: Invalid' )
 		-- self:PrintInvalidScenario( combatData,dmg, takedamage )
 		return combatData.dmg.amount, combatData
 	end
@@ -317,9 +316,9 @@ function PLUGIN:GuildDefend(combatData)
 end
 
 function PLUGIN:ThiefMod( combatData )
-	rust.BroadcastChat( 'Thief start' )
+ 	--rust.BroadcastChat( 'Thief start' )
 	if thief:isThief( combatData.netuser ) and thief:hasStealth( combatData.netuser ) then
-		rust.BroadcastChat( 'Thief start' )
+	 	--rust.BroadcastChat( 'Thief start' )
 		local netchar = rust.GetCharacter(combatData.netuser)
 		local vicchar = rust.GetCharacter(combatData.vicuser)
 		if (type(netchar.eyesYaw == "number")) and (type(vicchar.eyesYaw == "number")) then
@@ -504,37 +503,42 @@ function PLUGIN:CritCheck(combatData)
     --rust.BroadcastChat('----PLUGIN:CritCheck----')
     if combatData.scenario == 1 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(false, 100)
-            if combatData.dmg.damageTypes == 4 then
-                if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
+            local roll = func:Roll(false,0,100)
+            if combatData.dmg.damageTypes.value__ == damage_melee then
+                if ((math.floor(100*(combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002)+.5) >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
+                    rust.InventoryNotice( combatData.vicuser, 'Critically Wounded!' )
                     rust.InventoryNotice( combatData.netuser, 'Critical Hit!' )
+	                func:PlaySound(combatData.vicuser, 'vomit')
                 end
-            elseif combatData.dmg.damageTypes == 2 then
-                if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.001 >= roll) then
+            elseif combatData.dmg.damageTypes.value__ == damage_bullet then
+                if ((math.floor(100*(combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.001)+.5) >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
+                    rust.InventoryNotice( combatData.vicuser, 'Critically Wounded!' )
                     rust.InventoryNotice( combatData.netuser, 'Critical Hit!' )
+                    func:PlaySound(combatData.vicuser, 'vomit')
                 end
             end
         end
     elseif combatData.scenario == 2 then
         if (combatData.npc.attributes.agi>0) then
-            local roll = func:Roll(false, 100)
-            if (combatData.npc.attributes.agi+math.random(combatData.vicuserData.lvl-1,combatData.vicuserData.lvl+1))*.002 >= roll then
+            local roll = func:Roll(false,0,100)
+            if (math.floor(100*(combatData.vicuserData.attributes.agi+combatData.vicuserData.lvl)*.002)+.5) >= roll then
                 combatData.dmg.amount = combatData.dmg.amount * 2
-                rust.InventoryNotice( vicuser, 'Critically Wounded!' )
+                rust.InventoryNotice( combatData.vicuser, 'Critically Wounded!' )
+                func:PlaySound(combatData.vicuser, 'vomit')
             end
         end
     elseif combatData.scenario == 3 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(false, 100)
-            if combatData.dmg.damageTypes == 4 then
-                if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002 >= roll) then
+            local roll = func:Roll(false,0,100)
+            if combatData.dmg.damageTypes.value__ == damage_melee then
+                if ((math.floor(100*(combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002)+.5) >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
                     rust.InventoryNotice( combatData.netuser, 'Critical Hit!' )
                 end
-            elseif combatData.dmg.damageTypes == 2 then
-                if ((combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.001 >= roll) then
+            elseif combatData.dmg.damageTypes.value__ == damage_bullet then
+                if ((math.floor(100*(combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.001)+.5) >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
                     rust.InventoryNotice( combatData.netuser, 'Critical Hit!' )
                 end

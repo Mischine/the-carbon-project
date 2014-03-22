@@ -18,8 +18,25 @@ end
 local get_flSprintSpeed, set_flSprintSpeed = typesystem.GetField( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
 local weaponRecoil = typesystem.GetField( Rust.BulletWeaponDataBlock, "weaponRecoil", bf.private_instance )
 local get_maxAudioDist, set_maxAudioDist = typesystem.GetField( Rust.CharacterFootstepTrait, "_maxAudioDist", bf.private_instance )
+local get_traitMap = typesystem.GetField( Rust.Character, "_traitMap", bf.private_instance )
+local get_CharacterFootstepTrait = typesystem.GetField( Rust.FootstepEmitter, "trait", bf.private_instance )
+local get_waterLevelLitre = typesystem.GetField( Rust.Metabolism, "waterLevelLitre", bf.private_instance )
+local _forwardsPlayerClientInput = typesystem.GetField( Rust.Controller, "_forwardsPlayerClientInput", bf.private_instance )
+local get_maxWaterLevelLitre, set_maxWaterLevelLitre, test = typesystem.GetField( Rust.Metabolism, "maxWaterLevelLitre", bf.private_instance )
+local AddWater = util.GetStaticMethod( Rust.Metabolism, "AddWater")
+--local get_maxAudioDist, set_maxAudioDist = typesystem.GetField( Rust.CharacterFootstepTrait, "_maxAudioDist", bf.private_static )
 local getTrait = typesystem.GetField( Rust.FootstepEmitter, "trait", bf.private_instance )
 --local CharacterFootstepTrait = util.GetPropertyGetter( Rust.PlayerMovement_Mecanim._type, "flSprintSpeed", true )
+
+function dump (prefix, a)
+	for i,v in pairs (a) do
+		if type(v) == "table" then
+			dump(prefix .. '.' .. i,v)
+		elseif type(v) == "function" then
+			print (prefix .. '.' .. i .. '()')
+		end
+	end
+end
 
 
 function PLUGIN:sc(netuser, cmd, args)
@@ -44,10 +61,19 @@ function PLUGIN:sc(netuser, cmd, args)
 	local Metabolism = controllable:GetComponent("Metabolism")
 	local RecoilSimulation = Character:GetComponent("RecoilSimulation")
 	local AvatarSaveRestore = Character:GetComponent("AvatarSaveRestore")
-	local FootstepEmitter = Character:GetComponent("FootstepEmitter")
 	local TakeDamage = Character:GetComponent("TakeDamage")
+	local FootstepEmitter = Character:GetComponent("FootstepEmitter")
+	local CharacterTraitMap = get_traitMap(rust.GetCharacter(netuser))
+	local CharacterFootstepTrait = get_CharacterFootstepTrait(FootstepEmitter)
+	local ClientVitalsSync = Character:GetComponent('ClientVitalsSync')
+	local CharacterMotor = Character:GetComponent('CharacterMotor')
+	local CharacterInfo = Character:GetComponent('CharacterInfo')
+	--Metabolism.maxWaterLevelLitre = 40
+	--Metabolism:AddWater(10)
 
-	rust.SendChatToUser(netuser, tostring(Character.stateFlags.crouch))
+	local args = cs.newarray(System.Object._type, 0)
+	Metabolism.networkView:RPC("Vomit", Metabolism.networkView.owner, args);
+
 	--TakeDamage.maxHealth = 999
 	--TakeDamage.health = 999
 	--local distanceCheck = FootstepEmitter:get_maxAudioDist()

@@ -481,7 +481,13 @@ function PLUGIN:Reflect(netuser, cmd, args)
 		end
 	end
 end
-
+function PLUGIN:PlaySound(netuser, param)
+	if param == 'vomit' then
+		local Metabolism = rust.GetCharacter( netuser ):GetComponent('Metabolism')
+		local args = cs.newarray(System.Object._type, 0)
+		Metabolism.networkView:RPC("Vomit", Metabolism.networkView.owner, args);
+	end
+end
 function PLUGIN:Hurt(netuser, cmd, args)
 	if(#args==0)then
 		rust.SendChatToUser(netuser,'/hurt "name" #[amount]' )

@@ -1090,13 +1090,13 @@ function PLUGIN:GuildAttackMods( combatData, takedamage )
 	        combatData.dmg.amount = 110
 	        rust.Notice( combatData.vicuser, combatData.netuserData.name .. ' has assassinated you!' )
 	        rust.Notice( combatData.netuser, 'You\'ve assassinated ' .. combatData.vicuserData.name )
-	       rust.BroadcastChat( 'Assasinated' )
+	       --rust.BroadcastChat( 'Assasinated' )
 	        return combatData.dmg.amount
         end
         local mod = self:hasCall( guilddata, 'rally' )
         if (not mod ) then return combatData.dmg.amount end
     -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
-    rust.BroadcastChat( 'rally' .. tostring(combatData.dmg.amount * ( mod + 1 )))
+    --rust.BroadcastChat( 'rally' .. tostring(combatData.dmg.amount * ( mod + 1 )))
         combatData.dmg.amount = combatData.dmg.amount * ( mod + 1 )
         return combatData.dmg.amount
     elseif combatData.scenario == 3 then                                            -- Client vs NPC
@@ -1109,7 +1109,7 @@ function PLUGIN:GuildAttackMods( combatData, takedamage )
         if not mod then return combatData.dmg.amount end                                -- if not, return dmg
         combatData.dmg.amount = combatData.dmg.amount * (mod + 1)                       -- if so, modify dmg
     -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
-    rust.BroadcastChat(tostring(combatData.dmg.amount) )
+    --rust.BroadcastChat(tostring(combatData.dmg.amount) )
         return combatData.dmg.amount                                                    -- return dmg
     else
         return combatData.dmg.amount                                                    -- failsafe to return dmg
@@ -1117,7 +1117,7 @@ function PLUGIN:GuildAttackMods( combatData, takedamage )
 end
 
 function PLUGIN:GuildDefendMods( combatData )
-	rust.BroadcastChat( tostring(combatData.dmg.amount) )
+	--rust.BroadcastChat( tostring(combatData.dmg.amount) )
     if combatData.scenario == 1 then                                                -- Client vs Client
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
         if not guild then
@@ -1131,7 +1131,7 @@ function PLUGIN:GuildDefendMods( combatData )
         local mod = self:hasCall( vicguilddata, 'syg' )
         if (not mod ) then return combatData.dmg.amount end
     -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
-    rust.BroadcastChat( 'syg' .. tostring(combatData.dmg.amount * (1 - mod)) )
+    --rust.BroadcastChat( 'syg' .. tostring(combatData.dmg.amount * (1 - mod)) )
         combatData.dmg.amount = combatData.dmg.amount * (1 - mod )
         return combatData.dmg.amount
     elseif combatData.scenario == 2 then                                            -- NPC vs CLient
@@ -1144,7 +1144,7 @@ function PLUGIN:GuildDefendMods( combatData )
         if not mod then return combatData.dmg.amount end                                -- if not, return dmg
         combatData.dmg.amount = combatData.dmg.amount * (1 - mod)                       -- if so, modify dmg
     -- if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '' ) end
-        rust.BroadcastChat(tostring(combatData.dmg.amount) )
+        --rust.BroadcastChat(tostring(combatData.dmg.amount) )
         return combatData.dmg.amount                                                    -- return dmg
     else
         return combatData.dmg.amount                                                    -- failsafe to return dmg
