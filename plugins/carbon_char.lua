@@ -41,15 +41,28 @@ end
 
 function PLUGIN:Character(cmdData)
 	local currentXp
-	if cmdData.netuserData.lvl > 1 then	currentXp = cmdData.netuserData.xp-core.Config.level.player[tostring(cmdData.netuserData.lvl)] else	currentXp = cmdData.netuserData.xp end
+	if cmdData.netuserData.lvl > 1 and not cmdData.netuserData.xp == core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]  then
+		currentXp = cmdData.netuserData.xp-core.Config.level.player[tostring(cmdData.netuserData.lvl)]
+	elseif cmdData.netuserData.lvl == core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.xp > core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]  then
+		rust.BroadcastChat('this one')
+		currentXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
+	else
+		currentXp = cmdData.netuserData.xp
+	end
 	local requiredXp
 	if cmdData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.lvl > 1 then
 		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]-core.Config.level.player[tostring(cmdData.netuserData.lvl)]
+	elseif cmdData.netuserData.lvl == core.Config.settings.PLAYER_LEVEL_CAP then
+		requiredXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
 	elseif cmdData.netuserData.lvl == 1 then
 		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]
 	else
-		requiredXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
+		requiredXp = 'error'
 	end
+
+
+
+
 
 	--CALCULATE SOME STUFF
 	local xpPercentage, xpToGo = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp
@@ -573,7 +586,13 @@ function PLUGIN:SetPlayerHealth( netuser )
 	local netuserID = rust.GetUserID( netuser )
 	local TakeDamage = Character:GetComponent( "TakeDamage" )
 	local ClientVitalsSync = Character:GetComponent( "ClientVitalsSync" )
-	TakeDamage.maxHealth = 100+((char[netuserID].lvl-1)*(1+(char[netuserID].attributes.sta*.25)))
+	local charLevel
+	if char[netuserID].lvl == 1 then
+		charLevel = 0
+	else
+		charLevel = char[netuserID].lvl
+	end
+	TakeDamage.maxHealth = 100+(charLevel*(char[netuserID].attributes.sta*.25))
 	TakeDamage.health = TakeDamage.maxHealth
 	ClientVitalsSync:SendClientItsHealth()
 end
