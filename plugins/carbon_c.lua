@@ -17,7 +17,11 @@ end
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
 local get_flSprintSpeed, set_flSprintSpeed = typesystem.GetField( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
 local weaponRecoil = typesystem.GetField( Rust.BulletWeaponDataBlock, "weaponRecoil", bf.private_instance )
---local testD = util.GetPropertyGetter( Rust.PlayerMovement_Mecanim._type, "flSprintSpeed", true )
+local get_maxAudioDist, set_maxAudioDist = typesystem.GetField( Rust.CharacterFootstepTrait, "_maxAudioDist", bf.private_instance )
+local getTrait = typesystem.GetField( Rust.FootstepEmitter, "trait", bf.private_instance )
+--local CharacterFootstepTrait = util.GetPropertyGetter( Rust.PlayerMovement_Mecanim._type, "flSprintSpeed", true )
+
+
 function PLUGIN:sc(netuser, cmd, args)
 	local i = 1
 	while i <= 1 do
@@ -38,9 +42,17 @@ function PLUGIN:sc(netuser, cmd, args)
 	local EquipmentWearer = controllable:GetComponent( "EquipmentWearer" )
 	local HeldItemDataBlock = controllable:GetComponent( "HeldItemDataBlock" )
 	local Metabolism = controllable:GetComponent("Metabolism")
+	local RecoilSimulation = Character:GetComponent("RecoilSimulation")
+	local AvatarSaveRestore = Character:GetComponent("AvatarSaveRestore")
+	local FootstepEmitter = Character:GetComponent("FootstepEmitter")
+	local TakeDamage = Character:GetComponent("TakeDamage")
 
-	Character._takedamage.maxHealth = 200
-	rust.SendChatToUser(netuser, tostring(Character._takedamage.maxHealth))
+	rust.SendChatToUser(netuser, tostring(Character.stateFlags.crouch))
+	--TakeDamage.maxHealth = 999
+	--TakeDamage.health = 999
+	--local distanceCheck = FootstepEmitter:get_maxAudioDist()
+
+	--AvatarSaveRestore:SaveAvatar()
 	--local testthis = set_flSprintSpeed()
 	--rust.SendChatToUser(netuser, tostring(testthis))
 	-- Inventory.activeItem.datablock.caloriesPerSwing = 2 -- change calories per swing =)
@@ -249,4 +261,41 @@ function PLUGIN:knockback(netuser, cmd, args)
 	local coords = netuser.playerClient.lastKnownPosition
 	coords.x ,coords.y ,coords.z = p.x,p.y+offset,p.z
 	rust.ServerManagement():TeleportPlayer(netuser.playerClient.netPlayer, coords)
+end
+function PLUGIN:DumpGameObject( _gameObj )
+	local types = UnityEngine.Component._type --cs.gettype( "UnityEngine.Component" ) -- cs.gettype("Facepunch+MonoBehaviour, Facepunch.ID")
+	local _components = _gameObj:GetComponents( types )
+	print( "Found Component List?: "..tostring( _components ) )
+
+	local tbl = cs.createtablefromarray( _components )
+	print( "Found Entries #: "..tostring( #tbl ) )
+
+	if (#tbl == 0) then
+		print( "Empty table" )
+	else
+		for i=1,#tbl do
+			print( "Found Component: "..tostring( tbl[i] ) )
+		end
+	end
+
+	print(" - - - - - - - - - - - - ")
+
+	local types = UnityEngine.Component._type --cs.gettype( "UnityEngine.Component" ) -- cs.gettype("Facepunch+MonoBehaviour, Facepunch.ID")
+	local _components = _gameObj:GetComponentsInChildren( types )
+	print( "Found Children Component List?: "..tostring( _components ) )
+
+	local tbl = cs.createtablefromarray( _components )
+	print( "Found Entries #: "..tostring( #tbl ) )
+
+	if (#tbl == 0) then
+		print( "Empty table" )
+	else
+		for i=1,#tbl do
+			print( "Found Component: "..tostring( tbl[i] ) )
+		end
+	end
+
+	print( "" )
+	print( "" )
+	print( "" )
 end

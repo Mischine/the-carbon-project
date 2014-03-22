@@ -41,6 +41,8 @@ function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 end
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+	--rust.BroadcastChat(tostring(UnityEngineGameObject:GetComponents()))
+	--print(tostring(takedamage.bleedAttcker))
 	--rust.BroadcastChat( tostring( takedamage ))
 	--rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )
 	damage.amount = thief:StealthCheck( takedamage, damage )  -- Stealth check
@@ -52,11 +54,32 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	if status and dmg.status then if status == WasKilled then	if dmg.amount < takedamage.health then dmg.status = LifeStatus.IsAlive end end end
 end
 
+
+
+function PLUGIN:GetDistance(netuser)
+	local Raycastp = util.FindOverloadedMethod( UnityEngine.Physics, "RaycastAll", bf.public_static, { UnityEngine.Ray } )
+	cs.registerstaticmethod( "tmp", Raycastp )
+	local RaycastAll = tmp
+	tmp = nil
+
+	local hits = RaycastAll( rust.GetCharacter( netuser ).eyesRay )
+	local tbl = cs.createtablefromarray( hits )
+	if (#tbl == 0) then return end
+	local closest = tbl[1]
+	local closestdist = closest.distance
+	for i=2, #tbl do
+		if (tbl[i].distance < closestdist) then
+			closest = tbl[i]
+			closestdist = closest.distance
+		end
+	end
+	targetLoc = closest.point
+	netuserLoc = netuser.playerClient.lastKnownPosition
+	return math.floor(math.sqrt(math.pow(netuserLoc.x - targetLoc.x,2) + math.pow(netuserLoc.y - targetLoc.y,2) + math.pow(netuserLoc.z - targetLoc.z,2))+.5)
+end
+
 function PLUGIN:CombatDamage (takedamage, dmg)
-
-
 		local combatData = self:GetCombatData(takedamage,dmg)
-
 		--perk:knockback(combatData)
 
 		--[[
@@ -91,6 +114,10 @@ function PLUGIN:CombatDamage (takedamage, dmg)
     --BEGIN BATTLE SYSTEM
     if combatData.scenario == 1 then
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------PVP------------' ) end
+		local distance = self:GetDistance(dmg.attacker.client.netUser)
+		rust.BroadcastChat('Distance: '..tostring(distance).. 'm')
+
+		rust.SendChatToUser(netuser, tostring(rust.GetInventory(combatData.netuser).activeItem.datablock.bulletRange))
 		combatData.dmg.amount = self:WeaponSkill(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:PartyCheck(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildCheck(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
@@ -117,6 +144,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:WeaponSkill(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:DmgModifier(combatData)
 		combatData.dmg.amount = self:DmgRandomizer(combatData)
+		combatData.dmg.amount = self:RangeModifier(combatData)
 		combatData.dmg.amount = self:Attack(combatData)
 		combatData.dmg.amount = self:CritCheck(combatData)--TODO: MOVE INTO ATTACK
 		combatData.dmg.amount = self:ActivatePerks(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
@@ -126,11 +154,40 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs entity------------' ) end
     end
     if debug.list[ combatData.debug] then debug:SendDebug(combatData.debug, 'Final Damage: ' .. tostring(combatData.dmg.amount)) end
-    rust.BroadcastChat('Final Damage: ' .. tostring(combatData.dmg.amount))
+
     dmg.amount = combatData.dmg.amount
+	rust.BroadcastChat('Final Damage: ' .. tostring(func:round(dmg.amount,2)))
     return dmg, combatData
 end
+function PLUGIN:RangeModifier(combatData)
+	local distance = tonumber(self:GetDistance(combatData.dmg.attacker.client.netUser)) --rust.BroadcastChat('Distance: '..tostring(distance).. 'm')
+	local weaponRange = tonumber(rust.GetInventory(combatData.netuser).activeItem.datablock.bulletRange)
+	local percRange = math.floor((100-(100*(distance/weaponRange)))+.5) --rust.BroadcastChat(tostring(percRange))
+	local rangeModifier = combatData.dmg.amount*(percRange*.01)
+	local crouchBonus = 0
+	local perBonus = 0
 
+	if rust.GetCharacter(combatData.netuser).stateFlags.crouch then
+		crouchBonus = (combatData.dmg.amount - rangeModifier)*.5
+		rust.BroadcastChat(tostring('Crouch Bonus: ' .. crouchBonus))
+
+		perBonus = ((combatData.dmg.amount - rangeModifier)*.5)*(combatData.netuserData.attributes.per*.1)
+		rust.BroadcastChat(tostring('Perception Bonus: ' .. perBonus))
+
+		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus.. '  |  Lost Damage: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
+		print(tostring('Distance: ' .. distance .. 'm'))
+		print(tostring('Original Damage: ' .. combatData.dmg.amount))
+		print(tostring('Crouch Bonus: ' .. crouchBonus))
+		print(tostring('Perception Bonus: ' .. perBonus ..'  @  ' ..combatData.netuserData.attributes.per.. ' perception'))
+		print(tostring('Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus))
+		print(tostring('Damage Loss: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
+	else
+		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
+		--print(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
+	end
+	combatData.dmg.amount = combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus
+	return combatData.dmg.amount
+end
 function PLUGIN:GetCombatData(takedamage, dmg)
 	local combatData = {}
 	if takedamage:GetComponent("DeployableObject") then combatData['objectData'] = takedamage:GetComponent("DeployableObject") end
@@ -167,21 +224,25 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 	end
 	if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
 		combatData['scenario'] = 1 --PVP
-		rust.BroadcastChat( 'Scenario: 1' )
+		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.victim.controllable and not dmg.attacker.controllable then
 		combatData['scenario'] = 2 --EVP
-		rust.BroadcastChat( 'Scenario: 2' )
+		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and not dmg.victim.controllable and not combatData.entity then
 		combatData['scenario'] = 3 --PVE
-		rust.BroadcastChat( 'Scenario: 3' )
+		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and (combatData.objectData or combatData.structureData) and combatData.weapon.type == 'm' then
 		combatData['scenario'] = 4 --PVO & --PVS
 		combatData.dmg.amount = combatData.entity.dmg           -- setting base damage for each object.
-		rust.BroadcastChat( 'Scenario: 4' )
+		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif dmg.attacker.controllable and combatData.entity then
 		combatData['scenario'] = 5
-		rust.BroadcastChat( 'Scenario: 5' )
+		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 		return combatData.dmg.amount, combatData
+	elseif string.find((tostring(combatData.dmg.attacker.id)), "(Metabolism)", 1, true) then
+		combatData['scenario'] = 6
+		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+		--return combatData.dmg.amount, combatData
 	else
 		rust.BroadcastChat( 'Scenario: Invalid' )
 		-- self:PrintInvalidScenario( combatData,dmg, takedamage )
@@ -227,8 +288,7 @@ function PLUGIN:PrintInvalidScenario( combatData, dmg, takedamage )
 	if combatData then
 		if takedamage.gameObject then print('gameObject: ' .. tostring(takedamage.gameObject.Name)) end
 		if takedamage.health then print('health: ' .. tostring(combatData)) end
-		if dmg and dmg.amount then print('Damage: ' .. tostring(dmg.amount.amount)) end
-
+		if dmg and dmg.amount then print('Damage: ' .. tostring(dmg.amount)) end
 		if combatData.netuser then print( 'netuser: ' .. tostring(combatData.netuser) ) end
 		if combatData.vicuser then print( 'vicuser: ' .. tostring(combatData.vicuser)) end
 		if combatData.weapon then print( 'weapon: ' .. tostring(combatData.weapon.name)) end

@@ -34,13 +34,10 @@ end
 function PLUGIN:rage(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----perk:rage----' ) end
 	if (combatData.vicuserData) and (combatData.vicuserData.perks.rage) and (combatData.dmg.attacker) then
-		local rageNotice = function(a,b) rust.Notice(combatData.vicuser, 'Rage!',(a*b)) end
 		rust.BroadcastChat(combatData.bodyPart)
 		if( char[ combatData.vicuserData.id ].buffs[ 'Rage' ] ) then
-			if combatData.bodyPart == 'head' then rageNotice:destroy() char[ combatData.vicuserData.id ].buffs[ 'Rage' ] = nil rust.BroadcastChat('rage: ended HEADSHOT!')  return combatData.dmg.amount end
-			rust.BroadcastChat('rage: Has Rage, set damage to 0')
-			combatData.dmg.amount = 0
-			return combatData.dmg.amount
+			if combatData.bodyPart == 'head' then char[ combatData.vicuserData.id ].buffs[ 'Rage' ] = nil return combatData.dmg.amount end
+			return combatData.dmg.amount*0
 		end
 		local function rage(a,b,combatData)
 			if rust.GetInventory( combatData.vicuser ).activeItem then
@@ -49,24 +46,22 @@ function PLUGIN:rage(combatData)
 				local returnUses = activeItem.uses
 				timer.Repeat(a, b, function() activeItem:SetCondition(returnCondition) activeItem.uses = returnUses end)
 			end
-			local time = a*b
-			-- local rageNotice = func:Notice(combatData.vicuser,'☣','Rage!',(b*a))
-			rageNotice(a,b)
+			func:Notice(combatData.vicuser,'☣','Rage!',(b))
 		end
 		if (combatData.vicuserData.perks.rage > 0) then
 			if debug.list[ combatData.vicuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.vicuser.displayName ].targnetuser,'PERK RAGE: ' .. tostring(combatData.dmg.amount)) end
 			local roll = func:Roll(true,0,100)
 			rust.BroadcastChat(tostring(roll))
 			if ((combatData.vicuserData.perks.rage == 1) and (roll <= 3)) then
-				rage(0.25, 20, combatData)
+				rage(1, 5, combatData)
 			elseif ((combatData.vicuserData.perks.rage == 2) and (roll <= 6)) then
-				rage(0.25, 40, combatData)
+				rage(1, 10, combatData)
 			elseif ((combatData.vicuserData.perks.rage == 3) and (roll <= 9)) then
-				rage(0.25, 60, combatData)
+				rage(1, 15, combatData)
 			elseif ((combatData.vicuserData.perks.rage == 4) and (roll <= 12)) then
-				rage(0.25, 80, combatData)
+				rage(1, 20, combatData)
 			elseif ((combatData.vicuserData.perks.rage == 5) and (roll <= 15)) then
-				rage(0.25, 100, combatData)
+				rage(1, 25, combatData)
 			end
 		end
 	end
@@ -200,10 +195,8 @@ end
 
 --PLUGIN:GiveTimedBuff
 function PLUGIN:GiveTimedBuff( vicuserID, time, buff )
-	if not char[ vicuserID ].buffs[buff] then
-		char[ vicuserID ].buffs[buff]=true
-		timer.Once( time, function()
-			if( char[ vicuserID ].buffs[ buff ] ) then char[ vicuserID ].buffs[ buff ] = nil end
-		end )
+	if not char[ vicuserID ].buffs[ buff ] then
+		char[ vicuserID ].buffs[ buff ]=true
+		timer.Once( time, function() if char[ vicuserID ].buffs[ buff ] then char[ vicuserID ].buffs[ buff ] = nil end end )
 	end
 end
