@@ -8,6 +8,30 @@ function PLUGIN:Init()
 	self.Concept = {}
 end
 
+function PLUGIN:MailCheck( cmdData )
+	local data = char[ cmdData.netuserID ]
+	if not data then rust.Notice( cmdData.netuser, 'PlayerData not found!' )return end
+	if not data.mail then
+		local content = {
+			['header'] = 'Mailbox',
+			['msg'] = 'Your mailbox is empty.',
+		}
+		func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
+	else
+		local content = {
+			['header'] = 'Mailbox',
+			['list'] = {}
+		}
+		-- Mail
+		for k,v in pairs( data.mail ) do
+			local msg = '[ ' .. k .. ' ] From: ' .. v.sender .. ' | Subject: ' .. table.concat(v.subject, ' ' )
+			if not v.read then msg = '[ NEW ] ' .. msg end
+			table.insert( content.list, tostring(msg))
+		end
+		func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
+	end
+end
+
 function PLUGIN:MailNew( cmdData )
 	if self.Concept[ cmdData.netuser ] then rust.Notice( cmdData.netuser, 'You already have a concept! Please use /mail cancel ; to delete the concept.' ) return end
 	local concept = {
@@ -22,6 +46,7 @@ function PLUGIN:MailNew( cmdData )
 			['c'] = 0,
 		},
 		['item'] = {},
+		['read'] = false
 	}
 	if cmdData.args[2] then
 		local i = 2
@@ -36,7 +61,7 @@ function PLUGIN:MailNew( cmdData )
 	timer.Once( 1800, function() if self.Concept[ cmdData.netuser ] then self:DelConcept( cmdData.netuser ) end  end)
 	local content = {
 		['header'] = 'New mail created!',
-		['txt'] = 'You\'ve created a new concept. Here are some things you can do before sending it.',
+		['msg'] = 'You\'ve created a new concept. Here are some things you can do before sending it.',
 		['list'] = {
 			'/mail txt | Will add new text to the mail ( max 100 characters per mail )',
 			'/mail items "ItemName" | Will add items to the mail. ( 20 copper per item )',
@@ -47,7 +72,7 @@ function PLUGIN:MailNew( cmdData )
 		}
 	}
 	func:TextBox( cmdData.netuser, content, cmdData.cmd, cmdData.args )
-	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
+	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept created.' ) end )
 end
 
 -- /mail subject
@@ -57,6 +82,7 @@ function PLUGIN:MailSubject( cmdData )
 	local concept = self.Concept[ cmdData.netuser ]
 	if not concept then rust.Notice( cmdData.netuser, 'Concept not found, please make a new concept with /mail new' ) return end
 	local i = 2
+	concept.subject = {}
 	while cmdData.args[i] do
 		table.insert( concept.subject, cmdData.args[i])
 		i = i + 1
@@ -64,6 +90,7 @@ function PLUGIN:MailSubject( cmdData )
 	rust.SendChatToUser(cmdData.netuser, 'Mail', 'Mail subject changed!' )
 	self.Concept[ cmdData.netuser ] = concept
 	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
+	self:ShowMail( cmdData, concept )
 end
 
 -- /mail txt
@@ -80,6 +107,7 @@ function PLUGIN:MailTxt( cmdData )
 	rust.SendChatToUser(cmdData.netuser, 'Mail', 'Mail text updated!' )
 	self.Concept[ cmdData.netuser ] = concept
 	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
+	self:ShowMail( cmdData, concept )
 end
 
 function PLUGIN:MailMoney( cmdData )
@@ -97,18 +125,18 @@ function PLUGIN:MailMoney( cmdData )
 	if not data.g then rust.Notice( cmdData.netuser, 'Invalid gold amount! Must be number! ( Input: ' .. tostring(cmdData.args[2]).. ')' ) return end
 	if cmdData.args[3] then data.s = tonumber( cmdData.args[3] ) end
 	if not data.s then rust.Notice( cmdData.netuser, 'Invalid Silver amount! Must be number! ( Input: ' .. tostring(cmdData.args[3]).. ')' ) return end
-	if cmdData.args[4] then data.c = tonumber( cmdData.args[4] + 20) end
+	if cmdData.args[4] then data.c = tonumber( cmdData.args[4] ) end
 	if not data.c then rust.Notice( cmdData.netuser, 'Invalid Copper amount! Must be number! ( Input: ' .. tostring(cmdData.args[4]).. ')' ) return end
-	local canbuy = econ:canBuy( cmdData.netuser, data.g, data.s, data.c )
-	if not canbuy then rust.Notice( cmdData.netuser, tostring('Not enough money. Money required: G' .. data.g .. ' S' .. data.s .. ' C' .. data.c )) return end
-	econ:RemoveBalance( cmdData.netuser, data.g, data.s, data.c )
+	local canbuy = econ:canBuy( cmdData.netuser, data.g, data.s, data.c+20 )
+	if not canbuy then rust.Notice( cmdData.netuser, tostring('Not enough money. Money required: G' .. data.g .. ' S' .. data.s .. ' C' .. data.c+20 )) return end
+	econ:RemoveBalance( cmdData.netuser, data.g, data.s, data.c+20 )
 	data.g = data.g + concept.money.g
 	data.s = data.s + concept.money.s
 	data.c = data.c + concept.money.c
-	rust.SendChatToUser( cmdData.netuser, tostring('Concept now contains: Gold: ' .. data.g .. ' Silver: ' .. data.s .. ' Copper: ' .. data.c ))
 	concept.money = data
 	self.Concept[ cmdData.netuser ] = concept
 	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
+	self:ShowMail( cmdData, concept )
 end
 
 function PLUGIN:MailItem( cmdData )
@@ -169,6 +197,7 @@ function PLUGIN:MailItem( cmdData )
 	rust.SendChatToUser( cmdData.netuser, tostring(i .. 'x ' .. itemname .. ' added to the concept.' ))
 	self.Concept[ cmdData.netuser ] = concept
 	timer.Once( 2, function() rust.InventoryNotice( cmdData.netuser, 'Concept saved.' ) end )
+	self:ShowMail( cmdData, concept )
 end
 
 function PLUGIN:MailPv( cmdData )
@@ -181,16 +210,54 @@ end
 function PLUGIN:MailSend( cmdData )
 	if not cmdData.args[2] then rust.SendChatToUser( cmdData.netuser, '/mail send "Name"' ) return end
 	local targname = util.QuoteSafe( cmdData.args[2] )
+	-- if targname == cmdData.netuser.displayName then rust.Notice( cmdData.netuser, 'You cannot send mail to yourself!' ) return end
 	if not self.Concept[ cmdData.netuser ] then rust.Notice( cmdData.netuser, 'You\'ve no concept. Please create one with /mail new' ) return end
 	local concept = self.Concept[ cmdData.netuser ]
 	if not concept then rust.Notice( cmdData.netuser, 'Concept not found, please make a new concept with /mail new' ) return end
-	-- TODO: Finish MailSend
+	local canbuy = econ:canBuy( cmdData.netuser, 0, 0, 5 )
+	if not canbuy then rust.Notice( cmdData.netuser, 'Insuficient funds! Need 5 copper to send a mail!' ) return end
+	local targname = cmdData.args[2]
+	local targID = 0
+	for k,v in pairs(core.Reg ) do
+		if v == targname then targID = k end
+	end
+	if targID == 0 then rust.Notice( cmdData.netuser, targname .. ' was not found in our database!' ) return end
+	local data = char[ targID ]
+	if not data then
+		data = char:Load( targID )
+	end
+	if not data then rust.Notice( cmdData.netuser, targname .. ' was not found in our database!' ) return end -- Failsafe.
+	if not data['mail'] then rust.BroadcastChat( 'data.mail created' ) data['mail'] = {} end
+	local uid = 0
+	while data.mail[tostring(uid)] do
+		uid = uid + 1
+	end
+	econ:RemoveBalance( cmdData.netuser, 0,0,5 )
+	concept.target = targname
+	data.mail[ tostring(uid) ] = concept
+	char:SaveDataByID( targID, data )
+	local b, targuser = rust.FindNetUsersByName( targname )
+	if( b ) then rust.Notice( targuser, 'You\'ve got new mail from: ' .. cmdData.netuser.displayName ) rust.InventoryNotice( targuser, '+1 mail' ) end
+	rust.SendChatToUser( cmdData.netuser, core.sysname, 'Succesfully send mail to ' .. targname )
+	self.Concept[ cmdData.netuser ] = nil
+	rust.InventoryNotice( cmdData.netuser, 'Concept deleted' )
 end
 
 function PLUGIN:MailRead( cmdData )
-	-- TODO: Finish MailRead
+	if not cmdData.args[2] then rust.Notice( cmdData.netuser, '/mail read #ID' ) return end
+	local ID = tonumber( cmdData.args[2] )
+	if not ID then rust.Notice( cmdData.netuser, 'Invalid ID!' ) return end
+	local data = char[ cmdData.netuserID ]
+	if not data then rust.Notice( cmdData.netuser, 'PlayerData not found!' ) return end
+	if not data.mail then rust.Notice( cmdData.netuser, 'You have no new mail!' ) return end
+	if not data.mail[ tostring(ID) ] then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
+	local mail = data.mail[ tostring(ID)]
+	if not mail then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
+	mail.read = true
+	self:ShowMail( cmdData, mail )
+	char:Save( cmdData.netuser )
 end
--- TODO: Check ShowMail
+
 function PLUGIN:ShowMail( cmdData, mail )
 	local txt = table.concat(mail.txt, ' ' )
 	local subject = table.concat(mail.subject, ' ' )
@@ -235,29 +302,71 @@ function PLUGIN:ShowMail( cmdData, mail )
 end
 
 function PLUGIN:MailDel( cmdData )
-	-- TODO: Finish MailDel
+	if not cmdData.args[2] then rust.Notice( cmdData.netuser, '/mail del #ID' ) return end
+	local ID = tonumber( cmdData.args[2] )
+	if not ID then rust.Notice( cmdData.netuser, 'Invalid ID!' ) return end
+	local data = char[ cmdData.netuserID ]
+	if not data then rust.Notice( cmdData.netuser, 'PlayerData not found!' ) return end
+	if not data.mail then rust.Notice( cmdData.netuser, 'You have no new mail!' ) return end
+	if not data.mail[ tostring(ID) ] then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
+	local mail = data.mail[ tostring(ID)]
+	if not mail then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
+	local isgone = self:CheckAttachments( cmdData, mail )
+	if not isgone then return end
+	data.mail[ tostring(ID) ] = nil
+	local i = 0
+	for _, _ in pairs( data.mail ) do i = i + 1 end
+	if i == 0 then data.mail = nil end
+	rust.SendChatToUser( cmdData.netuser, core.sysname, 'Mail [' .. tostring(ID) .. '] succesfully deleted.' )
+	char:Save( cmdData.netuser )
 end
 
-function PLUGIN:DelConcept( netuser )
-	-- TODO: Finish DelConcept
-end
-
-function PLUGIN:MailCancel( netuser )
-	-- TODO: Finish MailCancel
+function PLUGIN:MailCancel( cmdData )
+	if not self.Concept[ cmdData.netuser ] then rust.Notice( cmdData.netuser, 'You\'ve no concept. Please create one with /mail new' ) return end
+	local concept = self.Concept[ cmdData.netuser ]
+	if not concept then rust.Notice( cmdData.netuser, 'Concept not found, please make a new concept with /mail new' ) return end
+	local isgone = self:CheckAttachments( cmdData, mail )
+	if not isgone then return end
+	self.Concept[ cmdData.netuser ] = nil
+	rust.SendChatToUser( cmdData.netuser, core.sysname, 'Succesfully deleted the concept' )
+	rust.InventoryNotice( cmdData.netuser, core.sysname, 'Concept deleted' )
 end
 
 function PLUGIN:MailClear( cmdData )
-	-- TODO: Finish MailClear
+	local data = char[ cmdData.netuserID ]
+	if not data then rust.Notice( cmdData.netuser, 'Playerdata not found!' ) return end
+	if not data.mail then rust.Notice( cmdData.netuser, 'No mail found.' ) return end
+	local i = 0
+	for _, v in pairs( data.mail ) do
+		local isgone = self:CheckAttachments( cmdData, v )
+		if not isgone then return end
+		i = i + 1
+	end
+	data.mail = nil
+	rust.SendChatToUser( cmdData.netuser, 'Succesfully cleared ' .. tostring(i) .. ' mail from your inbox.' )
+	char:Save( cmdData.netuser )
 end
 
-function PLUGIN:MailCollect( cmdData )
-	-- TODO: Finish MailCollect
+function PLUGIN:MailCollect( cmdData ) -- /mail collect ID
+	if not cmdData.args[2] then rust.Notice( cmdData.netuser, '/mail del #ID' ) return end
+	local ID = tonumber( cmdData.args[2] )
+	if not ID then rust.Notice( cmdData.netuser, 'Invalid ID!' ) return end
+	local data = char[ cmdData.netuserID ]
+	if not data then rust.Notice( cmdData.netuser, 'PlayerData not found!' ) return end
+	if not data.mail then rust.Notice( cmdData.netuser, 'You have no new mail!' ) return end
+	if not data.mail[ tostring(ID) ] then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
+	local mail = data.mail[ tostring(ID)]
+	if not mail then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
+	local isgone = self:CheckAttachments( cmdData, mail )
+	if not isgone then return end
+	rust.SendChatToUser( cmdData.netuser, core.sysname, 'Succesfully collected items/money from mail [' .. tostring( ID ) ..']' )
 end
 
 function PLUGIN:MailInfo( cmdData )
 	-- TODO: Finish MailInfo
 end
 
-function PLUGIN:CancelMail( cmdData ) -- This check if there are any items to return. Then deletes the mail.
-	-- TODO: Finish CancelMail
+function PLUGIN:CheckAttachments( cmdData, mail ) -- This check if there are any items/money to return.
+
+	return true
 end

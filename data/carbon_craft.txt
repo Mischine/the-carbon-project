@@ -735,7 +735,8 @@
         "dif": 30,
         "prof": "Toolsmith",
         "mats": {
-            "Low Quality Metal": 2
+            "Low Quality Metal": 8
+            "Cloth": 5
         }
     },
     "Metal Wall": {

@@ -61,12 +61,14 @@ end
 function PLUGIN:cmdMail( netuser, cmd ,args )
 	local cmdData = self:GetCmdData( netuser, cmd, args )
 	if not args[1] then
-		mail:MailInfo( cmdData )
+		mail:MailCheck( cmdData )
 		return
 	end
 	local option = args[1]:lower()
 
-	if option == 'new' then             -- /mail new [Optional subject]         To create a new mail, subject is optional
+	if option == 'help' then            -- /mail help                           To create a new mail, subject is optional
+		mail:MailInfo( cmdData )
+	elseif option == 'new' then             -- /mail new [Optional subject]         To create a new mail, subject is optional
 		mail:MailNew( cmdData )
 	elseif option == 'item' then        -- /mail item #amount "ItemName"        To add items
 		mail:MailItem( cmdData )
@@ -81,17 +83,17 @@ function PLUGIN:cmdMail( netuser, cmd ,args )
 	elseif option == 'pv' then          -- /mail pv                             To preview your mail that you\'re about to send
 		mail:MailPv( cmdData )
 	elseif option == 'cancel' then      -- /mail cancel                         To cancel the concept. return items/money in concept
-		mail.MailCancel( cmdData )
+		mail:MailCancel( cmdData )
 	elseif option == 'del' then         -- /mail del #ID                        To delete a mail
 		mail:MailDel( cmdData )
 	elseif option == 'clear' then       -- /mail clear                          To clear your whole inbox. Even the one with items in it
 		mail:MailClear( cmdData )
 	elseif option == 'fw' then          -- /mail fw                             To forward a mail
 		mail:MailFw( cmdData )
-	elseif option == 'collect' then     -- /mail collect                        To collect the items/money/donation
+	elseif option == 'collect' then     -- /mail collect ID                     To collect the items/money/donation
 		mail:MailCollect( cmdData )
 	elseif option == 'send' then        -- /mail send "Name"                    To send mail to a player
-		mail:MailCollect( cmdData )
+		mail:MailSend( cmdData )
 	else
 		mail:MailInfo( cmdData )
 	end
@@ -101,6 +103,7 @@ function PLUGIN:GetCmdData(netuser, cmd ,args)
 	local cmdData = {}
 	cmdData['netuserData'] = char[rust.GetUserID(netuser)]
 	cmdData['netuser'] = netuser
+	cmdData['netuserID'] = rust.GetUserID( netuser )
 	cmdData['cmd'] = cmd
 	if #args then cmdData['args'] = args end
 	if lang.Text[cmd][cmdData.netuserData.lang] then cmdData['txt'] = lang.Text[cmd][cmdData.netuserData.lang] end

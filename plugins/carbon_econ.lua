@@ -87,8 +87,11 @@ function PLUGIN:OnKilled ( takedamage, dmg )
                         end
                         rust.SendChatToUser( AttNetuser, self.Chat, "You've killed " .. VicNetuser.displayName .. "!")
                         rust.SendChatToUser( VicNetuser, self.Chat, "You've been killed by " .. AttNetuser.displayName .. "!")
+                        rust.BroadcastChat( '1' )
                         local vBal = self:getBalance( VicNetuser )
+                        rust.BroadcastChat( '2' )
                         local data = self:Percentage( vBal.g, vBal.s, vBal.c )
+                        rust.BroadcastChat( '3' )
                         self:AddBalance( AttNetuser, data.gg, data.gs, data.gc )
                         self:RemoveBalance( VicNetuser,data.tg, data.ts, data.tc )
                     end
@@ -380,7 +383,8 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
         end
         if( data and key ) and ( data.price > 0) then
             local str = ''
-            local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
+            -- =(((C5-A5)+1)/C5)*B5
+            local newprice = func:round((data.price+((data.maxstock-data.stock+1)/data.maxstock)*data.price),0)
             local price = self:Convert( newprice )
             if( price.g > 0 ) then
 	            str = tostring( '[ Gold: ' .. price.g .. ' ] ' )
@@ -451,7 +455,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
         elseif( data and key and amount and ( amount <= data.stock )) and ( data.price > 0) then -- Item exist and is tradable
 	        local datablock = rust.GetDatablockByName( data.name )
 	        if not datablock then rust.Notice( netuser, key .. ' does not exist!') return end
-	        local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
+	        local newprice = func:round((data.price+((data.maxstock-data.stock+1)/data.maxstock)*data.price),0)
 	        local price = self:Convert( newprice )
             local g,s,c = price.g * amount, price.s * amount, price.c * amount
             local canbuy = self:canBuy( netuser, g, s ,c )
@@ -577,8 +581,8 @@ function PLUGIN:cmdSell( netuser, cmd, args)
         end
         if( data and key ) and ( data.price > 0) then
 	        local str = ''
-	        local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
-	        local price = self:Convert( newprice*0.6 )
+	        local newprice = func:round((data.price+((data.maxstock-data.stock+1)/data.maxstock)*data.price) * 0.6,0)
+	        local price = self:Convert( newprice )
 	        if( price.g > 0 ) then
 		        str = tostring( '[ Gold: ' .. price.g .. ' ] ' )
 	        elseif( price.s > 0 ) then
@@ -681,8 +685,8 @@ function PLUGIN:cmdSell( netuser, cmd, args)
                 end
             else rust.Notice(netuser, "Item not found in inventory!") return end
             if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
-            local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
-            local price = self:Convert( newprice*0.6 )
+            local newprice = func:round((data.price+((data.maxstock-data.stock+1)/data.maxstock)*data.price)*0.6,0)
+            local price = self:Convert( newprice )
             local g,s,c = math.floor( price.g * i ),math.floor(price.s * i),math.floor( price.c * i )
             self.Item[ key ].stock = self.Item[ key ].stock + i
             while ( c >= 100 ) do

@@ -17,7 +17,6 @@ function PLUGIN:Init()
 	self:AddChatCommand( 'hurt', self.Hurt )
 	self:AddChatCommand( 'takeover', self.TakeOver )
 	self:AddChatCommand( 'repair', self.cmdRepair )
-	self:AddChatCommand( 'dev', self.isDev )
 
 	self.spamNet = {} --used to prevent spammed messages to a user.
 	self.SquareRoot = math.sqrt
@@ -170,11 +169,6 @@ function PLUGIN:returnvalues( table ) if( not table ) then return false end loca
 function PLUGIN:CheckBodyPart(a,b)for c,d in pairs(b)do if string.find(a,d)then return true end end end
 function PLUGIN:Notice(netuser,prefix,text,duration)
 	Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ", text .. '      ', duration or 4.0 )
-end
-
-function PLUGIN:isDev( netuser )
-	local SteamID = rust.CommunityIDToSteamID( tonumber( rust.GetUserID( netuser ) ) )
-	if SteamID == 'STEAM_0:1:36236335' or SteamID == 'STEAM_0:0:25828468' then return true else return false end
 end
 
 --PLUGIN:findIDByName
@@ -572,4 +566,42 @@ function PLUGIN:Repair( netuser, spot )
 	item:SetCondition(1)
 	item.uses = 300
 	-- rust.Notice( netuser, 'Changed condition to 100.' )
+end
+
+function PLUGIN:DumpGameObject( _gameObj )
+	local types = UnityEngine.Component._type --cs.gettype( "UnityEngine.Component" ) -- cs.gettype("Facepunch+MonoBehaviour, Facepunch.ID")
+	local _components = _gameObj:GetComponents( types )
+	print( "Found Component List?: "..tostring( _components ) )
+
+	local tbl = cs.createtablefromarray( _components )
+	print( "Found Entries #: "..tostring( #tbl ) )
+
+	if (#tbl == 0) then
+		print( "Empty table" )
+	else
+		for i=1,#tbl do
+			print( "Found Component: "..tostring( tbl[i] ) )
+		end
+	end
+
+	print(" - - - - - - - - - - - - ")
+
+	local types = UnityEngine.Component._type --cs.gettype( "UnityEngine.Component" ) -- cs.gettype("Facepunch+MonoBehaviour, Facepunch.ID")
+	local _components = _gameObj:GetComponentsInChildren( types )
+	print( "Found Children Component List?: "..tostring( _components ) )
+
+	local tbl = cs.createtablefromarray( _components )
+	print( "Found Entries #: "..tostring( #tbl ) )
+
+	if (#tbl == 0) then
+		print( "Empty table" )
+	else
+		for i=1,#tbl do
+			print( "Found Component: "..tostring( tbl[i] ) )
+		end
+	end
+
+	print( "" )
+	print( "" )
+	print( "" )
 end

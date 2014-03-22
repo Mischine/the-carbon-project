@@ -332,6 +332,7 @@ function PLUGIN:ThiefMod( combatData )
 			if (((netangle - vicangle) >= -40) and ((netangle - vicangle) <= 40)) then
 				combatData.dmg.amount = combatData.dmg.amount * (1 + combatData.netuserData.classdata.thief.backstab)
 				rust.InventoryNotice( combatData.netuser, 'Backstab!' )
+				thief:GiveThiefXp( combatData.netuser, 75 )
 				thief:Unstealth( combatData.netuser )
 				return combatData.dmg.amount
 			end

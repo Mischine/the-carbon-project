@@ -76,6 +76,7 @@ function PLUGIN:LoadLibrary()
     vote = cs.findplugin("carbon_vote")
     oxidecore = cs.findplugin("oxidecore")
     thief = cs.findplugin("carbon_thief")
+    dev = cs.findplugin("carbon_dev")
 
     a = cs.findplugin("carbon_a")
     b = cs.findplugin("carbon_b")
@@ -283,8 +284,7 @@ end
 --PLUGIN:OnUserConnect | http://wiki.rustoxide.com/index.php?title=Hooks/OnUserConnect
 function PLUGIN:OnUserConnect( netuser )
     print(util.QuoteSafe(netuser.displayName .. ' has connected.'))
-    -- self:AlphaTXT( netuser ) --  [Oxide] carbon_sandbox: [string "util.stl"]:171: attempt to index local 'str' (a nil value)
-    --[[
+    --[[ TODO: Enable this when we go alpha!
     if netuser.displayName:find'%W' then
         rust.SendChatToUser( netuser, ' ', ' ' )
         rust.SendChatToUser( netuser, '**ALERT**', 'Your name must be alphanumeric( numbers and letters )! Please change your name. You\'ll be kicked' )
@@ -299,18 +299,18 @@ function PLUGIN:OnUserConnect( netuser )
 	        for _, v in pairs( data.mail ) do
 	            if( not v.read ) then i = i + 1 end
 	        end
-	        if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mails!' ) end
+	        if( i > 0 ) then rust.SendChatToUser( netuser,'/Mail', 'You\'ve got ' .. tostring( i ) .. ' unread mail!' ) end
 	    end
 	    if not data.reg then
-		    for k, _ in pairs( self.Reg ) do
-			    if netuser.displayName == k then
+		    for _, v in pairs( self.Reg ) do
+			    if netuser.displayName == v then
 				    rust.SendChatToUser( netuser, 'Your name is already used. Please change your name. You will be kicked.' )
 				    timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
 				    return
 			    end
 		    end
-		    for k, _ in pairs( self.tmpusers ) do
-			    if netuser.displayName == k then
+		    for _, v in pairs( self.tmpusers ) do
+			    if netuser.displayName == v then
 				    rust.SendChatToUser( netuser, 'Your name is already used. Please change your name. You will be kicked.' )
 				    timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
 				    return
@@ -323,13 +323,18 @@ function PLUGIN:OnUserConnect( netuser )
 		    if data.name ~= netuser.displayName then
 			    rust.SendChatToUser( netuser, 'Please revert your name back to: ' .. data.name .. '. You will be kicked.' )
 			    timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
-			    print( data.name .. '( ' .. data.id .. ' ) has logged in with a different name: ' .. netuser.displayName )
+			    print( data.name .. '( ' .. data.id .. ' ) has logged in with a different name: ' .. netuser.displayName .. ' original: ' .. data.name )
 		    end
 	    end
 	    data.crafting = false
 	    cmd:ChannelLocal( netuser )
-	end
-    rust.BroadcastChat( netuser.displayName .. ' has joined the server!')
+	    rust.BroadcastChat( netuser.displayName .. ' has joined the server!')
+    else
+	    rust.SendChatToUser( netuser, 'An error occured when trying to load your data, please report this on the forums! You will be kicked.' )
+	    timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
+	    rust.BroadcastChat( netuser.displayName .. ' has joined the server! ( Error while loading Data )')
+	    print(tostring( 'FAILED TO LOAD PLAYERDATA FOR ' .. netuser.displayName .. '( ' .. rust.GetUserID( netuser ) .. ' )' ))
+    end
 end
 
 function PLUGIN:OnUserDisconnect( netplayer )
@@ -388,19 +393,13 @@ end
 -- GUILD DOOR ACCESS!
 local DeployableObjectOwnerID = util.GetFieldGetter( Rust.DeployableObject, "ownerID", true )
 function PLUGIN:CanOpenDoor( netuser, door )
-
-	-- Get and validate the deployable
 	local deployable = door:GetComponent( "DeployableObject" )
 	if (not deployable) then return end
-
-	-- Get the owner ID and the user ID
 	local ownerID = tostring( DeployableObjectOwnerID( deployable ) )
 	local userID = rust.GetUserID( netuser )
-
-	-- check if user is owner.
 	if (ownerID == userID) then return true end
-
-	-- if not, get guilds
+	if dev:isDev(netuser) and dev:hasOpenDoor(netuser) then rust.BroadcastChat( netuser.displayName .. ' has opened/closed a door with Dev powers.' ) return true end
+	-- Guild
 	local guildname = guild:getGuild( netuser )
 	if guildname then
 		local guilddata = guild:getGuildData( guildname )
@@ -410,10 +409,9 @@ function PLUGIN:CanOpenDoor( netuser, door )
 			end
 		end
 	end
-	-- TODO : Finish the thieving. I need a cfg file and how they lvl up.
-	-- Need Handmade Lockpick and luck to open doors. -- Maybe have a cooldown on it when fail?
+	-- Thief
 	if thief:isThief( netuser ) then -- Check if online!
-		local open = thief:PickLock( netuser,ownerID )
+		local open = thief:PickLock( netuser,ownerID, door )
 		if open then return true else return false end
 	end
 end

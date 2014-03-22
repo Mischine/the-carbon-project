@@ -68,7 +68,7 @@ function PLUGIN:Steal( netuser, _, args )
 	if ( coords1 ) and ( coords1.x ) and ( coords1.y ) and ( coords1.z ) then
 		local coords2 = vicuser.playerClient.lastKnownPosition
 		if ( coords2 ) and ( coords2.x ) and ( coords2.y ) and ( coords2.z ) then
-			if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= 50 ) then
+			if ( func:Distance3D ( coords1.x, coords1.y, coords1.z, coords2.x, coords2.y, coords2.z ) <= 2 ) then
 				self:StealFrom( netuser, vicuser )
 				IDLocalCharacter:set_lockMovement( true )
 				return
@@ -88,6 +88,7 @@ function PLUGIN:StealFrom( netuser, vicuser )
 		local netdata = char:GetUserDataFromTable( netuser )
 		if not netdata then Notice( netuser, 'Failed to load data, try again' ) return end
 		if func:Roll( false, 100 ) > data.classdata.steal then
+			self:GiveThiefXp( netuser, 100 )
 			rust.Notice( netuser, 'Failed to steal!' )
 			if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
 			self.cd[ netuser ]['steal'] = netdata.classdata.thief.stealcd
@@ -184,6 +185,7 @@ function PLUGIN:StealFrom( netuser, vicuser )
 				end
 			end
 		end
+		self:GiveThiefXp( netuser, 40 )
 		if self:hasStealth( netuser ) then self:Unstealth( netuser ) end
 		if not self.cd[ netuser ] then self.cd[ netuser ] = {} end
 		self.cd[ netuser ]['steal'] = netdata.classdata.thief.stealcd
@@ -310,25 +312,25 @@ function PLUGIN:Unstealth( netuser )
 end
 
 -- TODO: Test this!
-function PLUGIN:PickLock( netuser, ownerID )
-	if self.cd[netuser].picklock then rust.Notice( netuser, 'Picklocking is still on cooldown!' ) return false end
+function PLUGIN:PickLock( netuser, ownerID, door )
+	if self.cd[netuser] and self.cd[ netuser ]['picklock'] then rust.SendChatToUser( netuser, core.sysname, 'Picklock is still on cooldown! ' ) return false end
 	local inv = rust.GetInventory( netuser )
 	if not inv then return false end
 	local netuserData = char[ rust.GetUserID( netuser )]
-	if not netuserData then rust.Notice( netuser , '404: netuserData not found!' )return false end
-	if not char[ownerID] then rust.Notice( netuser, 'Player is offline, you cannot picklock doors from offline players.' ) return false end
+	if not netuserData then rust.SendChatToUser( netuser , core.sysname, '404: netuserData not found!' )return false end
+	if not char[ownerID] then rust.SendChatToUser( netuser, core.sysname, 'Player is offline, you cannot picklock doors from offline players.' ) return false end
 	local vicdata = char[ownerID]
 	local b, targuser = rust.FindNetUsersByName( vicdata.name )
-	if not b then rust.Notice( netuser, 'Player is offline, you cannot picklock doors from offline players.' ) return false end
+	if not b then rust.SendChatToUser( netuser, core.sysname, 'Player is offline, you cannot picklock doors from offline players.' ) return false end
 	local b, item = inv:GetItem( 35 )
-	if not b then rust.Notice( netuser, 'You need to have a Handmade Picklock in slot 6 to able to picklock!' ) return false end
+	if not b then rust.SendChatToUser( netuser, core.sysname, 'Thief Master', 'You need to have a Handmade Picklock in slot 6 to able to picklock!' ) return false end
 	if item.datablock.name ~= 'Handmade Lockpick' then return false end
 	rust.Notice( targuser, netuser.displayName .. ' tried to picklock your door! Did he succeed?' )
-	local roll = func:Roll( false, 100 )
-	if roll <= netuserData.classdata.thief.picklock then
-		roll = func:Roll( false, 100 )
-		if roll <= netuserData.classdata.thief.picklockfail then rust.Notice( netuser, 'Pick broke!' ) inv:RemoveItem( 35 ) end
-		rust.Notice( netuser, 'You have succesfully picklocked this door! Be aware, the owner is warned.' )
+	local s = tostring(door) local f  = string.find(s, "(Clone)" ) - 2	local s2 = string.sub(s, 0, f )	local roll = func:Roll( false, 100 )
+	local doormod = 0 if s2 == 'MetalDoor' then doormod = 0.25 end
+	if roll <= (netuserData.classdata.thief.picklock * (1+(0.02 * netuserData.attributes.luc )) * (1+doormod)) then
+		rust.InventoryNotice( netuser, 'You have succesfully picklocked this door! Be aware, the owner is warned.' )
+		self:GiveThiefXp( netuser, 50 )
 		if not self.cd[netuser] then self.cd[netuser]={} end
 		self.cd[netuser]['picklock'] = true
 		timer.Once( netuserData.classdata.thief.picklockcd, function() if self.cd[ netuser ]['picklock'] then rust.InventoryNotice( netuser, 'Picklock ready!' )self.cd[ netuser ]['picklock'] = nil  end end )
@@ -336,17 +338,14 @@ function PLUGIN:PickLock( netuser, ownerID )
 	else
 		rust.InventoryNotice( netuser, 'Picklock Failed.' )
 	end
+	self:GiveThiefXp( netuser, 20 )
+	roll = func:Roll( false, 100 )
+	if roll <= (netuserData.classdata.thief.picklockfail * (1+(0.02 * netuserData.attributes.luc )) * (1-doormod)) then rust.SendChatToUser( netuser, 'Handmade Lockpick broke!' ) inv:RemoveItem( 35 ) end
 	if not self.cd[netuser] then self.cd[netuser]={} end
 	self.cd[netuser]['picklock'] = true
 	timer.Once( netuserData.classdata.thief.picklockcd, function() if self.cd[ netuser ]['picklock'] then rust.InventoryNotice( netuser, 'Picklock ready!' )self.cd[ netuser ]['picklock'] = nil  end end )
 	return false
 end
-
---[[
-		['picklock'] = 10,              -- 10% succes chance to picklock a door
-		['picklockfail'] = 90,          -- 90% chance to break picklock.
-		['picklockcd'] = 20,            -- 20 secs cooldown before you can picklock again
- ]]
 
 function PLUGIN:StealthCheck( takedamage, damage )
 	if damage.victim.controllable then
@@ -385,6 +384,7 @@ function PLUGIN:GiveThiefXp( netuser, xp )
 			data.classdata.thief.backstab = data.classdata.thief.backstab + 0.07            -- Max 140% Damage increase.
 		end
 		data.classdata.thief.xp = data.classdata.thief.xp + xp
+		rust.InventoryNotice( netuser, '+' .. tostring(xp) .. ' thieving xp' )
 		char:Save( netuser )
 	end
 end

@@ -108,7 +108,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                 timer.Once(2, function()
                     xp = self:AddCraftXP( netuser, data.prof, xp )
                     if xp == 0 then char[ netuserID ].crafting = false return end
-                    rust.InventoryNotice( netuser , '+' .. xp .. ' ' .. data.prof .. ' xp')
+                    rust.InventoryNotice( netuser , '+' .. tostring(xp) .. ' ' .. data.prof .. ' xp')
                 end)
                 timer.Once(1, function() this:ClearInjury() end)
                 char:Save( netuser )

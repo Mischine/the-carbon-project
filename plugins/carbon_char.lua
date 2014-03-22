@@ -675,9 +675,15 @@ function PLUGIN:Load( netuserID )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
 		local data = json.decode( txt )
-		if data then rust.BroadcastChat( 'Loading datafile' ) end
+		-- if data then rust.BroadcastChat( 'Loading datafile' ) end
 		return data
 	end
-
 	return false
+end
+
+-- ONLY USE WHEN YOU DONT WANT TO POPULATE THE CHAR TABLE!
+function PLUGIN:SaveDataByID( netuserID, data )
+	self.SaveCharFile = util.GetDatafile( tostring( netuserID ) )
+	self.SaveCharFile:SetText( json.encode( data, { indent = true } ) )
+	self.SaveCharFile:Save()
 end

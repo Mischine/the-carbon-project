@@ -72,7 +72,6 @@ function PLUGIN:disarm(combatData)
 	local damage = combatData.dmg.amount
 	--[[
 	rust.BroadcastChat('disarm')
-	--TODO: SET UP DISARM PERK % CHANCE TO DISARM WHEN YOU HIT THE PLAYERS HANDS
 	local vicuser = dmg.victim.client.netUser
 	local controllable = vicuser.playerClient.controllable
 	local Inventory = controllable:GetComponent( "Inventory" )
