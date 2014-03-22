@@ -166,25 +166,24 @@ function PLUGIN:RangeModifier(combatData)
 	local rangeModifier = combatData.dmg.amount*(percRange*.01)
 	local crouchBonus = 0
 	local perBonus = 0
-
 	if rust.GetCharacter(combatData.netuser).stateFlags.crouch then
 		crouchBonus = (combatData.dmg.amount - rangeModifier)*.5
 		rust.BroadcastChat(tostring('Crouch Bonus: ' .. crouchBonus))
-
 		perBonus = ((combatData.dmg.amount - rangeModifier)*.5)*(combatData.netuserData.attributes.per*.1)
 		rust.BroadcastChat(tostring('Perception Bonus: ' .. perBonus))
-
 		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus.. '  |  Lost Damage: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
-		print(tostring('Distance: ' .. distance .. 'm'))
-		print(tostring('Original Damage: ' .. combatData.dmg.amount))
-		print(tostring('Crouch Bonus: ' .. crouchBonus))
-		print(tostring('Perception Bonus: ' .. perBonus ..'  @  ' ..combatData.netuserData.attributes.per.. ' perception'))
-		print(tostring('Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus))
-		print(tostring('Damage Loss: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
 	else
+		perBonus = ((combatData.dmg.amount - rangeModifier)*.5)*(combatData.netuserData.attributes.per*.05)
 		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
+
 		--print(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
 	end
+	print(tostring('Distance: ' .. distance .. 'm'))
+	print(tostring('Original Damage: ' .. combatData.dmg.amount))
+	print(tostring('Crouch Bonus: ' .. crouchBonus))
+	print(tostring('Perception Bonus: ' .. perBonus ..'  @  ' ..combatData.netuserData.attributes.per.. ' perception'))
+	print(tostring('Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus))
+	print(tostring('Damage Loss: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
 	combatData.dmg.amount = combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus
 	return combatData.dmg.amount
 end
