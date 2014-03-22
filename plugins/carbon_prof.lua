@@ -31,7 +31,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
     if not inv then rust.Notice( netuser, 'Inventory not found, report to a GM. Unable to craft.') return false end
     if( self.craft[ blueprint.resultItem.name ] ) then
         local netuserID = rust.GetUserID( netuser )
-        -- if char[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
+        if char[ netuserID ].crafting then rust.Notice(netuser, 'You\'re already crafting!' ) return false end
         char[ netuserID ].crafting = true
         local data = self.craft[ blueprint.resultItem.name ]
         if not data then rust.Notice( netuser, 'No data found...' ) char[ netuserID ].crafting = false return false end

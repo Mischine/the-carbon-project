@@ -65,7 +65,6 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
             rust.BroadcastChat( netuser.displayName, 'I\'m a naughty person.' )
             data.swear = data.swear + 1
 	        tabe.insert(data.sweartbl, v )
-	        local netuserID = rust.GetUserID( netuser )
             if data.swear >= 10 then rust.Notice( netuser, 'You have sweared ' .. tostring(data.swear) .. ' times now. Be careful, consequences may soon happen.' ) end
 	        char:Save( netuser )
             return
@@ -73,7 +72,7 @@ function PLUGIN:cmdWhisper( netuser, cmd, args )
     end
     -- Send message
     rust.SendChatToUser( targuser, displayname, tostring( msg ))
-    rust.Notice( netuser, 'Message send!' )
+    rust.SendChatToUser( netuser, 'To ' .. vicuser.displayName .. ' [whispers]', msg )
 end
 
 --[[

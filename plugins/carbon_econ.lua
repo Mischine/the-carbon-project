@@ -3,7 +3,6 @@ PLUGIN.Description = "econ module"
 PLUGIN.Version = "0.0.2 alpha"
 PLUGIN.Author = "Mischa & CareX"
 
-
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
     print( "Carbon Econ version " .. self.Version .. " Loading..." )
@@ -281,7 +280,7 @@ function PLUGIN:cmdBal( netuser )
 end
 
 -- function PLUGIN:cmdHelp( netuser, cmd, args)
-
+ -- TODO: Add Help information!
 -- end
 
 -- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -319,7 +318,7 @@ function PLUGIN:cmdStore( netuser, cmd, args )
             local found = false
             for k, v in pairs( self.Item ) do
                 if ( v.cat == cat ) then
-                    if( not( v.price.g == 0 and v.price.s == 0 and v.price.c == 0)) then
+                    if( not( v.price == 0)) then
                         found = true
                         rust.SendChatToUser(netuser,self.Chat,'║  [ID: ' .. tostring(k) .. ' }  Item: ' .. v.name )
                     end
@@ -364,14 +363,11 @@ function PLUGIN:cmdStore( netuser, cmd, args )
 end
 -- self.cat = { 'misc','armor','food','weapons','building','adv building','tools', 'mats', 'ammo','mods' }
 function PLUGIN:cmdBuy( netuser, cmd, args )
-    -- GIVING DA INFO!
     if( not args[1] ) then
         rust.Notice( netuser, 'help info ' )
-        -- Your job, Mischa. xD
+        -- TODO: Add help info! (Mischa!)
         return end
-    -- Getting da item!
     if ( args[1] and not args[2] ) then
-        -- local data = self.Item[ tostring(args[1]) ]
         local data = false
         local key = false
         if ( not tonumber( args[1] )) then
@@ -382,27 +378,29 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
             key = tostring(args[1])
             data = self.Item[ key ]
         end
-        if( data and key ) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then
-            local price
-            if( data.price.g > 0 ) then
-                price = tostring( '[ Gold: ' .. data.price.g .. ' ] ' )
-            elseif( data.price.s > 0 ) then
-                price = price .. tostring(  '[ Silver: ' .. data.price.s .. ' ] ' )
-            elseif( data.price.c > 0 ) then
-                price = price .. tostring( '[ Copper: ' .. data.price.c .. ' ] ' )
+        if( data and key ) and ( data.price > 0) then
+            local str = ''
+            local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
+            local price = self:Convert( newprice )
+            if( price.g > 0 ) then
+	            str = tostring( '[ Gold: ' .. price.g .. ' ] ' )
+            elseif( price.s > 0 ) then
+	            str = str .. tostring(  '[ Silver: ' .. price.s .. ' ] ' )
+            elseif( price.c > 0 ) then
+	            str = str .. tostring( '[ Copper: ' .. price.c .. ' ] ' )
             end
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ ' .. self.Chat .. '  buy > [' .. key .. ']  ' .. data.name )
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ Name:      ' .. data.name )
-            rust.SendChatToUser(netuser,' ','║ Price:       ' .. tostring( price ) )
-            rust.SendChatToUser(netuser,' ','║ Stock:      ( ' .. data.amount .. ' / ' .. data.max .. ' )'  )
+            rust.SendChatToUser(netuser,' ','║ Buy:       ' .. tostring( str ) )
+            rust.SendChatToUser(netuser,' ','║ Stock:      ( ' .. data.stock .. ' / ' .. data.maxstock .. ' )'  )
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ Category: ' .. data.cat )
             rust.SendChatToUser(netuser,' ','╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
-        elseif( data and key ) and ( data.price.g == 0 and data.price.s == 0 and data.price.c == 0 ) then
+        elseif( data and key ) and ( data.price == 0 ) then
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  buy > ' .. data.name .. ' > ϟ error ')
@@ -423,16 +421,14 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
             rust.SendChatToUser(netuser,' ','╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
         end
-    elseif( args[1] and args[2] and not args[3] ) then
+    elseif( args[1] and args[2] ) then
         -- buy stuff.
         local data = false
         local key = false
-        local datablock = rust.GetDatablockByName( tostring(args[1]) )
-        if not datablock then rust.Notice( netuser, args[1] .. ' does not exist!') return end
         local amount = math.floor(( tonumber( args[2] )))
         if not amount then rust.Notice( netuser, 'Invalid amount! Please put a numeric amount! (ie. 8 )' ) return end
         -- Check if item exists.
-        if ( not tonumber( args[1] )) then -- if args[2] is string. ( Item Name )
+        if not (tonumber( args[1] )) then -- if args[1] is string. ( Item Name )
             for k,v in pairs( self.Item ) do
                 if( v.name == args[1] ) then data = v key = k break end
             end
@@ -440,20 +436,24 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
             key = tostring(args[1])
             data = self.Item[ key ]
         end
-        if( data and key and ( not ( amount <= data.amount ))) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then -- not enough items in the market!
+        if( data and key and ( not ( amount <= data.stock ))) and ( data.price > 0) then -- not enough items in the market!
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  buy > ' .. data.name .. ' > ϟ error ')
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ Insufficient amount in store: ' )
             rust.SendChatToUser(netuser,' ','║ Amount available: ' )
-            rust.SendChatToUser(netuser,' ','║ ( ' .. data.amount .. ' / ' .. data.max .. ' )' )
+            rust.SendChatToUser(netuser,' ','║ ( ' .. data.stock .. ' / ' .. data.maxstock .. ' )' )
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ ⌘ /store to check for ID\'s ' )
             rust.SendChatToUser(netuser,' ','╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
-        elseif( data and key and amount and ( amount <= data.amount )) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then -- Item exist and is tradable
-            local g,s,c = data.price.g * amount, data.price.s * amount, data.price.c * amount
+        elseif( data and key and amount and ( amount <= data.stock )) and ( data.price > 0) then -- Item exist and is tradable
+	        local datablock = rust.GetDatablockByName( data.name )
+	        if not datablock then rust.Notice( netuser, key .. ' does not exist!') return end
+	        local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
+	        local price = self:Convert( newprice )
+            local g,s,c = price.g * amount, price.s * amount, price.c * amount
             local canbuy = self:canBuy( netuser, g, s ,c )
             if( canbuy ) then -- Has enough money datablock found.
                 local inv = rust.GetInventory( netuser )
@@ -462,7 +462,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
                 local invamount = amount
                 if( isUnstackable ) then invamount = amount * 250 end
                 local i = 0
-                while( i <= 36 )do
+                while( i <= 35 )do
                     local b, item = inv:GetItem( i )
                     if (b) then
                         local s = tostring( item )
@@ -483,7 +483,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
                 if( invamount <= 0 ) then -- Enough inventory, space everything checks out.
                     self:RemoveBalance( netuser, g,s,c )
                     inv:AddItemAmount( datablock, amount )
-                    self.Item[ key ].amount = self.Item[ key ].amount - amount
+                    self.Item[ key ].stock = self.Item[ key ].stock - amount
                     while ( c >= 100 ) do
                         c = c - 100
                         s = s + 1
@@ -533,7 +533,7 @@ function PLUGIN:cmdBuy( netuser, cmd, args )
                 rust.SendChatToUser(netuser,' ',' ')
 
             end
-        elseif( data and key and amount ) and ( data.price.g == 0 and data.price.s == 0 and data.price.c == 0 ) then -- Item exist but is not tradable
+        elseif( data and key and amount ) and ( data.price  == 0 ) then -- Item exist but is not tradable
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  buy > ' .. data.name .. ' > ϟ error ')
@@ -562,11 +562,9 @@ end
 function PLUGIN:cmdSell( netuser, cmd, args)
     if( not args[1] ) then
         rust.Notice( netuser, 'help info ' )
-        -- Your job, Mischa. xD
+        -- TODO: Add help info! ( Mischa )
         return end
-    -- Getting da item!
     if ( args[1] and not args[2] ) then
-        -- local data = self.Item[ tostring(args[1]) ]
         local data = false
         local key = false
         if ( not tonumber( args[1] )) then
@@ -577,27 +575,29 @@ function PLUGIN:cmdSell( netuser, cmd, args)
             key = tostring(args[1])
             data = self.Item[ key ]
         end
-        if( data and key ) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then
-            local price = ""
-            if( data.price.g > 0 ) then
-                price = tostring( '[ Gold: ' .. math.floor( data.price.g * .6 ) .. ' ] ' )
-            elseif( data.price.s > 0 ) then
-                price = price .. tostring(  '[ Silver: ' .. math.floor( data.price.s * .6 ) .. ' ] ' )
-            elseif( data.price.c > 0 ) then
-                price = price .. tostring( '[ Copper: ' .. math.floor( data.price.c * .6 ) .. ' ] ' )
-            end
+        if( data and key ) and ( data.price > 0) then
+	        local str = ''
+	        local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
+	        local price = self:Convert( newprice*0.6 )
+	        if( price.g > 0 ) then
+		        str = tostring( '[ Gold: ' .. price.g .. ' ] ' )
+	        elseif( price.s > 0 ) then
+		        str = str .. tostring(  '[ Silver: ' .. price.s .. ' ] ' )
+	        elseif( price.c > 0 ) then
+		        str = str .. tostring( '[ Copper: ' .. price.c .. ' ] ' )
+	        end
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ ' .. self.Chat .. '  sell > [' .. key .. ']  ' .. data.name )
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ Name:      ' .. data.name )
-            rust.SendChatToUser(netuser,' ','║ sell:       ' .. tostring( price ) )
-            rust.SendChatToUser(netuser,' ','║ Stock:      ( ' .. data.amount .. ' / ' .. data.max .. ' )'  )
+            rust.SendChatToUser(netuser,' ','║ sell:       ' .. tostring( str ) )
+            rust.SendChatToUser(netuser,' ','║ Stock:      ( ' .. data.stock .. ' / ' .. data.maxstock .. ' )'  )
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ Category: ' .. data.cat )
             rust.SendChatToUser(netuser,' ','╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
-        elseif( data and key ) and ( data.price.g == 0 and data.price.s == 0 and data.price.c == 0 ) then
+        elseif( data and key ) and ( data.price == 0 ) then
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  sell > ' .. data.name .. ' > ϟ error ')
@@ -624,7 +624,7 @@ function PLUGIN:cmdSell( netuser, cmd, args)
         local key = false
         local amount = math.floor(( tonumber( args[2] )))
         if not amount then rust.Notice( netuser, 'Invalid amount! Please put a numeric amount! (ie. 8 )' ) return end
-        if not amount > 0 then rust.Notice( netuser, 'Invalid amount!' ) return end
+        if not (amount > 0) then rust.Notice( netuser, 'Invalid amount!' ) return end
         -- Check if item exists.
         if ( not tonumber( args[1] )) then -- if args[2] is string. ( Item Name )
             for k,v in pairs( self.Item ) do
@@ -634,20 +634,20 @@ function PLUGIN:cmdSell( netuser, cmd, args)
             key = tostring(args[1])
             data = self.Item[ key ]
         end
-        if( data and key and (( amount + data.amount ) > data.max )) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then -- not enough items in the market!
+        if( data and key and (( amount + data.stock ) > data.maxstock )) and ( data.price > 0) then -- not enough items in the market!
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  buy > ' .. data.name .. ' > ϟ error ')
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ The store cannot store this much items! ' )
             rust.SendChatToUser(netuser,' ','║ Current amount: ' )
-            rust.SendChatToUser(netuser,' ','║ ( ' .. data.amount .. ' / ' .. data.max .. ' )' )
-            rust.SendChatToUser(netuser,' ','║ Amount that can be sold: ' .. data.max - data.amount )
+            rust.SendChatToUser(netuser,' ','║ ( ' .. data.stock .. ' / ' .. data.maxstock .. ' )' )
+            rust.SendChatToUser(netuser,' ','║ Amount that can be sold: ' .. data.maxstock - data.stock )
             rust.SendChatToUser(netuser,' ','╟────────────────────────')
             rust.SendChatToUser(netuser,' ','║ ⌘ /store to check for ID\'s ' )
             rust.SendChatToUser(netuser,' ','╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
-        elseif( data and key and amount and ( amount + data.amount ) <= data.max ) and ( data.price.g > 0 or data.price.s > 0 or data.price.c > 0) then -- Item exist and is tradable
+        elseif( data and key and amount and ( amount + data.stock ) <= data.maxstock ) and ( data.price > 0) then -- Item exist and is tradable
             local datablock = rust.GetDatablockByName( data.name )
             if not datablock then rust.Notice( netuser, ' Datablock not found, report this to a GM please. ') return end
             local inv = rust.GetInventory( netuser )
@@ -681,8 +681,10 @@ function PLUGIN:cmdSell( netuser, cmd, args)
                 end
             else rust.Notice(netuser, "Item not found in inventory!") return end
             if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
-            local g,s,c = math.floor(( data.price.g * i ) * 0.6),math.floor((data.price.s * i) * 0.6),math.floor(( data.price.c * i ) * 0.6)
-            self.Item[ key ].amount = self.Item[ key ].amount + i
+            local newprice = func:round(data.price*(100-((data.stock/data.maxstock)*50)*.01),0)
+            local price = self:Convert( newprice*0.6 )
+            local g,s,c = math.floor( price.g * i ),math.floor(price.s * i),math.floor( price.c * i )
+            self.Item[ key ].stock = self.Item[ key ].stock + i
             while ( c >= 100 ) do
                 c = c - 100
                 s = s + 1
@@ -705,7 +707,7 @@ function PLUGIN:cmdSell( netuser, cmd, args)
             rust.SendChatToUser(netuser,' ','╚════════════════════════')
             rust.SendChatToUser(netuser,' ',' ')
             self:ItemSave()
-        elseif( data and key and amount ) and ( data.price.g == 0 and data.price.s == 0 and data.price.c == 0 ) then -- Item exist but is not tradable
+        elseif( data and key and amount ) and ( data.price == 0 ) then -- Item exist but is not tradable
             rust.SendChatToUser(netuser,' ',' ')
             rust.SendChatToUser(netuser,' ','╔════════════════════════')
             rust.SendChatToUser(netuser,' ','║ '.. self.Chat .. '  sell > ' .. data.name .. ' > ϟ error ')

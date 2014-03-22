@@ -172,7 +172,6 @@ function PLUGIN:MailItem( cmdData )
 end
 
 function PLUGIN:MailPv( cmdData )
-	-- if not cmdData.args[2] then rust.SendChatToUser( cmdData.netuser, '/mail pv' ) return end
 	if not self.Concept[ cmdData.netuser ] then rust.Notice( cmdData.netuser, 'You\'ve no concept. Please create one with /mail new' ) return end
 	local concept = self.Concept[ cmdData.netuser ]
 	if not concept then rust.Notice( cmdData.netuser, 'Concept not found, please make a new concept with /mail new' ) return end
@@ -185,13 +184,13 @@ function PLUGIN:MailSend( cmdData )
 	if not self.Concept[ cmdData.netuser ] then rust.Notice( cmdData.netuser, 'You\'ve no concept. Please create one with /mail new' ) return end
 	local concept = self.Concept[ cmdData.netuser ]
 	if not concept then rust.Notice( cmdData.netuser, 'Concept not found, please make a new concept with /mail new' ) return end
-
+	-- TODO: Finish MailSend
 end
 
 function PLUGIN:MailRead( cmdData )
-
+	-- TODO: Finish MailRead
 end
-
+-- TODO: Check ShowMail
 function PLUGIN:ShowMail( cmdData, mail )
 	local txt = table.concat(mail.txt, ' ' )
 	local subject = table.concat(mail.subject, ' ' )
@@ -236,25 +235,29 @@ function PLUGIN:ShowMail( cmdData, mail )
 end
 
 function PLUGIN:MailDel( cmdData )
-
+	-- TODO: Finish MailDel
 end
 
 function PLUGIN:DelConcept( netuser )
-
+	-- TODO: Finish DelConcept
 end
 
 function PLUGIN:MailCancel( netuser )
-
+	-- TODO: Finish MailCancel
 end
 
 function PLUGIN:MailClear( cmdData )
-
+	-- TODO: Finish MailClear
 end
 
 function PLUGIN:MailCollect( cmdData )
-
+	-- TODO: Finish MailCollect
 end
 
 function PLUGIN:MailInfo( cmdData )
+	-- TODO: Finish MailInfo
+end
 
+function PLUGIN:CancelMail( cmdData ) -- This check if there are any items to return. Then deletes the mail.
+	-- TODO: Finish CancelMail
 end
