@@ -44,7 +44,6 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	--rust.BroadcastChat(tostring(UnityEngineGameObject:GetComponents()))
 	--print(tostring(takedamage.bleedAttcker))
 	--rust.BroadcastChat( tostring( takedamage ))
-	rust.BroadcastChat( 'Health: ' .. tostring( takedamage.health ))
 	--rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )
 	damage.amount = thief:StealthCheck( takedamage, damage )  -- Stealth check
 	local combatData, status, dmg = {}, tostring( damage.status )
@@ -54,6 +53,8 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 	if dmg.amount <= 0 then	dmg.status = LifeStatus.IsAlive	return end
 	if status and dmg.status then if status == WasKilled then	if dmg.amount < takedamage.health then dmg.status = LifeStatus.IsAlive end end end
 end
+
+
 
 function PLUGIN:GetDistance(netuser)
 	local Raycastp = util.FindOverloadedMethod( UnityEngine.Physics, "RaycastAll", bf.public_static, { UnityEngine.Ray } )
@@ -72,14 +73,13 @@ function PLUGIN:GetDistance(netuser)
 			closestdist = closest.distance
 		end
 	end
-	local targetLoc = closest.point
-	local netuserLoc = netuser.playerClient.lastKnownPosition
+	targetLoc = closest.point
+	netuserLoc = netuser.playerClient.lastKnownPosition
 	return math.floor(math.sqrt(math.pow(netuserLoc.x - targetLoc.x,2) + math.pow(netuserLoc.y - targetLoc.y,2) + math.pow(netuserLoc.z - targetLoc.z,2))+.5)
 end
 
 function PLUGIN:CombatDamage (takedamage, dmg)
 		local combatData = self:GetCombatData(takedamage,dmg)
-
 		--perk:knockback(combatData)
 
 		--[[
@@ -154,8 +154,9 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs entity------------' ) end
     end
     if debug.list[ combatData.debug] then debug:SendDebug(combatData.debug, 'Final Damage: ' .. tostring(combatData.dmg.amount)) end
-		dmg.amount = func:round(combatData.dmg.amount,2)
-    rust.BroadcastChat('Final Damage: ' .. tostring( dmg.amount ))
+
+    dmg.amount = combatData.dmg.amount
+	rust.BroadcastChat('Final Damage: ' .. tostring(func:round(dmg.amount,2)))
     return dmg, combatData
 end
 function PLUGIN:RangeModifier(combatData)
@@ -163,20 +164,28 @@ function PLUGIN:RangeModifier(combatData)
 	local weaponRange = tonumber(rust.GetInventory(combatData.netuser).activeItem.datablock.bulletRange)
 	local percRange = math.floor((100-(100*(distance/weaponRange)))+.5) --rust.BroadcastChat(tostring(percRange))
 	local rangeModifier = combatData.dmg.amount*(percRange*.01)
-	rust.BroadcastChat(tostring(func:round(combatData.dmg.amount,2) .. '   ' ..func:round(rangeModifier,2)))
-	--local controllable = combatData.netuser.playerClient.controllable
-	--local Character = controllable:GetComponent( "Character" )
-	local Character = rust.GetCharacter( combatData.netuser )
 	local crouchBonus = 0
-	-- local crouching =  typesystem.GetField( Rust.HumanController, "crouching", bf.private_instance )
-	-- rust.BroadcastChat('Crouched: ' .. tostring(Character.stateFlags.crouch))
-	if Character.stateFlags.crouch then -- < Here's your fix for crouching ;)
-		crouchBonus = (combatData.dmg.amount - combatData.dmg.amount*(percRange*.01))*.5
-		-- rust.BroadcastChat(tostring(crouchBonus))
+	local perBonus = 0
+
+	if rust.GetCharacter(combatData.netuser).stateFlags.crouch then
+		crouchBonus = (combatData.dmg.amount - rangeModifier)*.5
+		rust.BroadcastChat(tostring('Crouch Bonus: ' .. crouchBonus))
+
+		perBonus = ((combatData.dmg.amount - rangeModifier)*.5)*(combatData.netuserData.attributes.per*.1)
+		rust.BroadcastChat(tostring('Perception Bonus: ' .. perBonus))
+
+		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus.. '  |  Lost Damage: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
+		print(tostring('Distance: ' .. distance .. 'm'))
+		print(tostring('Original Damage: ' .. combatData.dmg.amount))
+		print(tostring('Crouch Bonus: ' .. crouchBonus))
+		print(tostring('Perception Bonus: ' .. perBonus ..'  @  ' ..combatData.netuserData.attributes.per.. ' perception'))
+		print(tostring('Calculated Damage: ' .. combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus))
+		print(tostring('Damage Loss: ' .. (combatData.dmg.amount)-(combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus)))
+	else
+		rust.BroadcastChat(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
+		--print(tostring('Original Damage: ' .. combatData.dmg.amount .. '  |  Calculated Damage: ' .. rangeModifier .. '  |  Lost Damage: ' .. combatData.dmg.amount-rangeModifier))
 	end
-	-- rust.BroadcastChat(tostring(crouchBonus))
-	rust.BroadcastChat(tostring(func:round(combatData.dmg.amount*(percRange*.01),2) .. '   ' ..func:round(combatData.dmg.amount*(percRange*.01)+crouchBonus,2)))
-	combatData.dmg.amount = combatData.dmg.amount*(percRange*.01)+crouchBonus
+	combatData.dmg.amount = combatData.dmg.amount*(percRange*.01)+crouchBonus+perBonus
 	return combatData.dmg.amount
 end
 function PLUGIN:GetCombatData(takedamage, dmg)

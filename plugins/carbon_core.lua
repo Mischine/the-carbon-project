@@ -333,17 +333,18 @@ function PLUGIN:OnUserConnect( netuser )
 end
 
 function PLUGIN:OnUserDisconnect( netplayer )
-	local netuser = rust.NetUserFromNetPlayer(netplayer)
-	if thief:hasStealth( netuser )  then thief:Unstealth( netuser ) end
-	local netuserID = tostring(rust.GetUserID( netuser ) )
+	if not netplayer then return end
+	local netuser = rust.NetUserFromNetPlayer(netplayer) if not netuser then return end
 	rust.BroadcastChat( netuser.displayName .. ' has left the server!' )
+	local netuserID = tostring(rust.GetUserID( netuser ) ) if not char[netuserID] then return end
+	if thief:hasStealth( netuser ) then thief:Unstealth( netuser ) end
 	if not char[netuserID].reg then
 		if self.tmpusers[netuser.displayName] then
 			self.tmpusers[ netuser.displayName] = nil
-			char[ netuserID ] = nil
 		end
+	else
+		char:Save( netuser, true )
 	end
-	char:Save( netuser )
 	char[netuserID] = nil
 end
 

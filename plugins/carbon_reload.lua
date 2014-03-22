@@ -28,13 +28,29 @@ function reloadCarbon(plugin)
     print('Carbon reloader complete.')
     return true, (plugin .. ' reloaded!')
 end
-
+function loadCarbon(plugin)
+	reloadtoken = timer.Once(3,function() reloadtoken = nil  end)
+	local result = plugins.Load( plugin )
+	local cplugin = plugins.Find(plugin)
+	if cplugin then
+		cplugin:Init()
+		if cplugin.PostInit then cplugin:PostInit() end
+	else
+		return false, 'Failed to load ' .. plugin
+	end
+	print('Carbon loader complete.')
+	return true, (plugin .. ' loaded!')
+end
 function PLUGIN:cmdReload( netuser, cmd, args )
-    if not reloadtoken then
-        local b, str = reloadCarbon('carbon_' .. args[1])
-        Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ϟ", str .. '      ', duration or 4.0 )
-        rust.RunServerCommand( 'wildlife.forceupdate' )
-    end
+	if not reloadtoken then
+		local b, str = reloadCarbon('carbon_' .. args[1])
+		if b then Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ϟ", str .. '      ', duration or 4.0 ) end
+		if not b then
+			local b str = loadCarbon('carbon_' .. args[1])
+			Rust.Rust.Notice.Popup( netuser.networkPlayer, prefix or " ϟ", str .. '      ', duration or 4.0 )
+		end
+		rust.RunServerCommand( 'wildlife.forceupdate' )
+	end
 end
 function PLUGIN:cmdReloadAll( netuser, cmd, args )
     local plugins = {

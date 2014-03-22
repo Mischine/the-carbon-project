@@ -15,10 +15,10 @@ end
 
 function PLUGIN:PostInit()
 	local users = rust.GetAllNetUsers()
-
 	for _, v in pairs( users ) do
+		if self[tostring(rust.GetUserID( v ))] then self[tostring(rust.GetUserID( v ))] = nil end
 		local netuserID = tostring(rust.GetUserID( v ) )
-		self:GetUserData( v )
+		self:GetUserData(v)
 	end
 end
 
@@ -622,17 +622,17 @@ function PLUGIN:GetUserData( netuser )
 end
 
 -- DATA UPDATE AND SAVE
-function PLUGIN:Save( netuser )
+function PLUGIN:Save( netuser, disconnect )
 	local netuserID = rust.GetUserID( netuser )
 	if self[ netuserID ].reg then
 		self.SaveCharFile = util.GetDatafile( tostring( netuserID ) )
 		self.SaveCharFile:SetText( json.encode( self[ tostring(netuserID) ], { indent = true } ) )
 		self.SaveCharFile:Save()
-		if netuser then
+		if netuser and not disconnect then
 			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving complete...' ) end)
 		end
 	else
-		if netuser then
+		if netuser and not disconnect then
 			timer.Once( 5, function() rust.InventoryNotice( netuser, 'Saving failed...' ) end)
 		end
 	end
@@ -640,12 +640,13 @@ end
 
 -- DATA UPDATE AND SAVE
 function PLUGIN:Load( netuserID )
-	rust.BroadcastChat( 'Loading datafile' )
 	self.CharFile = util.GetDatafile( tostring( netuserID ) )
 	local txt = self.CharFile:GetText()
 	if txt ~= "" then
 		local data = json.decode( txt )
+		if data then rust.BroadcastChat( 'Loading datafile' ) end
 		return data
 	end
+
 	return false
 end
