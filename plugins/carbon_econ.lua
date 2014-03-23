@@ -51,7 +51,7 @@ function PLUGIN:Init()
 	    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
 	    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
 	    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
-	    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag" }
+	    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag", Rock }
 
     -- Sets CurrencySymbol, Chat name
     self.Chat = self.EConfig.Chat
@@ -87,11 +87,8 @@ function PLUGIN:OnKilled ( takedamage, dmg )
                         end
                         rust.SendChatToUser( AttNetuser, self.Chat, "You've killed " .. VicNetuser.displayName .. "!")
                         rust.SendChatToUser( VicNetuser, self.Chat, "You've been killed by " .. AttNetuser.displayName .. "!")
-                        rust.BroadcastChat( '1' )
                         local vBal = self:getBalance( VicNetuser )
-                        rust.BroadcastChat( '2' )
                         local data = self:Percentage( vBal.g, vBal.s, vBal.c )
-                        rust.BroadcastChat( '3' )
                         self:AddBalance( AttNetuser, data.gg, data.gs, data.gc )
                         self:RemoveBalance( VicNetuser,data.tg, data.ts, data.tc )
                     end

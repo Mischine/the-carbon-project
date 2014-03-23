@@ -41,7 +41,7 @@ end
 
 function PLUGIN:Character(cmdData)
 	local currentXp
-	if cmdData.netuserData.lvl > 1 and not cmdData.netuserData.xp == core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]  then
+	if cmdData.netuserData.lvl > 1 and not (cmdData.netuserData.xp >= core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)])  then
 		currentXp = cmdData.netuserData.xp-core.Config.level.player[tostring(cmdData.netuserData.lvl)]
 	elseif cmdData.netuserData.lvl == core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.xp > core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]  then
 		currentXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
@@ -392,10 +392,10 @@ function PLUGIN:CharacterResetAttributes(cmdData)
 	self:CharacterAttributes(cmdData)
 	self:Save(cmdData.netuser)
 end
-function PLUGIN:GiveXp(combatData, xp, weplvl )
+function PLUGIN:GiveXp(combatData, xp, weplvl, donation )
 
     local guildname = guild:getGuild( combatData.netuser )
-    if( guildname ) then
+    if guildname and not donation then
         local gxp = math.floor( xp * 0.1 )
         local gxp = guild:GiveGXP( guildname, gxp )
         if gxp > 0 then
