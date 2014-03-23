@@ -6,6 +6,12 @@ PLUGIN.Author = 'mischa / carex'
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
 	self.Concept = {}
+
+    self.unstackable = {"M4", "9mm Pistol", "Shotgun", "P250", "MP5A4", "Pipe Shotgun", "Bolt Action Rifle", "Revolver", "HandCannon", "Research Kit 1",
+	    "Cloth Helmet","Cloth Vest","Cloth Pants","Cloth Boots","Leather Helmet","Leather Vest","Leather Pants","Leather Boots","Rad Suit Helmet",
+	    "Rad Suit Vest","Rad Suit Pants","Rad Suit Boots","Kevlar Helmet","Kevlar Vest","Kevlar Pants","Kevlar Boots", "Holo sight","Silencer","Flashlight Mod",
+	    "Laser Sight","Flashlight Mod", "Hunting Bow", "Rock","Stone Hatchet","Hatchet","Pick Axe", "Torch", "Furnace", "Bed","Handmade Lockpick", "Workbench",
+	    "Camp Fire", "Wood Storage Box","Small Stash","Large Wood Storage", "Sleeping Bag", Rock }
 end
 
 function PLUGIN:MailCheck( cmdData )
@@ -45,7 +51,6 @@ function PLUGIN:MailNew( cmdData )
 			['s'] = 0,
 			['c'] = 0,
 		},
-		['item'] = {},
 		['read'] = false
 	}
 	if cmdData.args[2] then
@@ -189,6 +194,7 @@ function PLUGIN:MailItem( cmdData )
 		end
 	else rust.Notice(netuser, "Item not found in inventory!") return end
 	if ((not isUnstackable) and (item) and (item.uses <= 0)) then inv:RemoveItem(item) end
+	if not concept.item then concept.item = {} end
 	if concept.item[ itemname ] then
 		concept.item[ itemname ] = concept.item[ itemname ] + i
 	else
@@ -290,6 +296,11 @@ function PLUGIN:ShowMail( cmdData, mail )
 		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ To claim the items attached to this mail; /mail claim [#ID]')
 		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
 	end
+	if mail.xp and mail.xp > 0 then
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ XP Attached: ' .. tostring( mail.xp ))
+		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
+	end
 	if mail.date then
 		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟════════════════════════════════════════════════')
 		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ Send date: ' .. tostring( mail.date ))
@@ -357,16 +368,68 @@ function PLUGIN:MailCollect( cmdData ) -- /mail collect ID
 	if not data.mail[ tostring(ID) ] then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
 	local mail = data.mail[ tostring(ID)]
 	if not mail then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
-	local isgone = self:CheckAttachments( cmdData, mail )
-	if not isgone then return end
-	rust.SendChatToUser( cmdData.netuser, core.sysname, 'Succesfully collected items/money from mail [' .. tostring( ID ) ..']' )
+	if mail.item or mail.money.g > 0 or mail.money.s > 0 or mail.money.c > 0 or mail.xp then
+		local isgone = self:CheckAttachments( cmdData, mail )
+		if not isgone then return end
+		rust.SendChatToUser( cmdData.netuser, core.sysname, 'Succesfully collected items/money from mail [ ' .. tostring( ID ) ..' ]' )
+		return
+	end
+	rust.SendChatToUser( cmdData.netuser, core.sysname, 'Nothing to collect from this mail [ ' .. tostring( ID ) ..' ]' )
 end
 
 function PLUGIN:MailInfo( cmdData )
 	-- TODO: Finish MailInfo
 end
 
-function PLUGIN:CheckAttachments( cmdData, mail ) -- This check if there are any items/money to return.
-
+function PLUGIN:CheckAttachments( cmdData, mail ) -- This checks if there are any items/money to return.
+	if mail.money.g > 0 or mail.money.s > 0 or mail.money.c > 0 then
+		econ:AddBalance( cmdData.netuser, mail.money.g, mail.money.s, mail.money.c )
+		mail.money.g = 0
+		mail.money.s = 0
+		mail.money.c = 0
+	end
+	if mail.xp and mail.xp > 0 then
+		char:GiveXp(cmdData, mail.xp, false, true )
+		mail.xp = nil
+	end
+	local inv = rust.GetInventory( cmdData.netuser )
+	if not inv then rust.Notice( cmdData.netuser, 'Inventory not found! Try relogging.' )return false end
+	if mail.item then
+		for k, v in pairs( mail.item ) do
+			local datablock = rust.GetDatablockByName( k )
+			if not datablock then rust.Notice( cmdData.netuser, ' Datablock not found, report this to a GM please. ') return end
+			local isUnstackable = func:containsval( self.unstackable, k )
+			local invamount = v if( isUnstackable ) then invamount = v * 250 end
+			local amountleft = self:hasEnoughSlots( inv, invamount, k, isUnstackable )
+			inv:AddItemAmount( datablock, v - amountleft )
+			if amountleft > 0 then
+				mail.item[ k ] = amountleft
+				char:Save( cmdData.netuser )
+				rust.Notice( cmdData.netuser, 'Not enough inventory space for ' ..  tostring(amountleft) .. 'x ' .. k ..  '' )
+				return false
+			end
+			v = nil
+		end
+	end
+	char:Save( cmdData.netuser )
 	return true
+end
+
+function PLUGIN:hasEnoughSlots( inv, uses, itemname, isUnstackable )
+	for i = 0, 35 do
+		local b, item = inv:GetItem( i )
+		if b then
+			if item.datablock.name == itemname and not isUnstackable then
+				uses = uses - (250 - item.uses)
+			end
+		else
+			uses = uses - 250
+		end
+		if uses <= 0 then return 0 end
+		i = i + 1
+	end
+	if isUnstackable then uses = uses / 250 end
+	rust.BroadcastChat( 'uses: ' .. tostring( uses ))
+	if uses <= 0 then return 0 end
+	return uses
 end
