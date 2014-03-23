@@ -21,14 +21,17 @@ local weaponRecoil = typesystem.GetField( Rust.BulletWeaponDataBlock, "weaponRec
 local get_maxAudioDist, set_maxAudioDist = typesystem.GetField( Rust.CharacterFootstepTrait, "_maxAudioDist", bf.private_instance )
 local get_traitMap = typesystem.GetField( Rust.Character, "_traitMap", bf.private_instance )
 local get_CharacterFootstepTrait = typesystem.GetField( Rust.FootstepEmitter, "trait", bf.private_instance )
+local get_defaultBlueprints = typesystem.GetField( Rust.Loadout, "_defaultBlueprints", bf.private_instance )
 local get_waterLevelLitre = typesystem.GetField( Rust.Metabolism, "waterLevelLitre", bf.private_instance )
 local _forwardsPlayerClientInput = typesystem.GetField( Rust.Controller, "_forwardsPlayerClientInput", bf.private_instance )
-local get_maxWaterLevelLitre, set_maxWaterLevelLitre, test = typesystem.GetField( Rust.Metabolism, "maxWaterLevelLitre", bf.private_instance )
-local AddWater = util.GetStaticMethod( Rust.Metabolism, "AddWater")
+--get_maxWaterLevelLitre, set_maxWaterLevelLitre = typesystem.GetField( Rust.Metabolism, "maxWaterLevelLitre", bf.private_instance )
+AddWater = util.GetStaticMethod( Rust.Metabolism, "AddWater")
 local Hurt = util.GetStaticMethod( Rust.TakeDamage, "Hurt")
 --local get_maxAudioDist, set_maxAudioDist = typesystem.GetField( Rust.CharacterFootstepTrait, "_maxAudioDist", bf.private_static )
 local getTrait = typesystem.GetField( Rust.FootstepEmitter, "trait", bf.private_instance )
 --local CharacterFootstepTrait = util.GetPropertyGetter( Rust.PlayerMovement_Mecanim._type, "flSprintSpeed", true )
+
+get_activeItem, set_activeItem = typesystem.GetField( Rust.Inventory, "_activeItem", bf.public_instance )
 
 function dump (prefix, a)
 	for i,v in pairs (a) do
@@ -91,11 +94,59 @@ function PLUGIN:sc(netuser, cmd, args)
 	local FootstepEmitter = Character:GetComponent("FootstepEmitter")
 	local CharacterTraitMap = get_traitMap(rust.GetCharacter(netuser))
 	local CharacterFootstepTrait = get_CharacterFootstepTrait(FootstepEmitter)
+	local CharacterLoadoutTrait = Character:GetComponent("CharacterLoadoutTrait")
 	local ClientVitalsSync = Character:GetComponent('ClientVitalsSync')
 	local CharacterMotor = Character:GetComponent('CharacterMotor')
 	local CharacterInfo = Character:GetComponent('CharacterInfo')
-	--Metabolism.maxWaterLevelLitre = 40
-	--Metabolism:AddWater(10)
+
+
+	if #args==1 then
+		local validate, vicuser = rust.FindNetUsersByName( args[1] )
+		if (not validate) then
+			if (vicuser == 0) then
+				print( "No player found with that name: " .. tostring( args[1] ))
+			else
+				print( "Multiple players found with name: " .. tostring( args[1] ))
+			end
+			return false
+		end
+
+		local inv = rust.GetInventory(vicuser)
+		local item = inv.activeItem.datablock
+		local itemID = inv.activeItem
+		rust.BroadcastChat(tostring(itemID))
+	else
+		local inv = rust.GetInventory(netuser)
+		local activeItem
+		if inv.activeItem then activeItem = inv.activeItem.datablock end
+		local b, inactiveItem = inv:GetItem(31)
+		--SetActiveItemManually(itemIndex As Integer, itemRep As ItemRepresentation, Optional itemRepID As NetworkViewID?=Nothing)
+		--inv:SetActiveItemManually(31, inactiveItem)
+		local env = Rust.env
+		local daylength = env.daylength
+		local nightlength = env.nightlength
+		local save = Rust.save
+		save.friendly = false
+		save.profile = false
+		rust.BroadcastChat(tostring(env.daylength))
+		rust.SendChatToUser(netuser, tostring(activeItem))
+		rust.SendChatToUser(netuser, tostring(inactiveItem))
+	end
+	--local maxplayers = server.maxplayers
+	--maxplayers = 1
+	--c:DumpGameObject( this )
+	--rust.SendChatToUser(netuser, tostring(loadout))
+
+	--[[
+	builder = avatar:ToBuilder()
+	builder:ClearBlueprints()
+	AvatarSaveRestore:ClearAvatar()
+	netuser:SaveAvatar(builder:Build())
+	Metabolism:AddWater(10)
+	ClientVitalsSync:SendClientItsHealth()
+	rust.SendChatToUser(netuser, tostring(avatar.vitals.hydration))
+	]]
+	--rust.SendChatToUser(netuser, tostring(Metabolism:get_maxWaterLevelLitre()))
 
 
 

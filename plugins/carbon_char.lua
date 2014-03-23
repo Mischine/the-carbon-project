@@ -582,6 +582,7 @@ function PLUGIN:OnSpawnPlayer(playerclient, usecamp, avatar)
 	timer.Once(1, function() self:SetPlayerHealth(playerclient.netUser) end)
 end
 function PLUGIN:SetPlayerHealth( netuser )
+	--TODO: USE THIS FOR LEVELING AND ADD A FAILSAFE FOR IF THE CHARACTER HAS NO STAMINA.
 	local Character = rust.GetCharacter( netuser )
 	local netuserID = rust.GetUserID( netuser )
 	local TakeDamage = Character:GetComponent( "TakeDamage" )
