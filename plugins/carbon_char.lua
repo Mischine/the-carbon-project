@@ -581,6 +581,7 @@ end
 function PLUGIN:OnSpawnPlayer(playerclient, usecamp, avatar)
 	timer.Once(1, function() self:SetPlayerHealth(playerclient.netUser) end)
 end
+
 function PLUGIN:SetPlayerHealth( netuser )
 	--TODO: USE THIS FOR LEVELING AND ADD A FAILSAFE FOR IF THE CHARACTER HAS NO STAMINA.
 	local Character = rust.GetCharacter( netuser )
@@ -593,10 +594,12 @@ function PLUGIN:SetPlayerHealth( netuser )
 	else
 		charLevel = char[netuserID].lvl
 	end
-	TakeDamage.maxHealth = 100+(charLevel*(char[netuserID].attributes.sta*.25))
+	rust.BroadcastChat('Setting Health')
+	TakeDamage.maxHealth = 100+charLevel*5+((charLevel*5)*(char[netuserID].attributes.sta*.25))
 	TakeDamage.health = TakeDamage.maxHealth
 	ClientVitalsSync:SendClientItsHealth()
 end
+
 function PLUGIN:GetUserDataFromTable( netuser )
 	local netuserID = rust.GetUserID( netuser )
 	if self[ netuserID ] then

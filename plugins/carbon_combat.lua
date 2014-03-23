@@ -390,9 +390,9 @@ function PLUGIN:WeaponSkill(combatData)
             spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = true
             timer.Once(6, function() spamNet[tostring(combatData.weapon.name .. combatData.netuser.displayName)] = nil end)
         end
+    else
+        combatData.dmg.amount = combatData.dmg.amount + combatData.dmg.amount*((combatData.netuserData.lvl+combatData.netuserData.skills[combatData.weapon.name].lvl)*.01)
     end
-
-    -- TODO: Add dmg increase on higher weaponlvl.
     return combatData.dmg.amount
 end
 function PLUGIN:DmgModifier (combatData)
