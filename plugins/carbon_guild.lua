@@ -126,16 +126,25 @@ function PLUGIN:GuildInfo( netuser )
     if( not guild ) then rust.Notice( netuser, 'You\'re not in a guild!' ) return end
     local data = self:getGuildData( guild )
     local currentXp
-    if data.glvl > 1 then currentXp = data.xp-core.Config.level.guild[tostring(data.glvl)] else currentXp = data.xp end
+    if data.glvl > 1 and not (data.xp >= core.Config.level.guild[tostring(core.Config.settings.GUILD_LEVEL_CAP)])  then
+	    currentXp = data.xp-core.Config.level.guild[tostring(data.glvl)]
+    elseif data.glvl == core.Config.settings.GUILD_LEVEL_CAP and data.xp > core.Config.level.guild[tostring(core.Config.settings.GUILD_LEVEL_CAP)]  then
+	    currentXp = core.Config.level.guild[tostring(core.Config.settings.GUILD_LEVEL_CAP)]
+    else
+	    currentXp = data.xp
+    end
     local requiredXp
     if data.glvl < core.Config.settings.GUILD_LEVEL_CAP and data.glvl > 1 then
-	    requiredXp = core.Config.level.guild[tostring(data.glvl+1)]-core.Config.level.guild[tostring(data.glvl)]
+	    requiredXp = core.Config.level.guild[tostring(data.glvl+1)]-core.Config.level.player[tostring(data.glvl)]
+    elseif data.glvl == core.Config.settings.GUILD_LEVEL_CAP then
+	    requiredXp = core.Config.level.guild[tostring(core.Config.settings.GUILD_LEVEL_CAP)]
     elseif data.glvl == 1 then
 	    requiredXp = core.Config.level.guild[tostring(data.glvl+1)]
     else
-	    requiredXp = core.Config.level.guild[tostring(core.Config.settings.GUILD_LEVEL_CAP)]
+	    requiredXp = 'error'
     end
-    local xpPercentage, xpToGo, a = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp, data.glvl+1
+    --CALCULATE SOME STUFF
+    local xpPercentage, xpToGo = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp
     rust.SendChatToUser(netuser,' ',' ')
     rust.SendChatToUser(netuser,core.sysname,'╔════════════════════════')
     rust.SendChatToUser(netuser,core.sysname,'║ guild > ' .. guild .. ' > info')
@@ -143,10 +152,10 @@ function PLUGIN:GuildInfo( netuser )
     rust.SendChatToUser(netuser,core.sysname,'║ Guild Name    : ' .. guild)
     rust.SendChatToUser(netuser,core.sysname,'║ Guild Tag        : ' .. data.tag)
     rust.SendChatToUser(netuser,core.sysname,'║ Guild Level     : ' .. data.glvl)
-    if data.glvl ~= 10 then
-        rust.SendChatToUser(netuser,core.sysname,'║ Required for guild level ' .. tostring(a) )
-        rust.SendChatToUser(netuser,core.sysname,'║ members: ( ' .. func:count( data.members ) .. '/' .. core.Config.guild.settings.lvlreq[tostring(a)] .. ' )' )
-        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor( func:count( data.members ) / core.Config.guild.settings.lvlreq[tostring(a)] * 100), 32))
+    if data.glvl ~= core.Config.settings.GUILD_LEVEL_CAP then
+        rust.SendChatToUser(netuser,core.sysname,'║ Required for guild level ' .. tostring(data.glvl+1) )
+        rust.SendChatToUser(netuser,core.sysname,'║ members:       ( ' .. func:count( data.members ) .. '/' .. core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] .. ' )' )
+        rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar(math.floor( func:count( data.members ) / core.Config.guild.settings.lvlreq[tostring(data.glvl+1)] * 100), 32))
     end
     rust.SendChatToUser(netuser,core.sysname,'║ Guild XP          : (' .. currentXp .. '/' .. requiredXp .. ')   [' .. xpPercentage .. '%]   (+' .. xpToGo .. ')')
     rust.SendChatToUser(netuser,core.sysname,'║ ' .. func:xpbar( xpPercentage, 32))
@@ -852,20 +861,26 @@ function PLUGIN:GiveGXP( guild, xp )
     if not data then rust.BroadcastChat( 'GuildData not found!' ) return 0 end
     if data.glvl == core.Config.guild.settings.GUILD_LEVEL_CAP then return 0 end
     local members = func:count( data.members )
-    if data.glvl >= core.Config.level.guild[ tostring(data.glvl+1) ] then
-	    if( members >= core.Config.guild.settings.lvlreq[tostring(calcLvl)] ) then
-		    data.xp = data.xp + xp
-		    data.glvl = data.glvl + 1
-		    chat:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(calcLvl) .. ' reached! ::::::::::::::::' )
-		    self:CallUnlock(guild)
-		    self:GuildSave()
-		    return xp
-	    else
-		    data.xp = (((data.glvl*data.glvl)+data.glvl)/core.Config.guild.settings.GUILD_LEVEL_MODIFIER*100-(data.glvl*100))-1
-		    return 0
-	    end
-    end
+    local level = data.glvl + 1
     data.xp = data.xp + xp
+    if data.glvl >= core.Config.settings.GUILD_LEVEL_CAP then data.xp = core.Config.level.guild[tostring(core.Config.settings.GUILD_LEVEL_CAP)] self:GuildSave() return 0 end
+    if data.xp >= core.Config.level.guild[tostring(level)] then
+	    if not ( members >= core.Config.guild.settings.lvlreq[tostring(level)] ) then data.xp = core.Config.level.guild[tostring(level)] self:GuildSave() return 0 end
+	    if data.xp >= core.Config.level.guild[tostring(level+1)] then
+		    for i = core.Config.settings.GUILD_LEVEL_CAP, level, - 1 do
+			    if data.xp >= core.Config.level.guild[tostring(i)] then
+				    level = i
+				    if not ( members >= core.Config.guild.settings.lvlreq[tostring(level)] ) then data.xp = core.Config.level.guild[tostring(level)] self:GuildSave() return 0 end
+				    break
+			    end
+		    end
+	    end
+	    data.glvl = level
+	    chat:sendGuildMsg( guild, 'LEVELUP!', ':::::::::::::::: Guild level ' .. tostring(level) .. ' reached! ::::::::::::::::' )
+	    self:CallUnlock(guild)
+	    self:GuildSave()
+	    return xp
+    end
     self:GuildSave()
     return xp
 end
@@ -1073,7 +1088,7 @@ function PLUGIN:GuildWithdraw( name, guild, g, s, c )
     self:GuildSave()
 end
 
-function PLUGIN:GuildAttackMods( combatData, takedamage )
+function PLUGIN:GuildAttackMods( combatData )
     if combatData.scenario == 1 then                                                -- Client vs Client
         local guild = self:getGuild( combatData.netuser )                               -- check attackers guild
         if not guild then
@@ -1259,9 +1274,3 @@ function PLUGIN:GuildSave()
     self.GuildFile:SetText( json.encode( self.Guild, { indent = true } ) )
     self.GuildFile:Save()
 end
-
---[[
---      local ab = core.Config.settings.maxplayerlvl
-        local b = core.Config.settings.lvlmodifier
-        local f = ((ab*ab)+ab)/b*100-(ab*100)]
- ]]

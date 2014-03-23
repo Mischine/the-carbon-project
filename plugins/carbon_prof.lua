@@ -39,14 +39,11 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char[ netuserID ].crafting = false return false end
         local a,b,c=craftdata.lvl, char[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
         local crit, failed = false,false
-
         local roll = func:Roll(true, 100)
         if(roll < e) then
             failed = true
-            rust.BroadcastChat('FAILED' )
         elseif (roll > d) then
             crit = true
-            rust.BroadcastChat( 'CRIT' )
         end
         local Time = data.ct * amount
         if crit then rust.Notice( netuser, 'Critical craft!' ) Time = 0 end
@@ -124,35 +121,42 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
 end
 
 function PLUGIN:AddCraftXP(netuser, prof, xp)
-	local netuserID = rust.GetUserID( netuser )
     local data = char:GetUserDataFromTable(netuser)
     if not data then return end
     local craftdata = data.prof[ prof ]
     if not craftdata then return end
-    if craftdata.lvl == craftdata.maxlvl then return 0 end
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.CLASS_LEVEL_MODIFIER*(craftdata.xp+xp))+25))+50)/100)
-    if calcLvl ~= craftdata.lvl then
-        craftdata.lvl = calcLvl
-        -- LEVEL UP
+    local level = craftdata.lvl + 1
+    craftdata.xp = craftdata.xp + xp
+	if craftdata.lvl >= core.Config.settings.PROF_LEVEL_CAP then craftdata.xp = core.Config.level.prof[tostring(core.Config.settings.PROF_LEVEL_CAP)] return 0 end
+	if craftdata.xp >= core.Config.level.prof[tostring(level)] then
+		if craftdata.xp >= core.Config.level.prof[tostring(level+1)] then
+			for i = core.Config.settings.PROF_LEVEL_CAP, level, - 1 do
+				if craftdata.xp >= core.Config.level.prof[tostring(i)] then
+					level = i
+					break
+				end
+			end
+		end
         local content = {
-            ['header'] = 'You\'re now level ' .. tostring(calcLvl) .. ' ' .. prof .. '!',
+            ['header'] = 'You\'re now level ' .. tostring(level) .. ' ' .. prof .. '!',
             ['msg'] = 'Unlocked: '
         }
         local found = false
         for k, v in pairs(self.craft) do
             if v.prof == prof then
-                if v.req == calcLvl then
-                    content.msg = content.msg .. ', ' .. k
+                if v.req <= level and v.req > craftdata.lvl then
+	                if msg == 'Unlocked: ' then content.msg = content.msg .. k else content.msg = content.msg .. ', ' .. k end
                     found = true
                 end
             end
         end
-        craftdata.xp = craftdata.xp + xp
+		craftdata.lvl = level
         local cmd = prof .. ' Level Up!'
         local args = {}
         if not found then content.msg = 'There are no new researches available.' end
-        func:TextBox(netuser,content,cmd,args) return
-    end
+        func:TextBox(netuser,content,cmd,args)
+		return xp
+	end
     craftdata.xp = craftdata.xp + xp
     return xp
 end
@@ -245,6 +249,7 @@ function PLUGIN:OnBlueprintUse( blueprint, item )
         if( craftdata.lvl < data.req ) then
             rust.Notice( netuser, 'You cannot research this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!')
         return false end
+        -- TODO: Add chance to fail researching the blueprint ; Lvl dif & Intellect
     else
         rust.Notice( netuser, blueprint.resultItem.name .. ' was not found in the database! Report this to a GM!' )
         return false
@@ -260,30 +265,35 @@ function PLUGIN:InfoProf( netuser, cmd ,args )
     local content = {
         ['list']={}
     }
-    for k, v in pairs( char[rust.GetUserID( netuser )].prof) do
+    local data = char[ rust.GetUserID( netuser ) ]
+    if not data then rust.Notice( netuser, 'PlayerData not found! try relogging!' ) return end
+    for k, v in pairs( data.prof ) do
         if v.lvl >= 1 then
-            local a = v.lvl+1 --level +1
-            local ab = v.lvl --level
-            local b = core.Config.settings.CLASS_LEVEL_MODIFIER
-            local c = ((a*a)+a)/b*100-(a*100) --xp required for next level
-            local d = math.floor(((v.xp/c)*100)+0.5) -- percent currently to next level.
-            local e = c-v.xp -- left to go until level
-            local f = ((ab*ab)+ab)/b*100-(ab*100) -- amount needed for current level
-            if (a == 2) and (core.Config.settings.CLASS_LEVEL_MODIFIER >= 2) then f = 0 end
-            table.insert(content.list, k .. ' level: ' .. tostring(ab) )
-            table.insert(content.list, 'Experience: (' .. v.xp .. '/' .. tostring(c) .. ')  [' .. tostring(d) .. '%]   (+' .. tostring(e) .. ')' )
-            table.insert(content.list, tostring(func:xpbar( d, 32 )))
+	        rust.BroadcastChat( 'prof: ' .. k .. ' xp: ' .. tostring(v.xp) .. ' lvl: ' .. tostring( v.lvl ) )
+	        local currentXp
+	        if v.lvl > 1 and not (v.xp >= core.Config.level.prof[tostring(core.Config.settings.PROF_LEVEL_CAP)])  then
+		        currentXp = v.xp-core.Config.level.prof[tostring(v.lvl)]
+	        elseif v.lvl == core.Config.settings.PROF_LEVEL_CAP and v.xp > core.Config.level.prof[tostring(core.Config.settings.PROF_LEVEL_CAP)]  then
+		        currentXp = core.Config.level.prof[tostring(core.Config.settings.PROF_LEVEL_CAP)]
+	        else
+		        currentXp = v.xp
+	        end
+	        local requiredXp
+	        if v.lvl < core.Config.settings.PROF_LEVEL_CAP and v.lvl > 1 then
+		        requiredXp = core.Config.level.prof[tostring(v.lvl+1)]-core.Config.level.prof[tostring(v.lvl)]
+	        elseif v.lvl == core.Config.settings.PROF_LEVEL_CAP then
+		        requiredXp = core.Config.level.prof[tostring(core.Config.settings.PROF_LEVEL_CAP)]
+	        elseif v.lvl == 1 then
+		        requiredXp = core.Config.level.prof[tostring(v.lvl+1)]
+	        else
+		        requiredXp = 'error'
+	        end
+	        --CALCULATE SOME STUFF
+	        local xpPercentage, xpToGo = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp
+            table.insert(content.list, tostring(k .. ' level: ' .. tostring(v.lvl) ))
+            table.insert(content.list, tostring('Experience: (' .. currentXp .. '/' .. requiredXp .. ')  [' .. xpPercentage .. '%]   (+' .. xpToGo .. ')' ))
+            table.insert(content.list, tostring(func:xpbar( xpPercentage, 32 )))
         end
     end
     func:TextBox(netuser,content,cmd,args) return
 end
-
---[[
-txt.level .. ':                          ' .. tostring(ab),
-            ' ',
-            txt.experience .. ':              (' .. tostring(netuserData.xp) .. '/' .. tostring(c) .. ')   [' .. tostring(d) .. '%]   ' .. '(' .. tostring(e) .. ')',
-            tostring(func:xpbar( d, 32 )),
-            ' ',
-            txt.deathpenalty .. ':         (' .. tostring(netuserData.dp) .. '/' .. tostring(h) .. ')   [' .. tostring(g) .. '%]',
-            tostring(func:xpbar( g, 32 )),
- ]]

@@ -325,18 +325,35 @@ function PLUGIN:DistributeXP( combatData, pdata, xp )
 		end
 	end
 	local mod = 1 + ( 0.05 * int )
-	pdata.xp = pdata.xp + ( xp * mod )
 	pdata.members[combatData.netuserData.id].xpcon = pdata.members[combatData.netuserData.id].xpcon + ( xp * mod )
-	xp = math.floor(( xp *  mod ) / i)
+	xp = ( self:PartyXpEarnCheck( combatData, pdata, xp*mod ) / i )
+	pdata.xp = pdata.xp + xp
 	local y = 1
 	while allcombatData[y] do
 		if allcombatData[y].netuser == combatData.netuser then
-			char:GiveXp( combatData, xp, true )         -- Crashes here
+			char:GiveXp( combatData, xp, true )
 		else
-			char:GiveXp( allcombatData[i], xp, false )  -- NEEDS TESTING
+			char:GiveXp( allcombatData[i], xp, false )
 		end
 		y = y + 1
 	end
+end
+
+function PLUGIN:PartyXpEarnCheck( combatData,pdata,xp )
+	if combat.npc and combat.npc[ combatData.npcvid ] then
+		local npcdmg = combat.npc[ combatData.npcvid ]
+		if not npcdmg then return xp end
+		local pdmg = 0
+		local tdmg = 0
+		for k,v in pairs( npcdmg ) do
+			-- collect all dmg
+			if pdata.members[ k ] then pdmg = pdmg + v end
+			tdmg = tdmg + v
+		end
+		xp = math.floor(xp * ( pdmg/tdmg ))
+		rust.BroadcastChat( tostring('Party xp earned: XP: ' .. xp .. '  |  [ ' ..  pdmg/tdmg*100 ..'% ] NPCID [ ' .. combatData.npcvid .. ' ] DMG DONE: [ ' .. math.floor(pdmg) .. '/' .. math.floor(tdmg) .. ' ] '))
+	end
+	return xp
 end
 
 function PLUGIN:DistributeBalance( netuser, pdata, g, s, c )

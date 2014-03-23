@@ -94,7 +94,7 @@ function PLUGIN:SetDefaultConfig()
             ['MutantBear']={['id']='MutantBear',['ai']='BearAI',['name']='Mutant Bear',['xp']=30,['dmg']=.25,['attributes']={['sta']=7,['agi']=7,['str']=7}},
             ['MutantWolf']={['id']='MutantWolf',['ai']='WolfAI',['name']='Mutant Wolf',['xp']=25,['dmg']=.15,['attributes']={['sta']=6,['agi']=6,['str']=6}},
             ['Bear']={['id']='Bear',['ai']='BearAI',['name']='Bear',['xp']=20,['dmg']=.35,['attributes']={['sta']=5,['agi']=5,['str']=5}},
-            ['Wolf']={['id']='Wolf',['ai']='WolfAI',['name']='Wolf',['xp']=15,['dmg']=.25,['attributes']={['sta']=4,['agi']=4,['str']=4}},
+            ['Wolf']={['id']='Wolf',['ai']='WolfAI',['name']='Wolf',['xp']=15,['dmg']=.35,['attributes']={['sta']=4,['agi']=4,['str']=4}},
             ['Stag_A']={['id']='Stag_A',['ai']='StagAI',['name']='Stag',['xp']=10,['dmg']=.50,['attributes']={['sta']=3,['agi']=3,['str']=3}},
             ['Boar_A']={['id']='Boar_A',['ai']='BoarAI',['name']='Boar',['xp']=10,['dmg']=.50,['attributes']={['sta']=2,['agi']=2,['str']=2}},
             ['Chicken']={['id']='Chicken',['ai']='ChickenAI',['name']='Chicken',['xp']=5,['dmg']=1,['attributes']={['sta']=1,['agi']=1,['str']=1}},
@@ -171,8 +171,10 @@ function PLUGIN:SetDefaultConfig()
 	        ['GUILD_LEVEL_CAP']=10,
             ['CLASS_LEVEL_MODIFIER']=12,
 	        ['CLASS_LEVEL_CAP']=20,
-	        ['WEAPON_LEVEL_MODIFIER']=12,
-	        ['WEAPON_LEVEL_CAP']=10,
+	        ['WEAPON_LEVEL_MODIFIER']=4,
+	        ['WEAPON_LEVEL_CAP']=70,
+	        ['PROF_LEVEL_MODIFIER']=3,
+	        ['PROF_LEVEL_CAP']=70,
             ['untrainperkcost']=500, --this is the cost in copper
 	        ['untrainattrcost']=500, --this is the cost in copper
             ['untraincostgrowth']=.10, --the rate at which untrain cost grows floored.
@@ -248,6 +250,7 @@ function PLUGIN:SetDefaultConfig()
 		    ['guild']={},
 		    ['weapon']={},
 		    ['class']={},
+		    ['prof']={},
 	    },
     }
     for level = self.Config.settings.PLAYER_LEVEL_CAP, 1, -1 do
@@ -278,6 +281,13 @@ function PLUGIN:SetDefaultConfig()
 		    self.Config.level.weapon[tostring(level)] = math.floor((level*level*100)*self.Config.settings.WEAPON_LEVEL_MODIFIER)
 	    end
     end
+    for level = self.Config.settings.PROF_LEVEL_CAP, 1, -1 do
+	    if level == 1 then
+		    self.Config.level.prof[tostring(level)] = 0
+	    else
+		    self.Config.level.prof[tostring(level)] = math.floor((level*level*100)*self.Config.settings.PROF_LEVEL_MODIFIER)
+	    end
+    end
     self:ConfigSave()
 end
 
@@ -288,7 +298,7 @@ function PLUGIN:OnUserConnect( netuser )
     if netuser.displayName:find'%W' then
         rust.SendChatToUser( netuser, ' ', ' ' )
         rust.SendChatToUser( netuser, '**ALERT**', 'Your name must be alphanumeric( numbers and letters )! Please change your name. You\'ll be kicked' )
-        timer.Once(25, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
+        timer.Once(15, function() netuser:Kick( NetError.Facepunch_Kick_RCON, true ) end)
         return
     end
     --]]
@@ -404,15 +414,19 @@ function PLUGIN:CanOpenDoor( netuser, door )
 	if guildname then
 		local guilddata = guild:getGuildData( guildname )
 		if guilddata then
-			for k, v in pairs( guild.members ) do
-				if (k == ownerID) then rust.Notice( netuser, 'Entered/left ' .. v.name .. '\'s house.' ) return true end
+			for k, v in pairs( guilddata.members ) do
+				if (k == ownerID) then
+					rust.Notice( netuser, 'Entered/left ' .. v.name .. '\'s house.' )
+					local b, targuser = rust.FindNetUsersByName( v.name )
+					if b then rust.SendChatToUser( targuser, core.sysname, netuser.displayName .. ' has entered your house.' ) end
+				return true end
 			end
 		end
 	end
 	-- Thief
 	if thief:isThief( netuser ) then -- Check if online!
 		local open = thief:PickLock( netuser,ownerID, door )
-		if open then return true else return false end
+		if open then return true end
 	end
 end
 

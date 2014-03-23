@@ -5,11 +5,52 @@ PLUGIN.Author = 'Mischa & CareX'
 
 function PLUGIN:Init()
     core = cs.findplugin("carbon_core") core:LoadLibrary()
-    self:AddChatCommand( 'a', self.a )
-    self:AddChatCommand( 'name', self.name )
-    self:AddChatCommand( 'move', self.move )
-    self:AddChatCommand( 'lamp', self.lamp )
-    self:AddChatCommand( 'attack', self.attack )
+    --self:AddChatCommand( 'a', self.a )
+    --self:AddChatCommand( 'name', self.name )
+    --self:AddChatCommand( 'move', self.move )
+    --self:AddChatCommand( 'lamp', self.lamp )
+    --self:AddChatCommand( 'attack', self.attack )
+    self:AddChatCommand( 'givegxp', self.givegxp )
+    self:AddChatCommand( 'givexp', self.givexp )
+end
+
+function PLUGIN:givexp( netuser, cmd, args )
+	local xp = tonumber( args[1] )
+	if not xp then rust.Notice( netuser, 'Wrong number, dumbfuck' ) return end
+	local data = {
+		['netuser'] = netuser,
+		['netuserData'] = char[ rust.GetUserID( netuser )  ]
+	}
+	local wepxp = false
+	if args[2] and args[2]:lower() == 'true' then
+		local inv = rust.GetInventory( netuser )
+		if inv.activeItem then
+			local activeItem = inv.activeItem
+			if core.Config.weapon[tostring(activeItem.datablock.name)] then
+				data['weapon'] = core.Config.weapon[tostring(activeItem.datablock.name)]
+				wepxp = true
+			else
+				rust.Notice( netuser, 'This is no weapon...' )
+				return
+			end
+		else
+			rust.Notice( netuser, 'no active weapon...' )
+			return
+		end
+	end
+	char:GiveXp(data, xp, wepxp, false )
+end
+
+function PLUGIN:givegxp( netuser, cmd, args )
+	local guildname = guild:getGuild( netuser )
+	if guildname then
+		local gxp = tonumber( args[1])
+		if not gxp then rust.Notice( netuser, 'Wrong number, dumbfuck' ) return end
+		local gxp = guild:GiveGXP( guildname, gxp )
+		if gxp > 0 then
+			timer.Once( 3 , function() rust.InventoryNotice( netuser, '+' .. tostring(gxp) .. 'gxp' )  end)
+		end
+	end
 end
 
 -- Detects if someone is moving.

@@ -551,6 +551,7 @@ function PLUGIN:deepcopy(t)
 end
 
 function PLUGIN:cmdRepair( netuser, cmd ,args )
+	if not dev:isDev(netuser) then return end
 	if not args[1] then rust.SendChatToUser( netuser, '/repair "#HotkeySlotNumber"' ) return end
 	local spot = tonumber( args[1] )
 	if not spot then rust.Notice( netuser, 'invalid numer' ) return end
@@ -564,7 +565,8 @@ function PLUGIN:Repair( netuser, spot )
 	local b, item = inv:GetItem( spot )
 	if not b then rust.Notice( netuser, 'No item in that Slot.' ) return end
 	item:SetCondition(1)
-	item.uses = 300
+	rust.BroadcastChat( 'maxuses: ' .. tostring( item.maxuses ))
+	item.uses = item.maxuses
 	-- rust.Notice( netuser, 'Changed condition to 100.' )
 end
 

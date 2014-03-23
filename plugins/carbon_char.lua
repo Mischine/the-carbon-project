@@ -58,11 +58,6 @@ function PLUGIN:Character(cmdData)
 	else
 		requiredXp = 'error'
 	end
-
-
-
-
-
 	--CALCULATE SOME STUFF
 	local xpPercentage, xpToGo = math.floor(((currentXp/requiredXp)*100)+.5), requiredXp-currentXp
 	local totalAllowedDp = requiredXp*.5
@@ -397,9 +392,9 @@ function PLUGIN:GiveXp(combatData, xp, weplvl, donation )
     local guildname = guild:getGuild( combatData.netuser )
     if guildname and not donation then
         local gxp = math.floor( xp * 0.1 )
-        local gxp = guild:GiveGXP( guildname, gxp )
+        gxp = guild:GiveGXP( guildname, gxp )
         if gxp > 0 then
-            timer.Once( 3 , function() rust.InventoryNotice( combatData.netuser, '+' .. gxp .. 'gxp' )  end)
+            timer.Once( 3 , function() rust.InventoryNotice( combatData.netuser, '+' .. tostring(gxp) .. 'gxp' )  end)
         end
     end
     if (combatData.netuserData.dp>xp) then
@@ -422,6 +417,23 @@ function PLUGIN:GiveXp(combatData, xp, weplvl, donation )
         if weplvl then self:WeaponLvl(combatData, xp) end
     end
     if combatData.netuser then self:Save( combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuser ) end
+end
+
+function PLUGIN:XpEarnCheck( combatData ,xp )
+	if combat.npc and combat.npc[ combatData.npcvid ] then
+		local npcdmg = combat.npc[ combatData.npcvid ]
+		if not npcdmg then return xp end
+		local pdmg = 0
+		local tdmg = 0
+		for k,v in pairs( npcdmg ) do
+			-- collect all dmg
+			if k == combatData.netuserData.id then pdmg = pdmg + v end
+			tdmg = tdmg + v
+		end
+		xp = math.floor(xp * ((pdmg/tdmg)))
+		rust.BroadcastChat( tostring(combatData.netuserData.name .. ' xp earned: XP: ' .. xp .. '  |  [ ' ..  pdmg/tdmg*100 ..'% ] NPCID [ ' .. combatData.npcvid .. ' ]' ))
+	end
+	return xp
 end
 
 --PLUGIN:getLvl
@@ -494,10 +506,22 @@ end
 
 --PLUGIN:WeaponLvl
 function PLUGIN:WeaponLvl(combatData, xp)
-    local calcLvl = math.floor((math.sqrt(100*((core.Config.settings.weaponlvlmodifier*(combatData.netuserData.skills[ combatData.weapon.name ].xp+xp))+25))+50)/100)
-    if (calcLvl ~= combatData.netuserData.skills[ combatData.weapon.name ].lvl) then
-        combatData.netuserData.skills[ combatData.weapon.name ].lvl = calcLvl
-        timer.Once( 5, function()  rust.Notice( combatData.netuser, 'Your skill with the ' .. tostring(combatData.weapon.name) .. ' is now level ' .. tostring(calcLvl) .. '!', 5 ) end )
+	local level = combatData.netuserData.skills[ combatData.weapon.name ].lvl + 1
+	combatData.netuserData.skills[ combatData.weapon.name ].xp = combatData.netuserData.skills[ combatData.weapon.name ].xp + xp
+	if combatData.netuserData.skills[ combatData.weapon.name ].lvl >= core.Config.settings.WEAPON_LEVEL_CAP then
+		combatData.netuserData.skills[ combatData.weapon.name ].xp = core.Config.level.weapon[tostring(core.Config.settings.WEAPON_LEVEL_CAP)]
+	return end
+	if combatData.netuserData.skills[ combatData.weapon.name ].xp >= core.Config.level.weapon[tostring(level)] then
+		if combatData.netuserData.skills[ combatData.weapon.name ].xp >= core.Config.level.weapon[tostring(level+1)] then
+			for i = core.Config.settings.WEAPON_LEVEL_CAP, level, - 1 do
+				if combatData.netuserData.skills[ combatData.weapon.name ].xp >= core.Config.level.weapon[tostring(i)] then
+					level = i
+					break
+				end
+			end
+		end
+        combatData.netuserData.skills[ combatData.weapon.name ].lvl = level
+        timer.Once( 15, function()  rust.Notice( combatData.netuser, 'Your skill with the ' .. tostring(combatData.weapon.name) .. ' is now level ' .. tostring(level) .. '!', 5 ) end )
     end
 end
 
@@ -641,12 +665,12 @@ function PLUGIN:GetUserData( netuser )
 		data.crafting = false
 		data.stats = {['deaths']={['pvp']=0,['pve']=0},['kills']={['pvp']=0,['pve']={['total']=0}}}
 		data.prof = {
-			['Engineer']={['lvl']=0,['xp']=0,['maxlvl']=70},        -- Disabled on default : When unlocked you get lvl 1
-			['Medic']={['lvl']=0,['xp']=0,['maxlvl']=70},           -- Disabled on default : When unlocked you get lvl 1
-			['Carpenter']={['lvl']=1,['xp']=0,['maxlvl']=70},
-			['Armorsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-			['Weaponsmith']={['lvl']=1,['xp']=0,['maxlvl']=70},
-			['Toolsmith']={['lvl']=1,['xp']=0,['maxlvl']=70}
+			['Engineer']={['lvl']=0,['xp']=0},          -- Disabled on default : When unlocked you get lvl 1
+			['Medic']={['lvl']=0,['xp']=0},             -- Disabled on default : When unlocked you get lvl 1
+			['Carpenter']={['lvl']=1,['xp']=0},
+			['Armorsmith']={['lvl']=1,['xp']=0},
+			['Weaponsmith']={['lvl']=1,['xp']=0},
+			['Toolsmith']={['lvl']=1,['xp']=0}
 		}
 		self[netuserID] = data
 		self:Save( netuser )

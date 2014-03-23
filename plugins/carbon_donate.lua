@@ -18,10 +18,11 @@ function PLUGIN:Init()
 	end
 	self:AddChatCommand( 'donatexp', self.DonateXP )
 	self:AddChatCommand( 'donatebal', self.DonateBal )
+	self:AddChatCommand( 'donateitem', self.DonateItem )
 end
 
 function PLUGIN:DonateXP( netuser, _, args )
-	if not dev:isDev( netuser ) then return end
+	if not dev:isDev( netuser ) then rust.Notice( netuser, 'Unknown chat command!' )return end
 	if not args[1] and args[2] then rust.SendChatToUser( netuser, 'DONATE', '/donatexp "Name" "Amount ') return end
 	local targname = tostring(args[1])
 	local amount = tonumber(args[2])
@@ -61,7 +62,7 @@ function PLUGIN:DonateXP( netuser, _, args )
 end
 
 function PLUGIN:DonateBal( netuser, _, args )
-	if not dev:isDev( netuser ) then return end
+	if not dev:isDev( netuser ) then rust.Notice( netuser, 'Unknown chat command!' )return end
 	if not args[4] then rust.SendChatToUser( netuser, 'DONATE', '/donatexp "Name" g s c ') return end
 	local targname = tostring(args[1])
 	local g,s,c = tonumber(args[2]),tonumber(args[3]),tonumber(args[4])
@@ -94,6 +95,59 @@ function PLUGIN:DonateBal( netuser, _, args )
 	data.mail[ tostring(uid) ] = concept
 	char:SaveDataByID( targID, data )
 	self:AddDonation( targID, targname, 'Donated for: Gold: ' .. tostring(g) .. '  |  Silver: ' .. tostring(s) .. '  |  Copper: ' .. tostring(c) )
+	local b, targuser = rust.FindNetUsersByName( targname )
+	if( b ) then rust.Notice( targuser, 'You\'ve got new mail from: The Carbon Project' ) rust.InventoryNotice( targuser, '+1 mail' ) end
+	rust.SendChatToUser( netuser, core.sysname, 'Succesfully send mail to ' .. targname )
+end
+
+function PLUGIN:DonateItem( netuser, _, args )
+	if not dev:isDev( netuser ) then rust.Notice( netuser, 'Unknown chat command!' )return end
+	if not args[4] then rust.SendChatToUser( netuser, 'DONATE', '/donateitem amount "Name" ') return end
+	local targname = tostring(args[1])
+	local targID = 0
+	for k,v in pairs(core.Reg ) do
+		if v == targname then targID = k end
+	end
+	if targID == 0 then rust.Notice( netuser, targname .. ' was not found in our database!' ) return end
+	local data = char[ targID ]	if not data then data = char:Load( targID )	end
+	if not data then rust.Notice( netuser, targname .. ' was not found in our database!' ) return end -- Failsafe.
+	if not data['mail'] then data['mail'] = {} end
+	local concept = {
+		['subject'] = {'Your donation!'},
+		["txt"] = {'Thanks for donating to The Carbon Project! We really appreciate it! Here are the items you\'ve requested!'},
+		['sender'] = 'The Carbon Project',
+		['target'] = targname,
+		['date'] = System.DateTime.Now:ToString('M/dd/yyyy'),
+		['item'] = {},
+		['money'] = {
+			['g'] = 0,
+			['s'] = 0,
+			['c'] = 0,
+		},
+		['read'] = false
+	}
+	local y = 2
+	while args[y] do
+		local amount = tonumber( args[y] )
+		if not amount then rust.Notice( netuser, 'Invalid amount on argument ' .. tostring(y) .. ' [' .. tostring(args[y]) .. ' ]' ) return end
+		y = y + 1
+		local datablock = rust.GetDatablockByName( args[y] )
+		if not datablock then rust.Notice( cmdData.netuser, itemname .. ' does not exist! [ ' .. tostring(args[y]) .. ' ] ') return end
+		if concept.item[ args[y] ] then concept.item[ args[y] ] = concept.item[ args[y] ] + amount
+		else concept.item[ args[y] ] = amount end
+		y = y + 1
+	end
+	local uid = 0
+	while data.mail[tostring(uid)] do
+		uid = uid + 1
+	end
+	data.mail[ tostring(uid) ] = concept
+	char:SaveDataByID( targID, data )
+	local msg = 'Donated for: '
+	for k,v in pairs( concept.item ) do
+		msg = msg .. tostring(v) .. 'x ' .. k .. ', '
+	end
+	self:AddDonation( targID, targname, msg )
 	local b, targuser = rust.FindNetUsersByName( targname )
 	if( b ) then rust.Notice( targuser, 'You\'ve got new mail from: The Carbon Project' ) rust.InventoryNotice( targuser, '+1 mail' ) end
 	rust.SendChatToUser( netuser, core.sysname, 'Succesfully send mail to ' .. targname )

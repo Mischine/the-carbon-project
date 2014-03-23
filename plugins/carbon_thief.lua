@@ -318,13 +318,13 @@ function PLUGIN:PickLock( netuser, ownerID, door )
 	if not inv then return false end
 	local netuserData = char[ rust.GetUserID( netuser )]
 	if not netuserData then rust.SendChatToUser( netuser , core.sysname, '404: netuserData not found!' )return false end
+	local b, item = inv:GetItem( 35 )
+	if not b then rust.SendChatToUser( netuser, 'Thief Master', 'You need to have a Handmade Picklock in slot 6 to able to picklock!' ) return false end
+	if item.datablock.name ~= 'Handmade Lockpick' then return false end
 	if not char[ownerID] then rust.SendChatToUser( netuser, core.sysname, 'Player is offline, you cannot picklock doors from offline players.' ) return false end
 	local vicdata = char[ownerID]
 	local b, targuser = rust.FindNetUsersByName( vicdata.name )
 	if not b then rust.SendChatToUser( netuser, core.sysname, 'Player is offline, you cannot picklock doors from offline players.' ) return false end
-	local b, item = inv:GetItem( 35 )
-	if not b then rust.SendChatToUser( netuser, core.sysname, 'Thief Master', 'You need to have a Handmade Picklock in slot 6 to able to picklock!' ) return false end
-	if item.datablock.name ~= 'Handmade Lockpick' then return false end
 	rust.Notice( targuser, netuser.displayName .. ' tried to picklock your door! Did he succeed?' )
 	local s = tostring(door) local f  = string.find(s, "(Clone)" ) - 2	local s2 = string.sub(s, 0, f )	local roll = func:Roll( false, 100 )
 	local doormod = 0 if s2 == 'MetalDoor' then doormod = 0.25 end

@@ -282,7 +282,7 @@ function PLUGIN:ShowMail( cmdData, mail )
 	end
 	if txt ~= '' then for _, v in ipairs(mail.txt) do rust.SendChatToUser(cmdData.netuser,core.sysname,'║ ' .. tostring(v)) end
 	else rust.SendChatToUser(cmdData.netuser,core.sysname,'║ No text attached.') end
-	if mail.money.g > 0 or mail.money.s > 0 or mail.money.c > 0 then
+	if mail.money and mail.money.g > 0 or mail.money.s > 0 or mail.money.c > 0 then
 		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
 		rust.SendChatToUser(cmdData.netuser,core.sysname,'║ Money attached: ' .. tostring('Gold:' .. mail.money.g .. ' Silver: ' .. mail.money.s .. ' Copper: ' .. mail.money.c))
 		rust.SendChatToUser(cmdData.netuser,core.sysname,'╟────────────────────────────────────────────────')
@@ -370,6 +370,10 @@ function PLUGIN:MailCollect( cmdData ) -- /mail collect ID
 	if not mail then rust.Notice( cmdData.netuser, 'Mail ID [' .. tostring(ID) .. '] not found!' ) return end
 	if mail.item or mail.money.g > 0 or mail.money.s > 0 or mail.money.c > 0 or mail.xp then
 		local isgone = self:CheckAttachments( cmdData, mail )
+		local i = 0
+		for _, _ in pairs( mail.item ) do i = i + 1 end
+		if i == 0 then mail.item = nil end
+		char:Save( cmdData.netuser )
 		if not isgone then return end
 		rust.SendChatToUser( cmdData.netuser, core.sysname, 'Succesfully collected items/money from mail [ ' .. tostring( ID ) ..' ]' )
 		return
@@ -382,7 +386,7 @@ function PLUGIN:MailInfo( cmdData )
 end
 
 function PLUGIN:CheckAttachments( cmdData, mail ) -- This checks if there are any items/money to return.
-	if mail.money.g > 0 or mail.money.s > 0 or mail.money.c > 0 then
+	if mail.money and mail.money.g > 0 or mail.money.s > 0 or mail.money.c > 0 then
 		econ:AddBalance( cmdData.netuser, mail.money.g, mail.money.s, mail.money.c )
 		mail.money.g = 0
 		mail.money.s = 0
@@ -404,14 +408,12 @@ function PLUGIN:CheckAttachments( cmdData, mail ) -- This checks if there are an
 			inv:AddItemAmount( datablock, v - amountleft )
 			if amountleft > 0 then
 				mail.item[ k ] = amountleft
-				char:Save( cmdData.netuser )
 				rust.Notice( cmdData.netuser, 'Not enough inventory space for ' ..  tostring(amountleft) .. 'x ' .. k ..  '' )
 				return false
 			end
-			v = nil
+			mail.item[ k ] = nil
 		end
 	end
-	char:Save( cmdData.netuser )
 	return true
 end
 
