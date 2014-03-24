@@ -537,24 +537,28 @@ function PLUGIN:Attack(combatData)
 end
 function PLUGIN:Defend(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:Defend----' ) end
+	if combatData.scenario == 1 then --PVP
+		if (combatData.vicuserData.attributes.str>0) then
+			combatData.dmg.amount = combatData.dmg.amount-((combatData.vicuserData.attributes.str+combatData.vicuserData.lvl)*0.1)
+		end
+	elseif combatData.scenario == 2 then -- EVP
+		if (combatData.vicuserData.attributes.str>0) then
+			combatData.dmg.amount = combatData.dmg.amount-((combatData.vicuserData.attributes.str+combatData.vicuserData.lvl)*0.1)
+		end
+	elseif combatData.scenario == 3 then -- PVE
+		if (combatData.npc.attributes.str>0) then
+			combatData.dmg.amount = combatData.dmg.amount-((combatData.npc.attributes.str)*0.1)
+		end
+	elseif combatData.scenario == 6 then -- Hunger/Bleeds
 
-	if (combatData.vicuserData) then
-		if (combatData.vicuserData.attributes.sta>0) then
-			combatData.dmg.amount = combatData.dmg.amount-((combatData.vicuserData.attributes.sta+combatData.vicuserData.lvl)*0.1)
-			if combatData.dmg.amount < 0 then combatData.dmg.amount = 0 end
-		end
+	elseif combatData.scenario == 7 then -- Explosion VS player
+
 	end
-	if (combatData.npc) and (not combatData.vicuserData) then
-		if (combatData.npc.attributes.sta>0) then
-			combatData.dmg.amount = combatData.dmg.amount-((combatData.npc.attributes.sta)*0.1)
-			if combatData.dmg.amount < 0 then combatData.dmg.amount = 0 end
-		end
-	end
+	if combatData.dmg.amount < 0 then combatData.dmg.amount = 0 end
 	return combatData.dmg.amount
 end
 function PLUGIN:CritCheck(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:CritCheck----' ) end
-    --rust.BroadcastChat('----PLUGIN:CritCheck----')
     if combatData.scenario == 1 then
         if (combatData.netuserData.attributes.agi>0) then
             local roll = func:Roll(false,0,100)
@@ -600,6 +604,5 @@ function PLUGIN:CritCheck(combatData)
         end
     end
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
-    --rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
 end
