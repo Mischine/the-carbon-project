@@ -77,6 +77,8 @@ function PLUGIN:LoadLibrary()
     oxidecore = cs.findplugin("oxidecore")
     thief = cs.findplugin("carbon_thief")
     dev = cs.findplugin("carbon_dev")
+    raycast = cs.findplugin("carbon_raycast")
+    hunter = cs.findplugin("carbon_hunter")
 
     a = cs.findplugin("carbon_a")
     b = cs.findplugin("carbon_b")

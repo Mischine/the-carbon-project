@@ -10,8 +10,18 @@ function PLUGIN:Init()
 	self:AddChatCommand( 'b', self.SpawnAI )
 	-- self:AddChatCommand( 'c', self.CheckGameObject )
 	self:AddChatCommand( 'd', self.DestroyTimer )
+	self:AddChatCommand( 'gui', self.gui )
 
 	self.timer = {}
+end
+
+function PLUGIN:gui( netuser, cmd, args )
+	local rec = unityEngine.Rect
+	rust.BroadcastChat( tostring (rec) )
+	UnityEngine.GUI:Box(rec, "Loader Menu")
+
+
+
 end
 
 function PLUGIN:AirStrike( netuser, _, args )
@@ -87,6 +97,7 @@ function PLUGIN:a(netuser, _, _)
 	rust.BroadcastChat( tostring(te.damage))
 	timer.NextFrame(function() te:Explode() rust.BroadcastChat( 'Explode!' )end)
 
+	-- coords.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coords)
 
 	--[[
 	-- >>>>>>>>>>>>>>>>>>>> LOOTBAG! <<<<<<<<<<<<<<<<<<<<
@@ -236,3 +247,27 @@ end
 		';sleeper_male',
 		';explosive_charge'
 --]]
+
+function PLUGIN:ModifyDamage( takedamage, damage)
+    if (damage.attacker.client) then
+        netuser = damage.attacker.client.netUser
+        if ( netuser:CanAdmin() ) then
+            if ( damage.extraData ~= nil ) then
+                if (damage.extraData.dataBlock ~= nil) then
+                   if (damage.extraData.dataBlock.name ~= nil) then
+                   local view_coor = S_TraceEyes( netuser )
+                    if not view_coor then
+                       return
+                    end
+                   view_coor = view_coor.point
+                   self:S_ResetVariables()
+                   self.ObjectTableID = 5
+                   self.ObjectPosition = { view_coor.x, view_coor.y, view_coor.z }
+                   self.hObject = self:S_CreateObject( netuser, self.ObjectTableID, self.ObjectPosition, self.ObjectRotation)
+                    print(">> SHOOT :: ".. netuser.displayName)
+                    end
+                end
+           end
+       end
+   end
+end

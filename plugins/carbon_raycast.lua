@@ -47,20 +47,25 @@ function PLUGIN:cmdRView(netuser, cmd, args)
     end)
 end
 
-function TraceEyesw( netuser )
-    local ray = rust.GetCharacter( netuser ).eyesRay
-    local hits = RaycastAll( ray )
-    local tbl = cs.createtablefromarray( hits )
-    if (#tbl == 0) then return end
-    local closest = tbl[1]
-    local closestdist = closest.distance
-    for i=2, #tbl do
-        if (tbl[i].distance < closestdist) then
-            closest = tbl[i]
-            closestdist = closest.distance
-        end
-    end
-    return closest
+function S_TraceEyes( netuser)
+	local Raycast = util.FindOverloadedMethod( UnityEngine.Physics, "RaycastAll", bf.public_static, { UnityEngine.Ray } )
+	cs.registerstaticmethod( "tmp", Raycast )
+	local RaycastAll = tmp
+	local controllable = netuser.playerClient.controllable
+	local char = controllable:GetComponent( "Character" )
+	local ray = char.eyesRay
+	local hits = RaycastAll( ray )
+	local tbl = cs.createtablefromarray( hits )
+	if (#tbl == 0) then return end
+	local closest = tbl[1]
+	local closestdist = closest.distance
+	for i=2, #tbl do
+		if (tbl[i].distance < closestdist) then
+			closest = tbl[i]
+			closestdist = closest.distance
+		end
+	end
+	return closest
 end
 
 

@@ -51,7 +51,7 @@ function PLUGIN:OnProcessDamageEvent( takedamage, damage )
 
 	if ( status ~= IsDead ) then dmg, combatData = self:CombatDamage( takedamage, damage ) end
 
-	if (( combatData and combatData.bodyPart) and ( not combatData.npc )) and not combatData.entity then --[[rust.BroadcastChat( combatData.bodyPart )]] end
+	--if (( combatData and combatData.bodyPart) and ( not combatData.npc )) and not combatData.entity then --[[rust.BroadcastChat( combatData.bodyPart )]] end
 
 	if dmg.amount >= takedamage.health then	if dmg.status then dmg.status = LifeStatus.WasKilled end end
 
@@ -131,6 +131,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:ThiefMod(combatData)
 		combatData.dmg.amount = self:GuildDefend(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
+	    --if hunter:hasPet( combatData.netuser ) then hunter:PetAttackPrep( combatData.netuser, combatData ) end
     elseif combatData.scenario == 2 then
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------EVP------------' ) end
 		combatData.dmg.amount = self:DmgModifier(combatData)
@@ -151,6 +152,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:ActivatePerks(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildAttack(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
+		--if hunter:hasPet( combatData.netuser ) then hunter:PetAttackPrep( combatData.netuser, combatData, takedamage ) end
 	    self:AddNpcDmg( combatData )
 	elseif combatData.scenario == 4 then                                                                                        -- client vs entity
 	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs Object/structure(Melee)------------' ) end
@@ -222,6 +224,7 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 		if dmg.attacker and dmg.attacker.networkView then
 			if (k == string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')) then
 				combatData['npc'] = core.Config.npc[string.gsub(dmg.attacker.networkView.name,'%(Clone%)', '')]
+				combatData.npc['gObject'] = dmg.victim.id:get_gameObject()
 				break
 			end
 		end
@@ -230,6 +233,7 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 				-- rust.BroadcastChat( 'networkView: ' .. tostring( dmg.victim.networkView.ViewID ))
 				combatData['npc'] = core.Config.npc[string.gsub(dmg.victim.networkView.name,'%(Clone%)', '')]
 				combatData['npcvid'] = tostring( dmg.victim.networkView.ViewID )
+				combatData.npc['gObject'] = dmg.victim.id:get_gameObject()
 				if self.npc and not self.npc[ combatData.npcvid ] then
 					self.npc[ combatData.npcvid ] = {}
 					-- rust.BroadcastChat( 'Table created for: ' .. tostring( combatData.npcvid ) )
