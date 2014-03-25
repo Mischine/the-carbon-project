@@ -425,16 +425,49 @@ function PLUGIN:XpEarnCheck( combatData ,xp )
 		if not npcdmg then return xp end
 		local pdmg = 0
 		local tdmg = 0
+		local nxtNet = ''
 		for k,v in pairs( npcdmg ) do
 			-- collect all dmg
-			if k == combatData.netuserData.id then pdmg = pdmg + v end
+			if k == combatData.netuser then
+				pdmg = pdmg + v
+				npcdmg[ combatData.netuser ] = nil
+			else
+				if nxtNet == '' then nxtNet = k end
+			end
 			tdmg = tdmg + v
 		end
 		xp = math.floor(xp * ((pdmg/tdmg)))
 		rust.BroadcastChat( tostring(combatData.netuserData.name .. ' xp earned: XP: ' .. xp .. '  |  [ ' ..  pdmg/tdmg*100 ..'% ] NPCID [ ' .. combatData.npcvid .. ' ]' ))
+		rust.BroadcastChat( 'Next NetUser: ' .. tostring( nxtNet ))
+		self:XpEarnCheckSecond( nxtNet, xp )
 	end
 	return xp
 end
+
+function PLUGIN:XpEarnCheckSecond( netuser ,xp )
+	if combat.npc and combat.npc[ combatData.npcvid ] then
+		local npcdmg = combat.npc[ combatData.npcvid ]
+		if not npcdmg then return xp end
+		local pdmg = 0
+		local tdmg = 0
+		local nxtNet = ''
+		for k,v in pairs( npcdmg ) do
+			if k == netuser then
+				pdmg = pdmg + v
+				npcdmg[ netuser ] = nil
+			else
+				if nxtNet == '' then nxtNet = k end
+			end
+			tdmg = tdmg + v
+		end
+		xp = math.floor(xp * ((pdmg/tdmg)))
+		rust.BroadcastChat( tostring(combatData.netuserData.name .. ' xp earned: XP: ' .. xp .. '  |  [ ' ..  pdmg/tdmg*100 ..'% ] NPCID [ ' .. combatData.npcvid .. ' ]' ))
+		rust.BroadcastChat( 'Next NetUser: ' .. tostring( nxtNet ))
+	end
+	return xp
+end
+
+
 
 --PLUGIN:getLvl
 function PLUGIN:getLvl( netuser )

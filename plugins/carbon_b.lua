@@ -11,6 +11,7 @@ function PLUGIN:Init()
 	-- self:AddChatCommand( 'c', self.CheckGameObject )
 	self:AddChatCommand( 'd', self.DestroyTimer )
 	self:AddChatCommand( 'gui', self.gui )
+	self:AddChatCommand( 'cc', self.cc )
 
 	self.timer = {}
 end
@@ -20,8 +21,13 @@ function PLUGIN:gui( netuser, cmd, args )
 	rust.BroadcastChat( tostring (rec) )
 	UnityEngine.GUI:Box(rec, "Loader Menu")
 
+end
 
-
+function PLUGIN:cc( netuser )
+	local char = rust.GetCharacter( netuser )
+	local gObject = char:get_gameObject()
+	local cc = netuser:GetComponent( 'CharacterController' )
+	rust.BroadcastChat( tostring(cc ))
 end
 
 function PLUGIN:AirStrike( netuser, _, args )
@@ -248,9 +254,9 @@ end
 		';explosive_charge'
 --]]
 
-function PLUGIN:ModifyDamage( takedamage, damage)
+function PLUGIN:ModifyDamage( _, damage)
     if (damage.attacker.client) then
-        netuser = damage.attacker.client.netUser
+        local netuser = damage.attacker.client.netUser
         if ( netuser:CanAdmin() ) then
             if ( damage.extraData ~= nil ) then
                 if (damage.extraData.dataBlock ~= nil) then

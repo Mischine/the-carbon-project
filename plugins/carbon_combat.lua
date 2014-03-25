@@ -350,10 +350,10 @@ end
 function PLUGIN:AddNpcDmg( combatData )
 	if combatData.npc and combatData.npcvid then
 		if self.npc and self.npc[ combatData.npcvid ] then
-			if self.npc[ combatData.npcvid ][ combatData.netuserData.id ] then
-				self.npc[ combatData.npcvid ][ combatData.netuserData.id ] = self.npc[ combatData.npcvid ][ combatData.netuserData.id ] + combatData.dmg.amount
+			if self.npc[ combatData.npcvid ][ combatData.netuser ] then
+				self.npc[ combatData.npcvid ][ combatData.netuser ] = self.npc[ combatData.npcvid ][ combatData.netuser ] + combatData.dmg.amount
 			else
-				self.npc[ combatData.npcvid ][ combatData.netuserData.id ] = combatData.dmg.amount
+				self.npc[ combatData.npcvid ][ combatData.netuser ] = combatData.dmg.amount
 			end
 		end
 	end
