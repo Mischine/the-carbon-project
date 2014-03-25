@@ -6,20 +6,72 @@ PLUGIN.Author = 'Mischa & CareX'
 function PLUGIN:Init()
 	core = cs.findplugin('carbon_core') core:LoadLibrary()
 	self:AddChatCommand( 'a', self.a )
+	self:AddChatCommand( 'as', self.AirStrike )
 	self:AddChatCommand( 'b', self.SpawnAI )
-	self:AddChatCommand( 'c', self.CheckGameObject )
+	-- self:AddChatCommand( 'c', self.CheckGameObject )
 	self:AddChatCommand( 'd', self.DestroyTimer )
 
 	self.timer = {}
 end
 
-function PLUGIN:a(netuser, _, _)
+function PLUGIN:AirStrike( netuser, _, args )
+	if not dev:isDev(netuser ) then return end
+	if not args[1] then rust.BroadcastChat('/as "Name"') return end
+	local b, targuser = rust.FindNetUsersByName( tostring(args [1] ))
+	if not b then rust.SendChatToUser( netuser, core.sysname, 'Invalid target!' ) return end
+	local coords = targuser.playerClient.lastKnownPosition
+	coords.y = coords.y - 1.8
+	timer.Repeat( 0.34, 20, function() self:UnloadAirstrike( coords ) end)
+--[[timer.Once( 1,function() rust.BroadcastChat('CareX','B-2 Spirit, Can you read me? over.')
+		timer.Once( 2, function() rust.BroadcastChat('B-2 Spirit','Loud and clear, sir! over.')
+			timer.Once( 3, function() rust.BroadcastChat('CareX','I\'ve got a new target for you guys! over.')
+				timer.Once( 3, function() rust.BroadcastChat('B-2 Spirit','Send in the coordinations! We\'re ready, sir. over.')
+					timer.Once( 3, function() rust.BroadcastChat('CareX','New coordinates are send. Did you receive? over.')
+						timer.Once( 2, function() rust.BroadcastChat('B-2 Spirit','Coordinates received! 5 seconds to destination. over.')
+							timer.Once( 2, function() rust.BroadcastChat('CareX','Keep me updated! over and out!')
+								timer.Once(1, function() timer.Repeat( 0.34, 20, function() self:UnloadAirstrike( coords ) end)
+									timer.Once( 7, function() rust.BroadcastChat('B-2 Spirit','Hit confirmed! I repeat, hit confirmed! over.')
+										timer.Once( 2, function() rust.BroadcastChat('CareX','Excellent job! return back to base! over and out.')
+										end)
+									end)
+								end)
+							end)
+						end)
+					end)
+				end)
+			end)
+		end)
+	end)
+]]
+end
 
+function PLUGIN:UnloadAirstrike( co2 )
+	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
+	local itemname = ';explosive_charge'
+	local coords = co2
+	coords.x = math.random(coords.x-10, coords.x+10)
+	coords.z = math.random(coords.z-10, coords.z+10)
+	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
+	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { coords } ))
+	local arr = util.ArrayFromTable( cs.gettype( 'System.Object' ), { itemname, coords, q  } )
+	cs.convertandsetonarray( arr, 0, itemname, System.String._type )
+	cs.convertandsetonarray( arr, 1, coords, UnityEngine.Vector3._type )
+	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
+	local xgameObject = createABC:Invoke( nil, arr )
+	local te = xgameObject:GetComponent('TimedExplosive')
+	te.explosionRadius = 30
+	te.damage = 70
+	timer.NextFrame(function() te:Explode() end)
+end
+
+function PLUGIN:a(netuser, _, _)
 	-- >>>>>>>>>>>>>>>>>>>> EXPLOSIVES! <<<<<<<<<<<<<<<<<<<<
 	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
 	local itemname = ';explosive_charge'
-	local coords = netuser.playerClient.lastKnownPosition;
-	coords.y = coords.y - 1.65
+	local coords = netuser.playerClient.lastKnownPosition
+	coords.x = func:Roll( false, coords.x-10, coords.x+10)
+	coords.z = func:Roll( false, coords.z-10, coords.z+10)
+	coords.y = coords.y - 1.8
 	local v = coords
 	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
 	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { v } ))
@@ -28,6 +80,13 @@ function PLUGIN:a(netuser, _, _)
 	cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
 	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
 	local xgameObject = createABC:Invoke( nil, arr )
+	local te = xgameObject:GetComponent('TimedExplosive')
+	te.explosionRadius = 20
+	rust.BroadcastChat( tostring(te.explosionRadius))
+	te.damage = 100
+	rust.BroadcastChat( tostring(te.damage))
+	timer.NextFrame(function() te:Explode() rust.BroadcastChat( 'Explode!' )end)
+
 
 	--[[
 	-- >>>>>>>>>>>>>>>>>>>> LOOTBAG! <<<<<<<<<<<<<<<<<<<<

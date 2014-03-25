@@ -161,6 +161,11 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs Metabolism------------' ) end
     elseif combatData.scenario == 7 then
 	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------explosives vs client------------' ) end
+    elseif combatData.scenario == 8 then
+	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------explosives vs client------------' ) end
+    elseif combatData.scenario == 9 then
+	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------explosives vs NPC------------' ) end
+	    rust.BroadcastChat( 'scenario 9 out going damage: ' .. tostring(combatData.dmg.amount) )
     end
     if debug.list[ combatData.debug] then debug:SendDebug(combatData.debug, 'Final Damage: ' .. tostring(combatData.dmg.amount)) end
 
@@ -206,6 +211,7 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 	if takedamage:GetComponent("StructureComponent") then combatData['structureData'] = takedamage:GetComponent("StructureComponent") end
 
 	if dmg.amount then combatData['dmg'] = dmg --[[{['amount'] = dmg.amount,['damageTypes'] = dmg.damageTypes.value__}]] end
+	--rust.BroadcastChat( tostring( 'incoming dmg: ' .. dmg.amount ))
 	if dmg.damageTypes.value__ then combatData['damageType'] = dmg.damageTypes.value__ end
 	if dmg.extraData then combatData['weapon'] = core.Config.weapon[tostring(dmg.extraData.dataBlock.name)] end
 	if dmg.attacker.controllable then combatData['netuser'] =  dmg.attacker.client.netUser combatData['netuserData'] = char[rust.GetUserID(dmg.attacker.client.netUser)] end
@@ -260,16 +266,19 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 	elseif string.find((tostring(combatData.dmg.attacker.id)), "(Metabolism)", 1, true) then                                            -- hunger?
 		combatData['scenario'] = 6
 		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
-	elseif dmg.vicuser.controllable and combatData.damageType == 8 then                                                                 -- Explosion VS player
+	elseif combatData.vicuser and combatData.damageType == 8 then                                                                       -- Explosion VS player
 		combatData['scenario'] = 7
 		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	elseif not combatData.vicuser and not combatData.netuser and combatData.damageType == 0 then                                        -- Decay
 		combatData['scenario'] = 8
-		rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
+	elseif not combatData.vicuser and combatData.damageType == 8 then                                                                   -- Explosion VS NPC
+		combatData['scenario'] = 9
+		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
 	else
 		combatData['scenario'] = false
 		self:PrintInvalidScenario( combatData,dmg, takedamage )
-		rust.BroadcastChat( 'Scenario: Invalid' )
+		--rust.BroadcastChat( 'Scenario: Invalid' )
 	end
 	return combatData
 end
