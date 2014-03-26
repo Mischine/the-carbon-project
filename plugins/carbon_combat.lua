@@ -256,13 +256,8 @@ function PLUGIN:OnKilled (takedamage, dmg)
 			combatData.netuserData.stats.kills.pve[combatData.npc.name] = combatData.netuserData.stats.kills.pve[combatData.npc.name]+1
 		end
 		combatData.netuserData.stats.kills.pve.total = combatData.netuserData.stats.kills.pve.total+1
-		local pdata = party:getParty( combatData.netuser )
-		if pdata then
-			party:DistributeXP( combatData, pdata, xp )
-		else
-			xp = char:XpEarnCheck( combatData, xp )
-			char:GiveXp( combatData, xp, true )
-		end
+
+		self:xpDistributeSystem( combatData, xp )
 		if self.npc and self.npc[ combatData.npcvid ] then
 			self.npc[ combatData.npcvid ] = nil
 			-- rust.BroadcastChat( 'Table deleted: ' .. tostring( combatData.npcvid ) )
@@ -344,6 +339,42 @@ function PLUGIN:AddNpcDmg( combatData )
 				self.npc[ combatData.npcvid ][ combatData.netuser ] = combatData.dmg.amount
 			end
 		end
+	end
+end
+
+function PLUGIN:xpDistributeSystem( combatData, xp )
+	if combat.npc and combat.npc[ combatData.npcvid ] then
+		local npcDmg = combat.npc[ combatData.npcvid ] if not npcDmg then rust.BroadcastChat( 'npcvid not found' ) char:GiveXp( combatData, xp, true ) end
+		local AllNetUsers = {}
+		local AllParties = {}
+		local totDmg = 0
+		for k,v in pairs( npcDmg ) do
+			totDmg = totDmg + v
+			local p = party:getParty( k )
+			if p then
+				if not AllParties[ p.id ] then AllParties[ p.id ] = {[ 'xp' ] = 0, [ 'ptotDmg' ] = 0,[ 'OriginNetuser' ] = k,['netusers']={}} end
+				AllParties[ p.id ].ptotDmg = AllParties[ p.id ].ptotDmg + v
+				if char[ rust.GetUserID(k)] then
+					local wep = core.Config.weapon[rust.GetInventory( k ).activeItem.datablock.name]
+					AllParties[ p.id ].netusers[ k ] = {['wep']=true,['t']={['netuser']=k,['netuserData']=char[ rust.GetUserID(k)],['weapon']=wep}}
+				end
+			else
+				if char[rust.GetUserID(k)] then
+					local wep = core.Config.weapon[rust.GetInventory( k ).activeItem.datablock.name]
+					AllNetUsers[k] = {['dmg']=v,['t']={['netuser'] = k, ['netuserData']=char[rust.GetUserID(k)],['weapon']=wep}}
+				end
+			end
+		end
+		for _, value in pairs( AllNetUsers ) do
+			char:GiveXp( value.t, math.floor(xp * (value.dmg/totDmg)), true )
+rust.BroadcastChat( value.t.netuser.displayName .. ' has received ' .. tostring(math.floor(xp * (value.dmg/totDmg))) .. 'xp! ( no party )' )
+		end
+		for id, tbl in pairs( AllParties ) do
+			AllParties[ id ].xp = math.floor(xp * (AllParties[id].ptotDmg/totDmg))
+			party:DestributePartyXP( AllParties[ id ] )
+		end
+	else
+		char:GiveXp( combatData, xp, true )
 	end
 end
 

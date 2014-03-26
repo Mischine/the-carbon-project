@@ -1,11 +1,6 @@
---[[ ************************* ]]--
---[[ lootspawnlists - thomasfn ]]--
---[[ ************************* ]]--
-
-
 -- Define plugin variables
 PLUGIN.Title = 'carbon_loot'
-PLUGIN.Description = 'forked loot tables customization module'
+PLUGIN.Description = 'Carbon Loot System Module'
 PLUGIN.Version = '0.0.1'
 PLUGIN.Author = 'mischa / carex :(forked from) thomasfn'
 
@@ -40,10 +35,10 @@ function PLUGIN:SetLoot( combatData )
 	local inv = xgameObject:GetComponent( 'Inventory' )
 	inv:Clear()
 
-	for k,v in pairs(combatData.npc.loot) do
+	for k,_ in pairs(combatData.npc.loot) do
 		if combatData.netuserData.lvl < tonumber(k+5) and combatData.netuserData.lvl > tonumber(k-5) then
 			local roll = func:Roll(true,0,100)
-			for key,value in pairs(combatData.npc.loot[ tostring(k) ]) do
+			for key,_ in pairs(combatData.npc.loot[ tostring(k) ]) do
 				if combatData.npc.loot[ tostring(k) ][tostring(key)].chance >= roll then
 					local itemtogive = rust.GetDatablockByName( tostring(key) )
 					local amount = self:CalculateDropAmount( combatData, k, key )
@@ -85,6 +80,8 @@ end
 		inv:AddItemAmount( itemtogive1, 1 )
 		inv:AddItemAmount( itemtogive2, 2 )
 ]]
+
+--[[
 function range(init, limit, step)
 	step = step or 1
 	return function()
@@ -95,6 +92,7 @@ function range(init, limit, step)
 		end
 	end
 end
+]]
 -- *******************************************
 -- PLUGIN:OnDatablocksLoaded()
 -- Called when the datablocks are ready to be modified
@@ -202,7 +200,7 @@ function PLUGIN:PatchNewSpawnlists()
 	end
 	local spawnlists = Rust.DatablockDictionary._lootSpawnLists
 	spawnlists:Clear()
-	for k, v in pairs( self.Spawnlists ) do
+	for k, _ in pairs( self.Spawnlists ) do
 		spawnlists:Add( k, spawnlistobjects[ k ] )
 	end
 	print( tostring( cnt ) .. " custom loot tables were loaded!" )

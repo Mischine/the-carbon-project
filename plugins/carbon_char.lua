@@ -388,7 +388,7 @@ function PLUGIN:CharacterResetAttributes(cmdData)
 	self:Save(cmdData.netuser)
 end
 function PLUGIN:GiveXp(combatData, xp, weplvl, donation )
-
+	-- combatData = [netuser] and [netuserData]
     local guildname = guild:getGuild( combatData.netuser )
     if guildname and not donation then
         local gxp = math.floor( xp * 0.1 )
@@ -418,7 +418,7 @@ function PLUGIN:GiveXp(combatData, xp, weplvl, donation )
     end
     if combatData.netuser then self:Save( combatData.netuser ) end if combatData.vicuser then self:Save( combatData.vicuser ) end
 end
-
+--[[
 function PLUGIN:XpEarnCheck( combatData ,xp )
 	if combat.npc and combat.npc[ combatData.npcvid ] then
 		local npcdmg = combat.npc[ combatData.npcvid ]
@@ -463,11 +463,12 @@ function PLUGIN:XpEarnCheckSecond( netuser ,xp )
 		xp = math.floor(xp * ((pdmg/tdmg)))
 		rust.BroadcastChat( tostring(combatData.netuserData.name .. ' xp earned: XP: ' .. xp .. '  |  [ ' ..  pdmg/tdmg*100 ..'% ] NPCID [ ' .. combatData.npcvid .. ' ]' ))
 		rust.BroadcastChat( 'Next NetUser: ' .. tostring( nxtNet ))
+
+		self:XpEarnCheckSecond( nxtNet, xp )
 	end
 	return xp
 end
-
-
+]]
 
 --PLUGIN:getLvl
 function PLUGIN:getLvl( netuser )

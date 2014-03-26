@@ -297,76 +297,49 @@ function PLUGIN:PartyInfo( netuser, cmd, args )
 end
 
 -- -------------------------------------
--- Party function
+--       Party xp Distribution
 -- -------------------------------------
-function PLUGIN:DistributeXP( combatData, pdata, xp )
-	local c = combatData.netuser.playerClient.lastKnownPosition
-	if not (( c ) and ( c.x ) and ( c.y ) and ( c.z )) then char:GiveXP( combatData, xp, true ) return end
+function PLUGIN:DestributePartyXP( pdata )
+	local OriginLoc = pdata.OriginNetuser.playerClient.lastKnownPosition
+	local partyData = party:getParty( pdata.OriginNetuser )
+	-- Begin failsafe
+	if not OriginLoc or partydata then local totNets = 1 + func:count( pdata.netusers )	for key,val in pairs( pdata.netusers ) do char:GiveXp( val.t, pdata.xp/totNets, val.wep ) end self:PartySave() return end
+	-- End failsafe
+	local totNets = 0
 	local int = 0
-	local i = 0
-	local allcombatData = {}
-	for k,v in pairs( pdata.members ) do
-		local b, netuser = rust.FindNetUsersByName( v.name )
+	for k, v in pairs( partyData.members ) do
+		local b, TargUser = rust.FindNetUsersByName( v.name )
 		if b then
-			local tc = netuser.playerClient.lastKnownPosition
-			if ( tc ) and ( tc.x ) and ( tc.y ) and ( tc.z ) then
-				if ( func:Distance3D ( c.x, c.y, c.z, tc.x, tc.y, tc.z ) <= 50 ) then
-					local netuserData = char[ rust.GetUserID( netuser )]
-					if netuserData then
-						i = i + 1
-						allcombatData[i] = {
-							['netuser'] = netuser,
-							['netuserData'] = netuserData
-						}
-						int = int + netuserData.attributes.int
-					end
+			local TargLoc = TargUser.playerClient.lastKnownPosition
+			if UnityEngine.Vector3.Distance( OriginLoc, TargLoc ) <= 50 then
+				if char[ rust.GetUserID( TargUser ) ] then
+					if not pdata.netusers[ TargUser ] then pdata.netusers[ TargUser ]={['wep']=false,['t']={['netuser']=k,['netuserData']=char[ rust.GetUserID(k)]}} end
+					totNets = totNets + 1
+					int = int + pdata.netusers[ TargUser ].t.netuserData.attributes.int
 				end
 			end
 		end
 	end
-	local mod = 1 + ( 0.05 * int )
-	pdata.members[combatData.netuserData.id].xpcon = pdata.members[combatData.netuserData.id].xpcon + ( xp * mod )
-	xp = ( self:PartyXpEarnCheck( combatData, pdata, xp*mod ) / i )
-	pdata.xp = pdata.xp + xp
-	local y = 1
-	while allcombatData[y] do
-		if allcombatData[y].netuser == combatData.netuser then
-			char:GiveXp( combatData, xp, true )
-		else
-			char:GiveXp( allcombatData[i], xp, false )
-		end
-		y = y + 1
+	pdata.xp = pdata.xp * (1 + ( 0.05 * int )) -- Intelligence modifier
+	for key, value in pairs( pdata.netusers ) do
+		if value.wep then partyData.members[value.t.netuserData.id].xpcon = partyData.members[value.t.netuserData.id].xpcon + ( pdata.xp/totNets ) end
+		char:GiveXp( value.t, pdata.xp/totNets, value.wep )
+rust.BroadcastChat( value.t.netuser.displayName .. '[ PartyID:' .. tostring(partyData.id) .. ' ] Has received ' .. tostring(pdata.xp/totNets) .. 'xp!' )
 	end
-end
-
-function PLUGIN:PartyXpEarnCheck( combatData,pdata,xp )
-	if combat.npc and combat.npc[ combatData.npcvid ] then
-		local npcdmg = combat.npc[ combatData.npcvid ]
-		if not npcdmg then return xp end
-		local pdmg = 0
-		local tdmg = 0
-		for k,v in pairs( npcdmg ) do
-			-- collect all dmg
-			if pdata.members[ k ] then pdmg = pdmg + v end
-			tdmg = tdmg + v
-		end
-		xp = math.floor(xp * ( pdmg/tdmg ))
-		rust.BroadcastChat( tostring('Party xp earned: XP: ' .. xp .. '  |  [ ' ..  pdmg/tdmg*100 ..'% ] NPCID [ ' .. combatData.npcvid .. ' ] DMG DONE: [ ' .. math.floor(pdmg) .. '/' .. math.floor(tdmg) .. ' ] '))
-	end
-	return xp
+	self:PartySave()
 end
 
 function PLUGIN:DistributeBalance( netuser, pdata, g, s, c )
 	local co = netuser.playerClient.lastKnownPosition
-	if not (( co ) and ( co.x ) and ( co.y ) and ( co.z )) then econ:AddBalance( netuser, g, s, c ) return end
+	if not co then econ:AddBalance( netuser, g, s, c ) return end
 	local i = 0
 	local netusers = {}
 	for _,v in pairs( pdata.members ) do
 		local b, netuser = rust.FindNetUsersByName( v.name )
 		if b then
 			local tc = netuser.playerClient.lastKnownPosition
-			if ( tc ) and ( tc.x ) and ( tc.y ) and ( tc.z ) then
-				if ( func:Distance3D ( co.x, co.y, co.z, tc.x, tc.y, tc.z ) <= 50 ) then
+			if tc then
+				if ( UnityEngine.Vector3.Distance( co, tc ) <= 50 ) then
 					i = i + 1
 					netusers[i] = netuser
 					netuser = nil
@@ -391,6 +364,10 @@ function PLUGIN:DistributeBalance( netuser, pdata, g, s, c )
 	end
 end
 
+function PLUGIN:isInThisParty( party, vicuser )
+	if party.members[ rust.GetUserID( vicuser ) ] then return true else return false end
+end
+
 function PLUGIN:getParty( netuser )
 	for k, v in pairs( self.Party ) do
 		if v.members[rust.GetUserID( netuser )] then return self.Party[k] end
@@ -399,10 +376,8 @@ function PLUGIN:getParty( netuser )
 end
 
 function PLUGIN:getPartyByID( id )
-	if self.Party[ tostring(id) ] then rust.BroadcastChat( 'Party found.' ) return self.Party[ tostring(id) ] else rust.BroadcastChat('Party not found.')return false end
+	if self.Party[ tostring(id) ] then return self.Party[ tostring(id) ] else return false end
 end
-
-
 
 -- PARTY SAVE
 function PLUGIN:PartySave()

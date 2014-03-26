@@ -129,7 +129,6 @@ function PLUGIN:PetAI( netuser, pet )
 		if not pet.attack then
 			self.Pets[ netuser ].HosAI:GoScentBlind( 5 )
 		end
-
 	end)
 end
 
