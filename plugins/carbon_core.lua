@@ -78,6 +78,7 @@ function PLUGIN:LoadLibrary()
     thief = cs.findplugin("carbon_thief")
     dev = cs.findplugin("carbon_dev")
     raycast = cs.findplugin("carbon_raycast")
+    loot = cs.findplugin("carbon_loot")
     hunter = cs.findplugin("carbon_hunter")
 
     a = cs.findplugin("carbon_a")
@@ -90,11 +91,11 @@ end
 function PLUGIN:SetDefaultConfig()
     self.Config = {
         ['npc']={
-            ['ZombieNPC_SLOW']={['id']='ZombieNPC_SLOW',['ai']='ZombieController',['name']='Slow Zombie',['xp']=45,['dmg']=.25,['attributes']={['sta']=10,['agi']=10,['str']=10}},
+            ['ZombieNPC_SLOW']={['id']='ZombieNPC_SLOW',['ai']='ZombieController',['name']='Slow Zombie',['xp']=45,['dmg']=.25,['attributes']={['sta']=10,['agi']=10,['str']=10},['loot']={['70']={},['60']={},['50']={},['40']={},['30']={},['20']={},['15']={},['10']={},['5']={}}},
             ['ZombieNPC_FAST']={['id']='ZombieNPC_FAST',['ai']='ZombieControlller',['name']='Fast Zombie',['xp']=40,['dmg']=.25,['attributes']={['sta']=9,['agi']=9,['str']=9}},
-            ['ZombieNPC']={['id']='ZombieNPC',['ai']='ZombieController',['name']='Zombie',['xp']=35,['dmg']=.25,['attributes']={['sta']=8,['agi']=8,['str']=8}},
-            ['MutantBear']={['id']='MutantBear',['ai']='BearAI',['name']='Mutant Bear',['xp']=30,['dmg']=.25,['attributes']={['sta']=7,['agi']=7,['str']=7}},
-            ['MutantWolf']={['id']='MutantWolf',['ai']='WolfAI',['name']='Mutant Wolf',['xp']=25,['dmg']=.15,['attributes']={['sta']=6,['agi']=6,['str']=6}},
+            ['ZombieNPC']={['id']='ZombieNPC',['ai']='ZombieController',['name']='Zombie',['xp']=35,['dmg']=.25,['attributes']={['sta']=8,['agi']=8,['str']=8},['loot']={['70']={},['60']={},['50']={},['40']={},['30']={},['20']={},['15']={},['10']={},['5']={'Wood', 'M4'}}},
+            ['MutantBear']={['id']='MutantBear',['ai']='BearAI',['name']='Mutant Bear',['xp']=30,['dmg']=.25,['attributes']={['sta']=7,['agi']=7,['str']=7},['loot']={['71']={},['60']={},['49']={},['38']={},['27']={},['16']={['Wood']={['chance']=10,['min']=0,['max']=50}, ['M4']={['chance']=10,['min']=0,['max']=1}},['5']={}}},
+            ['MutantWolf']={['id']='MutantWolf',['ai']='WolfAI',['name']='Mutant Wolf',['xp']=25,['dmg']=.15,['attributes']={['sta']=6,['agi']=6,['str']=6},['loot']={['71']={},['60']={},['49']={},['38']={},['27']={},['16']={['Wood']={['chance']=10,['min']=0,['max']=50}, ['M4']={['chance']=10,['min']=0,['max']=1}},['5']={}}},
             ['Bear']={['id']='Bear',['ai']='BearAI',['name']='Bear',['xp']=20,['dmg']=.35,['attributes']={['sta']=5,['agi']=5,['str']=5}},
             ['Wolf']={['id']='Wolf',['ai']='WolfAI',['name']='Wolf',['xp']=15,['dmg']=.35,['attributes']={['sta']=4,['agi']=4,['str']=4}},
             ['Stag_A']={['id']='Stag_A',['ai']='StagAI',['name']='Stag',['xp']=10,['dmg']=.50,['attributes']={['sta']=3,['agi']=3,['str']=3}},
@@ -246,6 +247,13 @@ function PLUGIN:SetDefaultConfig()
 		    ['stoneskin']={['name']='Stoneskin',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
 		    ['knockdown']={['name']='Knockdown',['req']={['attr']={['str']={['1']=1,['2']=2,['3']=3,['4']=4,['5']=5,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil,}},
 		    ['rage']={['name']='Rage',['req']={['attr']={['str']={['1']=2,['2']=4,['3']=6,['4']=8,['5']=10,},['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']={['1']=10,['2']=20,['3']=30,['4']=40,['5']=50,},['class']=nil,['achievement']=nil,['quest']=nil,}},
+	    },
+	    ['armor']={
+		    ['Cloth']={['name']='Cloth Armor',['req']={['attr']={['str']=nil,['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=nil,['class']=nil,['achievement']=nil,['quest']=nil}},
+		    ['Leather']={['name']='Leather Armor',['req']={['attr']={['str']=2,['sta']=nil,['agi']=2,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=10,['class']=nil,['achievement']=nil,['quest']=nil,}},
+		    ['Kevlar']={['name']='Kevlar Armor',['req']={['attr']={['str']=5,['sta']=nil,['agi']=nil,['int']=nil,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=35,['class']=nil,['achievement']=nil,['quest']=nil,}},
+		    ['Rad']={['name']='Radiation Armor',['req']={['attr']={['str']=nil,['sta']=nil,['agi']=nil,['int']=5,['cha']=nil,['wis']=nil,['wil']=nil,['per']=nil,['chance']=nil},['lvl']=20,['class']=nil,['achievement']=nil,['quest']=nil,}},
+
 	    },
 	    ['level']={
 		    ['player']={},

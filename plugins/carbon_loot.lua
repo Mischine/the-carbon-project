@@ -9,17 +9,92 @@ PLUGIN.Description = 'forked loot tables customization module'
 PLUGIN.Version = '0.0.1'
 PLUGIN.Author = 'mischa / carex :(forked from) thomasfn'
 
--- Load some util methods
---local GetSpawnLists = static_field_get( Rust.DatablockDictionary, "_lootSpawnLists" )
---local ScriptableObjectCreateOverloads = static( UnityEngine.ScriptableObject, "CreateInstance" )
---local ScriptableObjectCreateMethod = rust.FindOverload( ScriptableObjectCreateOverloads, { System.Type } )
 local ScriptableObjectCreateMethod = util.FindOverloadedMethod( UnityEngine.ScriptableObject, "CreateInstance", bf.public_static, { System.Type } )
---util.FindOverloadedMethod( Rust.BasicDoor, "ToggleStateServer", bf.private_instance, { NullableOfVector3, System.UInt64, NullableOfBoolean } )
+
 local function ScriptableObjectCreate( typ )
 	typ = typesystem.TypeFromMetatype( typ )
 	return ScriptableObjectCreateMethod:Invoke( nil, util.ArrayFromTable( System.Object, { typ } ) )
 end
 
+function PLUGIN:Init()
+	core = cs.findplugin("carbon_core") core:LoadLibrary()
+end
+function PLUGIN:SetLoot( combatData )
+	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
+	--local itemname = ';deploy_camp_bonfire'
+	local itemname = ';drop_lootsack_zombie'
+	local coords = combatData.victimPos;
+	local v = coords
+	local r = tonumber(UnityEngine.Random.value) * 3.14159274 * 2
+	v.x = v.x + tonumber(UnityEngine.Mathf.Cos(r) * 1.5)
+	v.z = v.z + tonumber(UnityEngine.Mathf.Cos(r) * 1.5)
+	v.y = UnityEngine.Terrain.activeTerrain:SampleHeight(v)
+
+	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
+	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { v } ))
+	local arr = util.ArrayFromTable( cs.gettype( 'System.Object' ), { itemname, v, q  } )
+	cs.convertandsetonarray( arr, 0, itemname, System.String._type )
+	cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
+	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
+	local xgameObject = createABC:Invoke( nil, arr )
+	local inv = xgameObject:GetComponent( 'Inventory' )
+	inv:Clear()
+
+	for k,v in pairs(combatData.npc.loot) do
+		if combatData.netuserData.lvl < tonumber(k+5) and combatData.netuserData.lvl > tonumber(k-5) then
+			local roll = func:Roll(true,0,100)
+			for key,value in pairs(combatData.npc.loot[ tostring(k) ]) do
+				if combatData.npc.loot[ tostring(k) ][tostring(key)].chance >= roll then
+					local itemtogive = rust.GetDatablockByName( tostring(key) )
+					local amount = self:CalculateDropAmount( combatData, k, key )
+					inv:AddItemAmount( itemtogive, amount )
+				end
+			end
+			if combatData.netuserData.attributes.luc > 1 then
+				roll = roll+(combatData.netuserData.attributes.luc*0.01)+(combatData.netuserData.lvl*0.0005)
+				if combatData.netuserData.attributes.luc >=10 then
+					local epicRoll = func:round(func:Roll( false, 0, 100 ),1)
+					if epicRoll <= combatData.netuserData.lvl*.0005 then
+						rust.InventoryNotice(combatData.netuser, 'Rare Drop')
+						--local randomItem = func:Roll(true,1, 11--[[COUNT EPIC ITEM TABLE KEYS]] )
+						--local item =
+						--self:EpicDrop(combatData, item)
+						-- SUPPLY SIGNAL, MILITARY WEAPONS, KEVLAR, ANY BLUEPRINT, TEMPORARY PET
+					end
+				end
+			end
+			break
+		end
+	end
+end
+function PLUGIN:CalculateDropAmount( combatData, lvl, item )
+	local min = combatData.npc.loot[tostring(lvl)][tostring(item)].min
+	local max = combatData.npc.loot[tostring(lvl)][tostring(item)].max
+	local luck = combatData.netuserData.attributes.luc
+	local level = combatData.netuserData.lvl
+	min = min+min*(luck*0.01+level*0.0005)
+	max = max+max*(luck*0.01+level*0.0005)
+	return func:Roll(true,min,max)
+end
+--[[
+
+		local itemtogive = rust.GetDatablockByName( 'Wood' )
+		local itemtogive1 = rust.GetDatablockByName( 'M4' )
+		local itemtogive2 = rust.GetDatablockByName( 'MP5A4' )
+		inv:AddItemAmount( itemtogive, 250 )
+		inv:AddItemAmount( itemtogive1, 1 )
+		inv:AddItemAmount( itemtogive2, 2 )
+]]
+function range(init, limit, step)
+	step = step or 1
+	return function()
+		local value = init
+		init = init + step
+		if limit * step >= value * step then
+			return value
+		end
+	end
+end
 -- *******************************************
 -- PLUGIN:OnDatablocksLoaded()
 -- Called when the datablocks are ready to be modified

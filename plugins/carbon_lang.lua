@@ -42,9 +42,9 @@ function PLUGIN:SetLocalization()
 	            ['willpower'] = 'Willpower',
 	            ['perception'] = 'Perception',
 	            ['luck'] = 'Luck',
-	            ['cmds_c_attr'] = {'train   [#]   [str|agi|sta|int]'},
-	            ['cmds_c_perks'] = {'train   [#]   [perk name]','list'},
-	            ['toomuchap']='You can\'t train above 10 points in a specific attribute field!',
+	            ['CMDS_C_ATTR'] = {'train   [#]   [str|agi|sta|int]'},
+	            ['CMDS_C_PERKS'] = {'train   [#]   [perk name]','list'},
+                ['toomuchap']='You can\'t train above 10 points in a specific attribute field!',
 	            ['cmds_c_attr_train'] = {'[#]   [str|agi|sta|int]'},
                 ['insufficientap']='You don\'t have enough attribute points!',
 	            ['perkreqnotmet']='You do not meet the requirements to train this perk!',
@@ -53,6 +53,9 @@ function PLUGIN:SetLocalization()
 	            ['trainperknegative']='You can\'t negatively train a perk!',
 	            ['traiattrnegative']='You can\'t negatively train an attribute!',
 	            ['perkdoesntexist']='This perk doesn\'t exist!',
+
+	            ['INVALID_SYNTAX'] ='Invalid syntax..',
+
 
 	            ['MSG_C_RESET']='You can reset your attributes or perks, but beware, each time you do this it will cost you more! The trainer doesn\'t like indesicive people.. .',
 	            ['CMDS_C_RESET']={'attr','perks'},

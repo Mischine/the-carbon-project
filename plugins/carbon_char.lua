@@ -145,7 +145,7 @@ function PLUGIN:CharacterAttributes(cmdData)
 	    ' ',
 	    'Available Attribute Points: ' .. cmdData.netuserData.ap .. ' / ' .. cmdData.netuserData.ap+usedAp,
     },
-	    ['cmds']=cmdData.txt['cmds_c_attr'],
+	    ['cmds']=cmdData.txt['CMDS_C_ATTR'],
     }
     func:TextBox(cmdData.netuser, content, cmdData.cmd, cmdData.args)
 end
@@ -184,7 +184,7 @@ end
 function PLUGIN:CharacterPerksList(cmdData)
 	local content = {
 		['list']={},
-		['cmds']=cmdData.txt['cmds_c_perks'],
+		['cmds']=cmdData.txt['CMDS_C_PERKS'],
 	}
 	local usedpp = 0
 	for k,v in pairs(cmdData.netuserData.perks) do
@@ -212,7 +212,7 @@ end
 function PLUGIN:CharacterPerks(cmdData)
 	local content = {
 		['list']={},
-		['cmds']=cmdData.txt['cmds_c_perks'],
+		['cmds']=cmdData.txt['CMDS_C_PERKS'],
 	}
 	local usedpp = 0
 	for k,v in pairs(cmdData.netuserData.perks) do
@@ -260,13 +260,13 @@ function PLUGIN:CharacterPerksTrain(cmdData)
 							--obtain attribute nice name.. >;)
 							['msg'] =tostring('Your '.. atr ..' must be at least '.. reqlvl),
 							['list'] = {'Your current ' .. atr .. ' level is ' .. curlvl },
-							['cmds'] = cmdData.txt['cmds_c_perks'],
+							['cmds'] = cmdData.txt['CMDS_C_PERKS'],
 						}
 						func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
 					end
 				else
 					local content = {
-						['msg'] = cmdData.txt['insufficientpp'],
+						['msg'] = cmdData.txt['insufficientap'],
 						['cmds']=cmdData.txt['cmds_c_attr_train'],
 					}
 					func:TextBoxError(cmdData.netuser, content, cmdData.cmd, cmdData.args) return
@@ -439,7 +439,7 @@ function PLUGIN:XpEarnCheck( combatData ,xp )
 		xp = math.floor(xp * ((pdmg/tdmg)))
 		rust.BroadcastChat( tostring(combatData.netuserData.name .. ' xp earned: XP: ' .. xp .. '  |  [ ' ..  pdmg/tdmg*100 ..'% ] NPCID [ ' .. combatData.npcvid .. ' ]' ))
 		rust.BroadcastChat( 'Next NetUser: ' .. tostring( nxtNet ))
-		self:XpEarnCheckSecond( nxtNet, xp )
+		--self:XpEarnCheckSecond( nxtNet, xp )
 	end
 	return xp
 end
@@ -478,9 +478,22 @@ end
 
 --PLUGIN:GiveDp
 function PLUGIN:GiveDp(combatData, dp)
-    if ((combatData.vicuserData.dp+dp/combatData.vicuserData.xp) >= .5) then
-        combatData.vicuserData.dp = combatData.vicuserData.xp*.5
-        rust.InventoryNotice( combatData.vicuser, '+' .. (dp - combatData.vicuserData.xp*.5) .. 'dp' )
+	local requiredXp
+	if cmdData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.lvl > 1 then
+		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]-core.Config.level.player[tostring(cmdData.netuserData.lvl)]
+	elseif cmdData.netuserData.lvl == core.Config.settings.PLAYER_LEVEL_CAP then
+		requiredXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
+	elseif cmdData.netuserData.lvl == 1 then
+		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]
+	else
+		requiredXp = nil
+	end
+	--CALCULATE SOME STUFF
+	local totalAllowedDp = requiredXp*.5
+
+    if ((combatData.vicuserData.dp+dp/totalAllowedDp) >= .5) then
+        combatData.vicuserData.dp = totalAllowedDp*.5
+        --rust.InventoryNotice( combatData.vicuser, '+' .. (dp - combatData.vicuserData.xp*.5) .. 'dp' )
     else
         combatData.vicuserData.dp = combatData.vicuserData.dp + dp
         rust.InventoryNotice( combatData.vicuser, '+' .. (dp) .. 'dp' )

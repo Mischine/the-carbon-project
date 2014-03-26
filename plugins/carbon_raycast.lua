@@ -67,6 +67,21 @@ function S_TraceEyes( netuser)
 	end
 	return closest
 end
+function PLUGIN:TraceEyes( netuser )
+	local ray = rust.GetCharacter( netuser ).eyesRay
+	local hits = RaycastAll( ray )
+	local tbl = cs.createtablefromarray( hits )
+	if (#tbl == 0) then return end
+	local closest = tbl[1]
+	local closestdist = closest.distance
+	for i=2, #tbl do
+		if (tbl[i].distance < closestdist) then
+			closest = tbl[i]
+			closestdist = closest.distance
+		end
+	end
+	return closest
+end
 
 
 

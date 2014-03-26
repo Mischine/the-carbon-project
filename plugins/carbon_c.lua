@@ -14,6 +14,7 @@ function PLUGIN:Init()
 	self:AddChatCommand('kb', self.knockback)
 	self:AddChatCommand('kill', self.Kill)
 	self:AddChatCommand('hurt', self.Hurt)
+	self:AddChatCommand('day', self.Day)
 end
 --local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
@@ -36,62 +37,6 @@ get_activeItem, set_activeItem = typesystem.GetField( Rust.Inventory, "_activeIt
 
 CCMotor = typesystem.GetField( Rust.Character, "_ccmotor", bf.private_instance )
 HurtSelf = util.GetStaticMethod( Rust.TakeDamage, "HurtSelf")
-
-function PLUGIN:Zombie(netuser, cmd, args)
-	NetCull = {}
-	NetCull.InstantiateClassic = util.FindOverloadedMethod( RustFirstPass.NetCull._type, "InstantiateClassic", bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion, System.Int32 } )
-	NetCull.InstantiateDynamic = util.FindOverloadedMethod( RustFirstPass.NetCull._type, "InstantiateDynamic", bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
-	NetCull.InstantiateStatic = util.FindOverloadedMethod( RustFirstPass.NetCull._type, "InstantiateStatic", bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
-	NetCull.Destroy = util.FindOverloadedMethod( RustFirstPass.NetCull._type, "Destroy", bf.public_static, { UnityEngine.GameObject } )
-
-	Terrain = {}
-	Terrain.activeTerrain = util.GetStaticPropertyGetter(UnityEngine.Terrain._type, "activeTerrain" )
-
-	GO = {}
-	GO.FindObjectsOfType = util.GetStaticMethod( UnityEngine.Object, "FindObjectsOfType")
-	GO.FindObjectsOfTypeAll = util.GetStaticMethod( UnityEngine.Resources._type, "FindObjectsOfTypeAll")
-
-	Quat = {}
-	Quat.LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, "LookRotation" )
-
-
-	typesystem.LoadEnum( RustFirstPass.DamageTypeFlags, "DamageType" )
-
-
-	local GetActiveZombies, SetActiveZombies = typesystem.GetField( Rust.ZombieSpawner, "numActiveZombies", bf.private_instance )
-	local GetId, SetId = typesystem.GetField( Rust.ZombieController, "randomIDHash", bf.private_instance )
-	local GetPos, SetPos = typesystem.GetField( Rust.ZombieController, "lastPos", bf.private_instance )
-	local GetRadLevel, SetRadLevel = typesystem.GetField( Rust.Metabolism, "radiationLevel", bf.private_instance )
-	local GetInstanceID, SetInstanceID = typesystem.GetField( UnityEngine.Object, "GetInstanceID", bf.public_instance )
-
-
-	local t = new(UnityEngine.GameObject._type)
-	t:AddComponent("ZombieSpawner")
-
-	self.myZombieSpawner = t:GetComponent("ZombieSpawner")
-	self.myZombieSpawner.targetPopulation = 0
-	self.myZombieSpawner.thinkDelay = 99999
-end
-local function Vector3( x, y, z )
-
-	local v = new(UnityEngine.Vector3)
-	v.x = x
-	v.y = y
-	v.z = z
-
-	return v
-
-end
-
-local function Ray( origin, direction )
-
-	local r = new( UnityEngine.Ray )
-
-	r.origin = origin
-	r.direction = direction
-
-	return r
-end
 
 function PLUGIN:Kill(netuser, cmd, args)
 	if(#args==0)then
@@ -118,8 +63,6 @@ function PLUGIN:Kill(netuser, cmd, args)
 		ClientVitalsSync:SendClientItsHealth()
 	end
 end
-
-
 function PLUGIN:sc(netuser, cmd, args)
 	local i = 1
 	while i <= 1 do
@@ -149,38 +92,144 @@ function PLUGIN:sc(netuser, cmd, args)
 	local CharacterLoadoutTrait = Character:GetComponent("CharacterLoadoutTrait")
 	local ClientVitalsSync = Character:GetComponent('ClientVitalsSync')
 	local CharacterInfo = Character:GetComponent('CharacterInfo')
+	local CharacterWalkSpeedTrait = Character:GetComponent("CharacterWalkSpeedTrait")
+	local CharacterGameObject = Character:get_gameObject()
+	local MetabolismGameObject = Metabolism:get_gameObject()
+	local HumanController = CharacterGameObject:GetComponent( "HumanController" )
+	local Collider = CharacterGameObject:GetComponent( "Collider" )
+	local Physics = Collider:GetComponent( "Physics" )
+	local ClientConnection = controllable:GetComponent( "ClientConnection" )
 
 
-	if #args==1 then
-		local validate, vicuser = rust.FindNetUsersByName( args[1] )
-		if (not validate) then
-			if (vicuser == 0) then
-				print( "No player found with that name: " .. tostring( args[1] ))
-			else
-				print( "Multiple players found with name: " .. tostring( args[1] ))
-			end
-			return false
-		end
-
-		local inv = rust.GetInventory(vicuser)
-		local item = inv.activeItem.datablock
-		local itemID = inv.activeItem
-		rust.BroadcastChat(tostring(itemID))
-	else
-		local inv = rust.GetInventory(netuser)
-		local activeItem
-		if inv.activeItem then activeItem = inv.activeItem.datablock end
-		local b, inactiveItem = inv:GetItem(31)
-
-		Rust.TakeDamage.KillSelf(netuser.playerClient.controllable.idMain, inv.activeItem)
-
-		ClientVitalsSync:SendClientItsHealth()
-		rust.SendChatToUser(netuser, tostring(''))
-		--rust.SendChatToUser(netuser, tostring(activeItem))
-		--rust.SendChatToUser(netuser, tostring(inactiveItem))
+	--[[
+	for k,v in pairs(Rust.DatablockDictionary.All) do
+		print(tostring(k)..'   '..tostring(v))
 	end
+	]]
+	
+	--Rust.DropHelper.DropInventoryContents(Inventory)
+	--Rust.DropHelper.DropItem( Inventory, 30 )
+	rust.BroadcastChat(tostring(Rust.DatablockDictionary.All))
+	rust.BroadcastChat(tostring(rust.GetDatablockByName( '556 Ammo' ).category))
+	rust.BroadcastChat(tostring(rust.GetDatablockByName( 'Primed 556 Casing' ).category))
+	--[[
+	rust.BroadcastChat(tostring(avatar.BlueprintsCount))
+	local GetAvatar, SetAvatar = typesystem.GetField( Rust.NetUser, "avatar", bf.private_instance )
+
+	local svrMgr = Rust.ServerManagement.Get()
+	print( tostring(svrMgr))
+
+	--Rust.ServerManagement.Get().CreatePlayerClientForUser(netuser);
+	local CPCFU = util.FindOverloadedMethod( Rust.ServerManagement, "CreatePlayerClientForUser", bf.private_instance, {Rust.NetUser  } )
+	print( tostring(CPCFU) )
+	local arr = util.ArrayFromTable( cs.gettype( "System.Object" ), { netuser } )
+	cs.convertandsetonarray( arr, 0, netuser, Rust.NetUser._type )
+	local _PlayerClient = CPCFU:Invoke( svrMgr, arr )
+	print( "Result:" .. tostring(_PlayerClient))
 
 
+	local builder = avatar:ToBuilder()
+	builder:ClearBlueprints()
+	local new_avatar = builder:Build()
+	SetAvatar(_PlayerClient, new_avatar)
+
+	rust.BroadcastChat(avatar)
+]]
+
+
+	--[[
+	Rust.Character.DestroyCharacter( HumanController.idMain )
+	local svrMgr = Rust.ServerManagement.Get()
+	local CPCFU = util.FindOverloadedMethod( Rust.ServerManagement, "CreatePlayerClientForUser", bf.private_instance, {Rust.NetUser  } )
+	print( tostring(CPCFU) )
+	local arr = util.ArrayFromTable( cs.gettype( "System.Object" ), { netuser } )
+	cs.convertandsetonarray( arr, 0, netuser, Rust.NetUser._type )
+	local _PlayerClient = CPCFU:Invoke( svrMgr, arr )
+	netuser.playerClient = _PlayerClient
+	local GetAvatar, SetAvatar = typesystem.GetField( Rust.NetUser, "avatar", bf.private_instance )
+	local avatar = GetAvatar( netuser )
+	local builder = avatar:ToBuilder()
+	builder:ClearBlueprints()
+	local new_avatar = builder:Build()
+	SetAvatar(HumanController.idMain, new_avatar)
+]]
+
+	-- BLANK NOW
+	--local rootGO = netuser.playerClient.rootControllable.idMain:GetComponent( "Transform" )
+	--self:DumpGameObject( rootGO.gameObject )
+
+
+
+
+
+
+	-- BLANK NOW
+	--local rootGO = netuser.playerClient.rootControllable.idMain:GetComponent( "Transform" )
+	--self:DumpGameObject( rootGO.gameObject )
+
+
+
+--[[
+	local GetAvatar, SetAvatar = typesystem.GetField( Rust.NetUser, "avatar", bf.private_instance )
+	local avatar = GetAvatar( netuser )
+	local builder = avatar:ToBuilder()
+	builder:ClearBlueprints()
+	local new_avatar = builder:PrepareBuilder()
+	SetAvatar(netuser, new_avatar)
+
+]]
+
+	--local get_jog, set_jog = typesystem.GetField( Rust.CharacterWalkSpeedTrait, "_jog", bf.private_instance )
+	--rust.BroadcastChat('get_jog: '.. tostring(get_jog) .. '   set_jog: '.. tostring(set_jog))
+
+	-- Get a function that gives us the ground at a particular position.
+	--
+	-- public static bool GetGroundInfoNavMesh(Vector3 startPos, out Vector3 pos)
+	--rust.BroadcastChat(tostring(Character.transform:TransformDirection(Character.transform:set_position(coords))))
+
+
+	-- Get a function that gives us the ground at a particular position.
+	--
+	-- public static bool GetGroundInfoNavMesh(Vector3 startPos, out Vector3 pos)
+	--
+
+	--CharacterController.rigidbody.constraints = UnityEngine.RigidbodyConstraints.FreezeAll
+	--print(tostring(UnityEngine:GetComponents(CharacterGameObject)))
+
+	--[[
+	local DamageTypeFlags = cs.gettype( "DamageTypeFlags, Assembly-CSharp" )
+	typesystem.LoadEnum(DamageTypeFlags, "DamageTypeFlags" )
+
+	local get_armorValues = typesystem.GetField( Rust.ProtectionTakeDamage, "_armorValues", bf.private_instance )
+	local this = get_armorValues(ProtectionTakeDamage)
+
+	rust.SendChatToUser(netuser, tostring(DamageTypeFlags.damage_bullet))
+	rust.SendChatToUser(netuser, tostring(this[DamageTypeFlags.damage_generic]))
+	rust.SendChatToUser(netuser, tostring(this[DamageTypeFlags.damage_bullet]))
+	rust.SendChatToUser(netuser, tostring(this.melee))
+	rust.SendChatToUser(netuser, tostring(this.explosion))
+	rust.SendChatToUser(netuser, tostring(this.radiation))
+	rust.SendChatToUser(netuser, tostring(this.cold))
+
+	]]
+	--rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(1))) --Bullet
+
+	--rust.SendChatToUser(netuser, tostring(inactiveItem))
+
+
+
+
+--[[
+	local builder = avatar:ToBuilder()
+	builder:ClearBlueprints()
+	PrepareBuilder = util.GetStaticMethod( RustProto.Avatar.Builder, "PrepareBuilder")
+	local new_avatar = builder:PrepareBuilder()
+	netuser:SaveAvatar(netuser.userID, new_avatar)
+]]
+
+
+	--netuser:SaveAvatar(avatar2)
+	--netuser:SaveAvatar(netuserIDULONG, avatar2)
 
 
 	--local maxplayers = server.maxplayers
@@ -189,7 +238,7 @@ function PLUGIN:sc(netuser, cmd, args)
 	--rust.SendChatToUser(netuser, tostring(loadout))
 
 	--[[
-			local env = Rust.env
+		local env = Rust.env
 		local daylength = env.daylength
 		local nightlength = env.nightlength
 		local save = Rust.save
@@ -202,29 +251,19 @@ function PLUGIN:sc(netuser, cmd, args)
 	builder:ClearBlueprints()
 	AvatarSaveRestore:ClearAvatar()
 	netuser:SaveAvatar(builder:Build())
-	Metabolism:AddWater(10)
-	ClientVitalsSync:SendClientItsHealth()
-	rust.SendChatToUser(netuser, tostring(avatar.vitals.hydration))
 	]]
 	--rust.SendChatToUser(netuser, tostring(Metabolism:get_maxWaterLevelLitre()))
-
-
-
-	--local args = cs.newarray(System.Object._type, 0)
-	--Metabolism.networkView:RPC("Vomit", Metabolism.networkView.owner, args);
 
 	--TakeDamage.maxHealth = 999
 	--TakeDamage.health = 999
 	--local distanceCheck = FootstepEmitter:get_maxAudioDist()
 
-	--AvatarSaveRestore:SaveAvatar()
-	--local testthis = set_flSprintSpeed()
-	--rust.SendChatToUser(netuser, tostring(testthis))
-	-- Inventory.activeItem.datablock.caloriesPerSwing = 2 -- change calories per swing =)
+	--Inventory.activeItem.datablock.caloriesPerSwing = 2 -- change calories per swing =)
 	--Inventory.activeItem.datablock.midSwingDelay = 1.25 -- change swing delay
-	-- Inventory.activeItem.datablock.worldSwingAnimationSpeed = 0.75 -- doesnt do anything.. . ?
+	--Inventory.activeItem.datablock.worldSwingAnimationSpeed = 0.75 -- doesnt do anything.. . ?
 	--Inventory.activeItem.datablock.midSwingDelay = 1.25
 	--Inventory.activeItem.datablock.gathersResources = true
+
 	--THIS IS FOR BULLETWEAPONDATABLOCKS
 	--Inventory.activeItem.datablock.aimingRecoilSubtract = 0.5 --0.5
 	--Inventory.activeItem.datablock.recoilDuration = 0.20000000298023
@@ -237,7 +276,6 @@ function PLUGIN:sc(netuser, cmd, args)
 	--Inventory.activeItem.datablock.fireRateSecondary = 1
 	--Metabolism:AddWater(tonumber(-5))
 	--rust.SendChatToUser(netuser, tostring(avatar.vitals.hydration))
-
 
 --[[
 	rust.SendChatToUser(netuser, tostring(ProtectionTakeDamage:GetArmorValue(0))) --Generic
@@ -287,7 +325,9 @@ function PLUGIN:sc(netuser, cmd, args)
 	-- recycler = avi.avatar.Recycler()
 	--avatar:ClearBlueprints()
 end
-
+function PLUGIN:Day(netuser, cmd, args)
+	rust.RunServerCommand('env.time 10')
+end
 
 
 
