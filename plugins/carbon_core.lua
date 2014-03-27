@@ -80,6 +80,7 @@ function PLUGIN:LoadLibrary()
     raycast = cs.findplugin("carbon_raycast")
     loot = cs.findplugin("carbon_loot")
     hunter = cs.findplugin("carbon_hunter")
+    idlepets = cs.findplugin("carbon_idlepets")
 
     a = cs.findplugin("carbon_a")
     b = cs.findplugin("carbon_b")

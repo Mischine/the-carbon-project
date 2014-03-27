@@ -83,11 +83,8 @@ end
 function PLUGIN:a(netuser, _, _)
 	-- >>>>>>>>>>>>>>>>>>>> EXPLOSIVES! <<<<<<<<<<<<<<<<<<<<
 	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
-	local itemname = ';explosive_charge'
+	local itemname = ';struct_wood_ramp'
 	local coords = netuser.playerClient.lastKnownPosition
-	coords.x = func:Roll(coords.x-10, coords.x+10)
-	coords.z = func:Roll(coords.z-10, coords.z+10)
-	coords.y = coords.y - 1.8
 	local v = coords
 	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
 	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { v } ))
@@ -96,12 +93,6 @@ function PLUGIN:a(netuser, _, _)
 	cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
 	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
 	local xgameObject = createABC:Invoke( nil, arr )
-	local te = xgameObject:GetComponent('TimedExplosive')
-	te.explosionRadius = 20
-	rust.BroadcastChat( tostring(te.explosionRadius))
-	te.damage = 100
-	rust.BroadcastChat( tostring(te.damage))
-	timer.NextFrame(function() te:Explode() rust.BroadcastChat( 'Explode!' )end)
 
 	-- coords.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coords)
 

@@ -24,10 +24,9 @@ end
 
 function PLUGIN:PetCall( netuser, _, _ )
 	if not dev:isDev( netuser ) then return end
-	if self:hasPet( netuser ) then rust.Notice( netuser,  'You dont have a pet.!' ) return end
+	if self:hasPet( netuser ) then rust.Notice( netuser,  'Your pet is already summoned!' ) return end
 	self.Pets[ netuser ] = {}
 	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, "InstantiateClassic", bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion, System.Int32 } )
-	--local itemname = "Bear"2
 	local itemname = "Wolf"
 
 	local coords = netuser.playerClient.lastKnownPosition
