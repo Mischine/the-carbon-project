@@ -16,6 +16,8 @@ function PLUGIN:Init()
 	self:AddChatCommand('hurt', self.Hurt)
 	self:AddChatCommand('day', self.Day)
 	self:AddChatCommand('cast', self.CastSphere)
+	self:AddChatCommand('zx', self.Spawn)
+	self:AddChatCommand('blink', self.Blink)
 end
 --local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
@@ -38,7 +40,21 @@ get_activeItem, set_activeItem = typesystem.GetField( Rust.Inventory, "_activeIt
 
 CCMotor = typesystem.GetField( Rust.Character, "_ccmotor", bf.private_instance )
 HurtSelf = util.GetStaticMethod( Rust.TakeDamage, "HurtSelf")
-
+function PLUGIN:Spawn(netuser, cmd, args)
+	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
+	--local itemname = ';deploy_camp_bonfire'
+	local itemname = tostring(args[1])
+	local coords = netuser.playerClient.lastKnownPosition;
+	local v = coords
+	v.y = UnityEngine.Terrain.activeTerrain:SampleHeight(v)
+	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
+	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { v } ))
+	local arr = util.ArrayFromTable( cs.gettype( 'System.Object' ), { itemname, v, q  } )
+	cs.convertandsetonarray( arr, 0, itemname, System.String._type )
+	cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
+	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
+	local xgameObject = createABC:Invoke( nil, arr )
+end
 function PLUGIN:Kill(netuser, cmd, args)
 	if(#args==0)then
 		rust.SendChatToUser(netuser,'/hurt "name" #[amount]' )
@@ -65,11 +81,11 @@ function PLUGIN:Kill(netuser, cmd, args)
 	end
 end
 function PLUGIN:sc(netuser, cmd, args)
-	local validate,vicuser = rust.FindNetUsersByName( args[1] )
+	--local validate,vicuser = rust.FindNetUsersByName( args[1] )
 
-	local vicusercontrollable = vicuser.playerClient.controllable
-	local vicuserCharacter = rust.GetCharacter( vicuser )
-	local vicuserInventory = vicusercontrollable:GetComponent( "Inventory" )
+	--local vicusercontrollable = vicuser.playerClient.controllable
+	--local vicuserCharacter = rust.GetCharacter( vicuser )
+	--local vicuserInventory = vicusercontrollable:GetComponent( "Inventory" )
 	local controllable = netuser.playerClient.controllable
 	local avatar = netuser:LoadAvatar()
 	local netuserID = rust.GetCharacter( netuser )
@@ -100,10 +116,36 @@ function PLUGIN:sc(netuser, cmd, args)
 	local Physics = Collider:GetComponent( "Physics" )
 	local ClientConnection = controllable:GetComponent( "ClientConnection")
 
-	--Rust.DropHelper.DropInventoryContents(vicuserInventory)
-	for i = 0, 40, 1 do
-		Rust.DropHelper.DropItem( vicuserInventory, i )
+	rust.BroadcastChat(tostring(CharacterGameObject.light))
+	local table = {
+	CharacterGameObject.activeInHierarchy,
+	CharacterGameObject.activeSelf,
+	CharacterGameObject.animation,
+	CharacterGameObject.audio,
+	CharacterGameObject.camera,
+	CharacterGameObject.collider,
+	CharacterGameObject.collider2D,
+	CharacterGameObject.constantForce,
+	CharacterGameObject.guiText,
+	CharacterGameObject.guiTexture,
+	CharacterGameObject.hingeJoint,
+	CharacterGameObject.isStatic,
+	CharacterGameObject.layer,
+	CharacterGameObject.light,
+	CharacterGameObject.networkView,
+	CharacterGameObject.particleEmitter,
+	CharacterGameObject.particleSystem,
+	CharacterGameObject.renderer,
+	CharacterGameObject.rigidbody,
+	CharacterGameObject.rigidbody2D,
+	CharacterGameObject.transform,
+	}
+
+	for k,v in pairs(table) do
+		rust.BroadcastChat(tostring(k) .. '    ' ..tostring(v))
 	end
+	rust.BroadcastChat(UnityEngine.GUI.color)
+
 --[[
 	local IDBase = cs.gettype("IDBase, Facepunch.ID")
 	local SystemObject = cs.gettype( 'System.Object' )
@@ -384,6 +426,22 @@ function PLUGIN:KillSelf(netuser, cmd, args)
 	KillSelf(Character.idMain, CharacterGameObject)
 	rust.BroadcastChat(tostring(KillSelf))
 end
+function PLUGIN:Blink(netuser, cmd, args)
+	local coords = netuser.playerClient.lastKnownPosition
+	local RaycastBlink = util.FindOverloadedMethod( UnityEngine.Physics, "RaycastAll", bf.public_static, { UnityEngine.Vector3 ,UnityEngine.Vector3,System.Single } )
+	cs.registerstaticmethod( "tmp2", RaycastBlink )
+	local RaycastBlink = tmp2
+	tmp2 = nil
+
+	local ray = rust.GetCharacter( netuser ).eyesOrigin
+	local radius = 100
+	local direction = rust.GetCharacter( netuser ).forward
+	local distance = 100
+
+	local hits = RaycastBlink( ray,direction,distance  )
+	local tbl = cs.createtablefromarray( hits )
+	rust.BroadcastChat(tostring(tbl[1]))
+end
 function PLUGIN:CastSphere(netuser, cmd, args)
 	local NetCullRemove = util.FindOverloadedMethod( Rust.NetCull._type, "Destroy", bf.public_static, { UnityEngine.GameObject} )
 	local WildlifeRemove = util.GetStaticMethod( Rust.WildlifeManager._type, "RemoveWildlifeInstance")
@@ -395,15 +453,28 @@ function PLUGIN:CastSphere(netuser, cmd, args)
 	tmp2 = nil
 
 	local ray = rust.GetCharacter( netuser ).eyesRay
-	local radius = 100
+	local radius = 0.1
 	local direction = rust.GetCharacter( netuser ).forward
-	local distance = 100
+	local distance = 30
 
 	local hits = Raycast( ray,radius,distance  )
 	local tbl = cs.createtablefromarray( hits )
 	for k,v in pairs(tbl) do
-		rust.BroadcastChat(tostring(k)..'   '..tostring(v.collider.gameObject))
---[[
+
+		if string.find(tostring(v.collider), 'Terrain',1 ,true) then
+			rust.BroadcastChat(tostring(v.point))
+			local coord = v
+			coord.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coord)
+			local tpTo = '"'..tostring(coord.x)..'" "'..tostring(coord.y)..'" "'..tostring(coord.z)..'"'
+			rust.RunServerCommand( 'teleport.topos "'..netuser.displayName..'" '.. tpTo)
+
+		end
+	end
+		--rust.BroadcastChat(tostring(k)..'   '..tostring(v.collider.gameObject.transform.position))
+
+
+
+		--[[
 		if string.find(tostring(k), 'Stag(',1 ,true) or string.find(tostring(k), 'Wolf(',1 ,true) then
 			local object = v.collider.gameObject
 
@@ -414,7 +485,6 @@ function PLUGIN:CastSphere(netuser, cmd, args)
 
 		end
 ]]
-	end
 end
 function PLUGIN:Day(netuser, cmd, args)
 	rust.RunServerCommand('env.time 10')

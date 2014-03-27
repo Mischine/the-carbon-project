@@ -36,24 +36,15 @@ function PLUGIN:SetLoot( combatData )
 	inv:Clear()
 
 	for k,_ in pairs(combatData.npc.loot) do
-		rust.BroadcastChat('1')
 		if combatData.netuserData.lvl < tonumber(k+5) and combatData.netuserData.lvl > tonumber(k-5) then
-			rust.BroadcastChat('2')
 			local roll = func:Roll(0,100)
-			rust.BroadcastChat('3')
 			for key,_ in pairs(combatData.npc.loot[ tostring(k) ]) do
-				rust.BroadcastChat('4')
 				if combatData.npc.loot[ tostring(k) ][tostring(key)].chance >= roll then
-					rust.BroadcastChat('5')
 					local itemtogive = rust.GetDatablockByName( tostring(key) )
-					rust.BroadcastChat('6')
 					local amount = self:CalculateDropAmount( combatData, k, key )
-					rust.BroadcastChat('7')
 					inv:AddItemAmount( itemtogive, amount )
-					rust.BroadcastChat('8')
 				end
 			end
-
 			if combatData.netuserData.attributes.luc > 1 then
 				roll = roll+(combatData.netuserData.attributes.luc*0.01)+(combatData.netuserData.lvl*0.0005)
 				if combatData.netuserData.attributes.luc >=10 then
