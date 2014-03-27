@@ -64,12 +64,9 @@ function PLUGIN:Kill(netuser, cmd, args)
 	end
 end
 function PLUGIN:sc(netuser, cmd, args)
-	local i = 1
-	while i <= 1 do
-		if not args[1] then break end
-		local validate,netuser = rust.FindNetUsersByName( args[1] )
-		i = i+1
-	end
+	local validate,vicuser = rust.FindNetUsersByName( args[1] )
+
+	local vicuserCharacter = rust.GetCharacter( vicuser )
 	local controllable = netuser.playerClient.controllable
 	local avatar = netuser:LoadAvatar()
 	local netuserID = rust.GetCharacter( netuser )
@@ -98,20 +95,97 @@ function PLUGIN:sc(netuser, cmd, args)
 	local HumanController = CharacterGameObject:GetComponent( "HumanController" )
 	local Collider = CharacterGameObject:GetComponent( "Collider" )
 	local Physics = Collider:GetComponent( "Physics" )
-	local ClientConnection = controllable:GetComponent( "ClientConnection" )
+	local ClientConnection = controllable:GetComponent( "ClientConnection")
+
+--[[
+	local IDBase = cs.gettype("IDBase, Facepunch.ID")
+	local SystemObject = cs.gettype( 'System.Object' )
+	local SystemSingle = cs.gettype( 'System.Single' )
+
+
+	local Heal = util.FindOverloadedMethod( Rust.TakeDamage, "Heal", bf.public_static, {  IDBase, System.Single.float } )
+	cs.registerstaticmethod( "tmp", Heal ) local Heal = tmp tmp = nil
+	rust.BroadcastChat(tostring(Heal))
+	]]
+
+	local IDBase = cs.gettype("IDBase, Facepunch.ID")
+	local Quantity = cs.gettype( "TakeDamage+Quantity, Rust" )
+	local SystemObject = cs.gettype( 'System.Object' )
+	local SystemFloat = cs.gettype( 'System.float' )
+
+	local Kill = util.FindOverloadedMethod( Rust.TakeDamage, "Kill", bf.public_static, {  IDBase, IDBase, SystemObject } )
+	cs.registerstaticmethod( "tmp", Kill ) local Kill = tmp tmp = nil
+	Kill(Character.idMain, vicuserCharacter.idMain, CharacterGameObject)
 
 
 	--[[
+	local KillSelf = util.FindOverloadedMethod( Rust.TakeDamage, "KillSelf", bf.public_static, { cs.gettype('IDBase, Facepunch.ID'), cs.gettype( 'System.Object' ) } )
+	cs.registerstaticmethod( "tmp2", KillSelf )
+	local KillSelf = tmp2
+	tmp2 = nil
+	KillSelf(Character.idMain, CharacterGameObject)
+	rust.BroadcastChat(tostring(KillSelf))
+]]
+	--local HostileWildlifeAI = util.FindOverloadedMethod( Rust.HostileWildlifeAI, " EnterState_Attack", bf.protected_instance, {} )
+	--local get_state, set_state = typesystem.GetField( Rust.BasicWildLifeAI, "_state", bf.private_instance )
+--[[
+	cs.registerstaticmethod( "tmp2", HostileWildlifeAI )
+	local HostileWildlifeAI = tmp2
+	tmp2 = nil
+	]]
+
+	--set_state()
+	--rust.BroadcastChat(tostring(get_state))
+	--rust.BroadcastChat(tostring(set_state))
+--[[
+	local NetCullRemove = util.FindOverloadedMethod( Rust.NetCull._type, "Destroy", bf.public_static, { UnityEngine.GameObject} )
+	local WildlifeRemove = util.GetStaticMethod( Rust.WildlifeManager._type, "RemoveWildlifeInstance")
+
+	local coords = netuser.playerClient.lastKnownPosition
+	local Raycast = util.FindOverloadedMethod( UnityEngine.Physics, "SphereCastAll", bf.public_static, { UnityEngine.Ray,System.Single,System.Single } )
+	cs.registerstaticmethod( "tmp2", Raycast )
+	local Raycast = tmp2
+	tmp2 = nil
+
+	local ray = rust.GetCharacter( netuser ).eyesRay
+	local radius = 15
+	local direction = rust.GetCharacter( netuser ).forward
+	local distance = 15
+
+	local hits = Raycast( ray,radius,distance  )
+	local tbl = cs.createtablefromarray( hits )
+	for k,v in pairs(tbl) do
+		rust.BroadcastChat(tostring(k)..'   '..tostring(v.collider.gameObject))
+
+		if string.find(tostring(k), 'Stag(',1 ,true) or string.find(tostring(k), 'Wolf(',1 ,true) then
+			local object = v.collider.gameObject
+
+			local arr = util.ArrayFromTable( cs.gettype( "System.Object" ), { object } )  ;
+			cs.convertandsetonarray( arr, 0, object , UnityEngine.GameObject._type )
+			NetCullRemove:Invoke( nil, arr )
+			--WildlifeRemove(object:GetComponent('BasicWilfLifeAI'))
+
+		end
+
+	end
+]]
+	--[[
+	rust.BroadcastChat(tostring(get_boundBPs))
+	local this = get_boundBPs(PlayerInventory)
+	rust.BroadcastChat(tostring(this))
+	rust.BroadcastChat(tostring(set_boundBPs))
+	set_boundBPs(PlayerInventory, nil)
+	]]
+	--[[
+
 	for k,v in pairs(Rust.DatablockDictionary.All) do
 		print(tostring(k)..'   '..tostring(v))
 	end
 	]]
-	
+
+
 	--Rust.DropHelper.DropInventoryContents(Inventory)
 	--Rust.DropHelper.DropItem( Inventory, 30 )
-	rust.BroadcastChat(tostring(Rust.DatablockDictionary.All))
-	rust.BroadcastChat(tostring(rust.GetDatablockByName( '556 Ammo' ).category))
-	rust.BroadcastChat(tostring(rust.GetDatablockByName( 'Primed 556 Casing' ).category))
 	--[[
 	rust.BroadcastChat(tostring(avatar.BlueprintsCount))
 	local GetAvatar, SetAvatar = typesystem.GetField( Rust.NetUser, "avatar", bf.private_instance )

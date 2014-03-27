@@ -85,8 +85,8 @@ function PLUGIN:a(netuser, _, _)
 	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
 	local itemname = ';explosive_charge'
 	local coords = netuser.playerClient.lastKnownPosition
-	coords.x = func:Roll( false, coords.x-10, coords.x+10)
-	coords.z = func:Roll( false, coords.z-10, coords.z+10)
+	coords.x = func:Roll(coords.x-10, coords.x+10)
+	coords.z = func:Roll(coords.z-10, coords.z+10)
 	coords.y = coords.y - 1.8
 	local v = coords
 	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
@@ -155,8 +155,8 @@ function PLUGIN:SpawnAI(netuser, cmd, arg)
 
 	for i=0, 20 do
 		local coords = netuser.playerClient.lastKnownPosition
-		coords.x = func:Roll( false, coords.x-20, coords.x+20)
-		coords.z = func:Roll( false, coords.z-20, coords.z+20)
+		coords.x = func:Roll(coords.x-20, coords.x+20)
+		coords.z = func:Roll(coords.z-20, coords.z+20)
 		--coords.z = coords.z + 25
 		coords.y = coords.y + 5
 		--local char = rust.GetCharacter( netuser )

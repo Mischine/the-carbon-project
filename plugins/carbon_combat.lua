@@ -510,9 +510,9 @@ end
 function PLUGIN:DmgRandomizer(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:DmgRandomizer----' ) end
     -- rust.BroadcastChat('----PLUGIN:DmgRandomizer----')
-	local min,max = combatData.dmg.amount*(func:Roll(false,0.5,0.6)),combatData.dmg.amount*(func:Roll(false,0.9,1))
+	local min,max = combatData.dmg.amount*(func:Roll(0.5,0.6)),combatData.dmg.amount*(func:Roll(0.9,1))
 	-- rust.BroadcastChat( 'Min: ' .. tostring(min) .. '  | Max: ' .. tostring( max ))
-	combatData.dmg.amount = func:Roll(false,min,max)
+	combatData.dmg.amount = func:Roll(min,max)
     if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, tostring( combatData.dmg.amount )) end
     --rust.BroadcastChat(tostring(combatData.dmg.amount))
     return combatData.dmg.amount
@@ -600,7 +600,7 @@ function PLUGIN:CritCheck(combatData)
 	if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '----PLUGIN:CritCheck----' ) end
     if combatData.scenario == 1 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(false,0,100)
+            local roll = func:Roll(0,100)
             if combatData.dmg.damageTypes.value__ == damage_melee then
                 if ((math.floor(100*(combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002)+.5) >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2
@@ -619,7 +619,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 2 then
         if (combatData.npc.attributes.agi>0) then
-            local roll = func:Roll(false,0,100)
+            local roll = func:Roll(0,100)
             if (math.floor(100*(combatData.vicuserData.attributes.agi+combatData.vicuserData.lvl)*.002)+.5) >= roll then
                 combatData.dmg.amount = combatData.dmg.amount * 2
                 rust.InventoryNotice( combatData.vicuser, 'Critically Wounded!' )
@@ -628,7 +628,7 @@ function PLUGIN:CritCheck(combatData)
         end
     elseif combatData.scenario == 3 then
         if (combatData.netuserData.attributes.agi>0) then
-            local roll = func:Roll(false,0,100)
+            local roll = func:Roll(0,100)
             if combatData.dmg.damageTypes.value__ == damage_melee then
                 if ((math.floor(100*(combatData.netuserData.attributes.agi+combatData.netuserData.lvl)*.002)+.5) >= roll) then
                     combatData.dmg.amount = combatData.dmg.amount * 2

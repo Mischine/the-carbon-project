@@ -37,7 +37,7 @@ function PLUGIN:SetLoot( combatData )
 
 	for k,_ in pairs(combatData.npc.loot) do
 		if combatData.netuserData.lvl < tonumber(k+5) and combatData.netuserData.lvl > tonumber(k-5) then
-			local roll = func:Roll(true,0,100)
+			local roll = func:Roll(0,100, 0)
 			for key,_ in pairs(combatData.npc.loot[ tostring(k) ]) do
 				if combatData.npc.loot[ tostring(k) ][tostring(key)].chance >= roll then
 					local itemtogive = rust.GetDatablockByName( tostring(key) )
@@ -48,7 +48,7 @@ function PLUGIN:SetLoot( combatData )
 			if combatData.netuserData.attributes.luc > 1 then
 				roll = roll+(combatData.netuserData.attributes.luc*0.01)+(combatData.netuserData.lvl*0.0005)
 				if combatData.netuserData.attributes.luc >=10 then
-					local epicRoll = func:round(func:Roll( false, 0, 100 ),1)
+					local epicRoll = func:Roll(0,100,1)
 					if epicRoll <= combatData.netuserData.lvl*.0005 then
 						rust.InventoryNotice(combatData.netuser, 'Rare Drop')
 						--local randomItem = func:Roll(true,1, 11--[[COUNT EPIC ITEM TABLE KEYS]] )
@@ -69,7 +69,7 @@ function PLUGIN:CalculateDropAmount( combatData, lvl, item )
 	local level = combatData.netuserData.lvl
 	min = min+min*(luck*0.01+level*0.0005)
 	max = max+max*(luck*0.01+level*0.0005)
-	return func:Roll(true,min,max)
+	return func:Roll(min,max,0)
 end
 --[[
 
@@ -200,7 +200,7 @@ function PLUGIN:PatchNewSpawnlists()
 	end
 	local spawnlists = Rust.DatablockDictionary._lootSpawnLists
 	spawnlists:Clear()
-	for k, _ in pairs( self.Spawnlists ) do
+	for k, v in pairs( self.Spawnlists ) do
 		spawnlists:Add( k, spawnlistobjects[ k ] )
 	end
 	print( tostring( cnt ) .. " custom loot tables were loaded!" )

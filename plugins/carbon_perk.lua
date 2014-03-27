@@ -50,7 +50,7 @@ function PLUGIN:rage(combatData)
 		end
 		if (combatData.vicuserData.perks.rage > 0) then
 			if debug.list[ combatData.vicuser.displayName ] then rust.SendChatToUser( debug.list[ combatData.vicuser.displayName ].targnetuser,'PERK RAGE: ' .. tostring(combatData.dmg.amount)) end
-			local roll = func:Roll(true,0,100)
+			local roll = func:Roll(0,100,0)
 			--rust.BroadcastChat(tostring(roll))
 			if ((combatData.vicuserData.perks.rage == 1) and (roll <= 3)) then
 				rage(1, 5, combatData)
@@ -84,7 +84,7 @@ function PLUGIN:disarm(combatData)
 		local disarmPart = {'hand', 'wrist','bicep'}
 		if Inventory.activeItem and func:CheckBodyPart( combatData.bodyPart, disarmPart ) then
 			if (combatData.netuserData.perks.disarm > 0) then
-				local roll = func:Roll(true,0,100)
+				local roll = func:Roll(0,100,0)
 				if ((combatData.netuserData.perks.disarm == 1) and (roll <= 3)) then
 					func:Notice(combatData.vicuser,'☓','You have been disarmed by '.. combatData.netuser.displayName,3)
 					func:Notice(combatData.netuser,'✓','You have disarmed ' .. combatData.vicuser.displayName,3)
@@ -153,7 +153,7 @@ function PLUGIN:parry(combatData)
 	end
     if ((combatData.vicuser) and (combatData.vicuserData.perks.parry)) then
         if (combatData.vicuserData.perks.parry > 0) then
-            local roll = func:Roll(true,0,100)
+            local roll = func:Roll(0,100,0)
             --rust.BroadcastChat(tostring(roll))
             if ((combatData.vicuserData.perks.parry == 1) and (roll <= 3)) then
                 damage = 0

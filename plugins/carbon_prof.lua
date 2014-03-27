@@ -39,7 +39,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
         if( craftdata.lvl < data.req ) then rust.Notice( netuser, 'You cannot craft this yet. ' .. data.prof .. ' level ' .. data.req .. ' required!') char[ netuserID ].crafting = false return false end
         local a,b,c=craftdata.lvl, char[ netuserID ].attributes.int, data.dif ;local d,e=100-a*0.321429/2-b*2.25/2+c*0.22501,50-a*0.321429-b*2.25+c*0.4501
         local crit, failed = false,false
-        local roll = func:Roll(true, 100)
+        local roll = func:Roll(0,100,0)
         if(roll < e) then
             failed = true
         elseif (roll > d) then
@@ -100,7 +100,7 @@ function PLUGIN:OnStartCrafting( inv, blueprint, amount )
                         rust.InventoryNotice( netuser, amount .. 'x ' .. blueprint.resultItem.name )
                     end)
                 end
-                local xp = func:Roll( true, data.xp.min, data.xp.max )*amount
+                local xp = func:Roll(data.xp.min,data.xp.max,0)*amount
                 if failed then xp = math.floor(xp / 2) rust.Notice( netuser, 'Crafting failure!' ) end
                 timer.Once(2, function()
                     xp = self:AddCraftXP( netuser, data.prof, xp )

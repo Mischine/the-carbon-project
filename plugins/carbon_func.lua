@@ -190,15 +190,14 @@ function PLUGIN:xpbar( value, size )
 	end
 	return msg
 end
-
-function PLUGIN:GetTimeMilliSeconds()
-	local epoch = System.DateTime.Parse[1]( "1970-01-01 00:00:00" ):ToLocalTime()
-	local now = System.DateTime.Now
-	local unix = now:Subtract( epoch )
-	return unix.TotalMilliSeconds
-end
-
-function PLUGIN:Roll(a,b,c)
+function PLUGIN:Roll(min,max,dec)
+	local RandomRange = util.FindOverloadedMethod( UnityEngine.Random, "Range", bf.public_static, { System.Single, System.Single } )
+	cs.registerstaticmethod( "tmp2", RandomRange ) local RandomRange = tmp2 tmp2 = nil
+	if not dec then return RandomRange(min,max) else
+		if dec then local mult = 10^(dec or 0) else mult = 1 end
+		return math.floor(RandomRange(min,max) * mult + 0.5) / mult
+	end
+	--[[
 	local d=self:GetTimeMilliSeconds()
 	math.randomseed(d)
 	local result = 0
@@ -212,6 +211,7 @@ function PLUGIN:Roll(a,b,c)
 	else
 		return result
 	end
+	]]
 end
 function PLUGIN:FindNetUserById(netuserID)
 	local findUserName
