@@ -15,6 +15,7 @@ function PLUGIN:Init()
 	self:AddChatCommand('kill', self.Kill)
 	self:AddChatCommand('hurt', self.Hurt)
 	self:AddChatCommand('day', self.Day)
+	self:AddChatCommand('cast', self.CastSphere)
 end
 --local testC = util.GetFieldGetter( Rust.PlayerMovement_Mecanim._type, "PlayerMovement_Mecanim" )
 --local testA, testB = typesystem.GetProperty( Rust.PlayerMovement_Mecanim, "flSprintSpeed", bf.public_instance )
@@ -66,7 +67,9 @@ end
 function PLUGIN:sc(netuser, cmd, args)
 	local validate,vicuser = rust.FindNetUsersByName( args[1] )
 
+	local vicusercontrollable = vicuser.playerClient.controllable
 	local vicuserCharacter = rust.GetCharacter( vicuser )
+	local vicuserInventory = vicusercontrollable:GetComponent( "Inventory" )
 	local controllable = netuser.playerClient.controllable
 	local avatar = netuser:LoadAvatar()
 	local netuserID = rust.GetCharacter( netuser )
@@ -97,6 +100,10 @@ function PLUGIN:sc(netuser, cmd, args)
 	local Physics = Collider:GetComponent( "Physics" )
 	local ClientConnection = controllable:GetComponent( "ClientConnection")
 
+	--Rust.DropHelper.DropInventoryContents(vicuserInventory)
+	for i = 0, 40, 1 do
+		Rust.DropHelper.DropItem( vicuserInventory, i )
+	end
 --[[
 	local IDBase = cs.gettype("IDBase, Facepunch.ID")
 	local SystemObject = cs.gettype( 'System.Object' )
@@ -106,8 +113,8 @@ function PLUGIN:sc(netuser, cmd, args)
 	local Heal = util.FindOverloadedMethod( Rust.TakeDamage, "Heal", bf.public_static, {  IDBase, System.Single.float } )
 	cs.registerstaticmethod( "tmp", Heal ) local Heal = tmp tmp = nil
 	rust.BroadcastChat(tostring(Heal))
-	]]
-
+]]
+--[[
 	local IDBase = cs.gettype("IDBase, Facepunch.ID")
 	local Quantity = cs.gettype( "TakeDamage+Quantity, Rust" )
 	local SystemObject = cs.gettype( 'System.Object' )
@@ -116,59 +123,29 @@ function PLUGIN:sc(netuser, cmd, args)
 	local Kill = util.FindOverloadedMethod( Rust.TakeDamage, "Kill", bf.public_static, {  IDBase, IDBase, SystemObject } )
 	cs.registerstaticmethod( "tmp", Kill ) local Kill = tmp tmp = nil
 	Kill(Character.idMain, vicuserCharacter.idMain, CharacterGameObject)
-
-
-	--[[
-	local KillSelf = util.FindOverloadedMethod( Rust.TakeDamage, "KillSelf", bf.public_static, { cs.gettype('IDBase, Facepunch.ID'), cs.gettype( 'System.Object' ) } )
-	cs.registerstaticmethod( "tmp2", KillSelf )
-	local KillSelf = tmp2
-	tmp2 = nil
-	KillSelf(Character.idMain, CharacterGameObject)
-	rust.BroadcastChat(tostring(KillSelf))
 ]]
-	--local HostileWildlifeAI = util.FindOverloadedMethod( Rust.HostileWildlifeAI, " EnterState_Attack", bf.protected_instance, {} )
-	--local get_state, set_state = typesystem.GetField( Rust.BasicWildLifeAI, "_state", bf.private_instance )
---[[
-	cs.registerstaticmethod( "tmp2", HostileWildlifeAI )
-	local HostileWildlifeAI = tmp2
-	tmp2 = nil
+	--[[
+			local KillSelf = util.FindOverloadedMethod( Rust.TakeDamage, "KillSelf", bf.public_static, { cs.gettype('IDBase, Facepunch.ID'), cs.gettype( 'System.Object' ) } )
+			cs.registerstaticmethod( "tmp2", KillSelf )
+			local KillSelf = tmp2
+			tmp2 = nil
+			KillSelf(Character.idMain, CharacterGameObject)
+			rust.BroadcastChat(tostring(KillSelf))
+	]]
+	--[[
+			local HostileWildlifeAI = util.FindOverloadedMethod( Rust.HostileWildlifeAI, " EnterState_Attack", bf.protected_instance, {} )
+			local get_state, set_state = typesystem.GetField( Rust.BasicWildLifeAI, "_state", bf.private_instance )
+
+			cs.registerstaticmethod( "tmp2", HostileWildlifeAI )
+			local HostileWildlifeAI = tmp2
+			tmp2 = nil
+
+
+			set_state()
+			rust.BroadcastChat(tostring(get_state))
+			rust.BroadcastChat(tostring(set_state))
 	]]
 
-	--set_state()
-	--rust.BroadcastChat(tostring(get_state))
-	--rust.BroadcastChat(tostring(set_state))
---[[
-	local NetCullRemove = util.FindOverloadedMethod( Rust.NetCull._type, "Destroy", bf.public_static, { UnityEngine.GameObject} )
-	local WildlifeRemove = util.GetStaticMethod( Rust.WildlifeManager._type, "RemoveWildlifeInstance")
-
-	local coords = netuser.playerClient.lastKnownPosition
-	local Raycast = util.FindOverloadedMethod( UnityEngine.Physics, "SphereCastAll", bf.public_static, { UnityEngine.Ray,System.Single,System.Single } )
-	cs.registerstaticmethod( "tmp2", Raycast )
-	local Raycast = tmp2
-	tmp2 = nil
-
-	local ray = rust.GetCharacter( netuser ).eyesRay
-	local radius = 15
-	local direction = rust.GetCharacter( netuser ).forward
-	local distance = 15
-
-	local hits = Raycast( ray,radius,distance  )
-	local tbl = cs.createtablefromarray( hits )
-	for k,v in pairs(tbl) do
-		rust.BroadcastChat(tostring(k)..'   '..tostring(v.collider.gameObject))
-
-		if string.find(tostring(k), 'Stag(',1 ,true) or string.find(tostring(k), 'Wolf(',1 ,true) then
-			local object = v.collider.gameObject
-
-			local arr = util.ArrayFromTable( cs.gettype( "System.Object" ), { object } )  ;
-			cs.convertandsetonarray( arr, 0, object , UnityEngine.GameObject._type )
-			NetCullRemove:Invoke( nil, arr )
-			--WildlifeRemove(object:GetComponent('BasicWilfLifeAI'))
-
-		end
-
-	end
-]]
 	--[[
 	rust.BroadcastChat(tostring(get_boundBPs))
 	local this = get_boundBPs(PlayerInventory)
@@ -398,6 +375,46 @@ function PLUGIN:sc(netuser, cmd, args)
 	--]]
 	-- recycler = avi.avatar.Recycler()
 	--avatar:ClearBlueprints()
+end
+function PLUGIN:KillSelf(netuser, cmd, args)
+	local KillSelf = util.FindOverloadedMethod( Rust.TakeDamage, "KillSelf", bf.public_static, { cs.gettype('IDBase, Facepunch.ID'), cs.gettype( 'System.Object' ) } )
+	cs.registerstaticmethod( "tmp2", KillSelf )
+	local KillSelf = tmp2
+	tmp2 = nil
+	KillSelf(Character.idMain, CharacterGameObject)
+	rust.BroadcastChat(tostring(KillSelf))
+end
+function PLUGIN:CastSphere(netuser, cmd, args)
+	local NetCullRemove = util.FindOverloadedMethod( Rust.NetCull._type, "Destroy", bf.public_static, { UnityEngine.GameObject} )
+	local WildlifeRemove = util.GetStaticMethod( Rust.WildlifeManager._type, "RemoveWildlifeInstance")
+
+	local coords = netuser.playerClient.lastKnownPosition
+	local Raycast = util.FindOverloadedMethod( UnityEngine.Physics, "SphereCastAll", bf.public_static, { UnityEngine.Ray,System.Single,System.Single } )
+	cs.registerstaticmethod( "tmp2", Raycast )
+	local Raycast = tmp2
+	tmp2 = nil
+
+	local ray = rust.GetCharacter( netuser ).eyesRay
+	local radius = 100
+	local direction = rust.GetCharacter( netuser ).forward
+	local distance = 100
+
+	local hits = Raycast( ray,radius,distance  )
+	local tbl = cs.createtablefromarray( hits )
+	for k,v in pairs(tbl) do
+		rust.BroadcastChat(tostring(k)..'   '..tostring(v.collider.gameObject))
+--[[
+		if string.find(tostring(k), 'Stag(',1 ,true) or string.find(tostring(k), 'Wolf(',1 ,true) then
+			local object = v.collider.gameObject
+
+			local arr = util.ArrayFromTable( cs.gettype( "System.Object" ), { object } )  ;
+			cs.convertandsetonarray( arr, 0, object , UnityEngine.GameObject._type )
+			NetCullRemove:Invoke( nil, arr )
+			--WildlifeRemove(object:GetComponent('BasicWilfLifeAI'))
+
+		end
+]]
+	end
 end
 function PLUGIN:Day(netuser, cmd, args)
 	rust.RunServerCommand('env.time 10')

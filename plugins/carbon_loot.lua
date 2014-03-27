@@ -27,7 +27,7 @@ function PLUGIN:SetLoot( combatData )
 
 	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
 	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { v } ))
-	local arr = util.ArrayFromTable( cs.gettype( 'System.Object' ), { itemname, v, q  } )
+	local arr = util.ArrayFromTable( cs.gettype( 'System.Object' ), { itemname, v, q  })
 	cs.convertandsetonarray( arr, 0, itemname, System.String._type )
 	cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
 	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
@@ -36,22 +36,31 @@ function PLUGIN:SetLoot( combatData )
 	inv:Clear()
 
 	for k,_ in pairs(combatData.npc.loot) do
+		rust.BroadcastChat('1')
 		if combatData.netuserData.lvl < tonumber(k+5) and combatData.netuserData.lvl > tonumber(k-5) then
-			local roll = func:Roll(0,100, 0)
+			rust.BroadcastChat('2')
+			local roll = func:Roll(0,100)
+			rust.BroadcastChat('3')
 			for key,_ in pairs(combatData.npc.loot[ tostring(k) ]) do
+				rust.BroadcastChat('4')
 				if combatData.npc.loot[ tostring(k) ][tostring(key)].chance >= roll then
+					rust.BroadcastChat('5')
 					local itemtogive = rust.GetDatablockByName( tostring(key) )
+					rust.BroadcastChat('6')
 					local amount = self:CalculateDropAmount( combatData, k, key )
+					rust.BroadcastChat('7')
 					inv:AddItemAmount( itemtogive, amount )
+					rust.BroadcastChat('8')
 				end
 			end
+
 			if combatData.netuserData.attributes.luc > 1 then
 				roll = roll+(combatData.netuserData.attributes.luc*0.01)+(combatData.netuserData.lvl*0.0005)
 				if combatData.netuserData.attributes.luc >=10 then
 					local epicRoll = func:Roll(0,100,1)
 					if epicRoll <= combatData.netuserData.lvl*.0005 then
 						rust.InventoryNotice(combatData.netuser, 'Rare Drop')
-						--local randomItem = func:Roll(true,1, 11--[[COUNT EPIC ITEM TABLE KEYS]] )
+						--local randomItem = func:Roll(true,1, 11)
 						--local item =
 						--self:EpicDrop(combatData, item)
 						-- SUPPLY SIGNAL, MILITARY WEAPONS, KEVLAR, ANY BLUEPRINT, TEMPORARY PET
@@ -63,13 +72,15 @@ function PLUGIN:SetLoot( combatData )
 	end
 end
 function PLUGIN:CalculateDropAmount( combatData, lvl, item )
+
 	local min = combatData.npc.loot[tostring(lvl)][tostring(item)].min
 	local max = combatData.npc.loot[tostring(lvl)][tostring(item)].max
 	local luck = combatData.netuserData.attributes.luc
 	local level = combatData.netuserData.lvl
 	min = min+min*(luck*0.01+level*0.0005)
 	max = max+max*(luck*0.01+level*0.0005)
-	return func:Roll(min,max,0)
+
+	return func:Roll(min,max)
 end
 --[[
 

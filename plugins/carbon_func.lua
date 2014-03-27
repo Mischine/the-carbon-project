@@ -193,9 +193,10 @@ end
 function PLUGIN:Roll(min,max,dec)
 	local RandomRange = util.FindOverloadedMethod( UnityEngine.Random, "Range", bf.public_static, { System.Single, System.Single } )
 	cs.registerstaticmethod( "tmp2", RandomRange ) local RandomRange = tmp2 tmp2 = nil
-	if not dec then return RandomRange(min,max) else
-		if dec then local mult = 10^(dec or 0) else mult = 1 end
-		return math.floor(RandomRange(min,max) * mult + 0.5) / mult
+	if not dec or dec == 0 then
+		return RandomRange(min,max) 
+	else
+		return self:round(RandomRange(min,max),dec)
 	end
 	--[[
 	local d=self:GetTimeMilliSeconds()

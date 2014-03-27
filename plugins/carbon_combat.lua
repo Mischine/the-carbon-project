@@ -202,7 +202,7 @@ function PLUGIN:GetCombatData(takedamage, dmg)
 	end
 	combatData['victimPos'] = dmg.victim.networkView.position
 	combatData['distance'] = func:round(UnityEngine.Vector3.Distance( dmg.victim.networkView.position, dmg.attacker.networkView.position ),2)
-	rust.BroadcastChat(tostring(combatData.distance))
+
 	if combatData.netuser and combatData.vicuser and combatData.netuser ~= combatData.vicuser and combatData.weapon then
 		combatData['scenario'] = 1                                                                                                      --PVP
 		--rust.BroadcastChat( 'Scenario: ' .. tostring(combatData['scenario']) )
@@ -279,7 +279,7 @@ end
 -- When there is an invalid Scenario, it will print some info to help use create a new scenario or smash a bug.
 -- TODO: Add more debugs to it. I dont know them all.
 function PLUGIN:RangeModifier(combatData)
-	local distance = tonumber(combatData.distance) rust.BroadcastChat('Distance: '..tostring(distance).. 'm')
+	local distance = tonumber(combatData.distance) --rust.BroadcastChat('Distance: '..tostring(distance).. 'm')
 	local weaponRange = tonumber(rust.GetInventory(combatData.netuser).activeItem.datablock.bulletRange)
 	local percRange = math.floor((100-(100*(distance/weaponRange)))+.5) --rust.BroadcastChat(tostring(percRange))
 	local rangeModifier = combatData.dmg.amount*(percRange*.01)
