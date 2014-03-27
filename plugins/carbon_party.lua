@@ -323,10 +323,11 @@ function PLUGIN:DestributePartyXP( pdata )
 	pdata.xp = pdata.xp * (1 + ( 0.05 * int )) -- Intelligence modifier
 	for key, value in pairs( pdata.netusers ) do
 		if value.wep then partyData.members[value.t.netuserData.id].xpcon = partyData.members[value.t.netuserData.id].xpcon + ( pdata.xp/totNets ) end
+		rust.BroadcastChat( value.t.netuser.displayName .. '[ PartyID:' .. tostring(partyData.id) .. ' ] Has received ' .. tostring(math.floor(pdata.xp/totNets)) .. 'xp!' )
 		char:GiveXp( value.t, math.floor(pdata.xp/totNets), value.wep )
-rust.BroadcastChat( value.t.netuser.displayName .. '[ PartyID:' .. tostring(partyData.id) .. ' ] Has received ' .. tostring(pdata.xp/totNets) .. 'xp!' )
 	end
 	self:PartySave()
+	rust.BroadcastChat( '' )
 end
 
 function PLUGIN:DistributeBalance( netuser, pdata, g, s, c )
