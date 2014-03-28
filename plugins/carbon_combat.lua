@@ -111,7 +111,8 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:ThiefMod(combatData)
 		combatData.dmg.amount = self:GuildDefend(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
-	    --if hunter:hasPet( combatData.netuser ) then hunter:PetAttackPrep( combatData.netuser, combatData ) end
+		local pet = hunter:getPetData( combatData.netuser )if pet then if pet.state ~= 6 then pet.state = 6 hunter:PetAttackPlayer( combatData, takedamage, pet ) end end
+		local pet = hunter:getPetData( combatData.vicuser )if pet then if pet.state ~= 6 then pet.state = 6 hunter:PetCounterAttackPlayer( combatData, takedamage, pet ) end end
     elseif combatData.scenario == 2 then
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------EVP------------' ) end
 		combatData.dmg.amount = self:DmgModifier(combatData)
@@ -121,6 +122,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:ActivatePerks(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildDefend(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
+		--local pet = hunter:getPetData( combatData.vicuser ) if pet then if pet.state ~= 5 then pet.state = 5 hunter:PetCounterAttackNPC( combatData, takedamage, pet ) end end
     elseif combatData.scenario == 3 then
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------PVE------------' ) end
 		combatData.dmg.amount = self:WeaponSkill(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
@@ -132,7 +134,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:ActivatePerks(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildAttack(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
-		--if hunter:hasPet( combatData.netuser ) then hunter:PetAttackPrep( combatData.netuser, combatData, takedamage ) end
+		local pet = hunter:getPetData( combatData.netuser )if pet then if pet.state ~= 5 then pet.state = 5 hunter:PetAttackNPC( combatData, takedamage, pet ) end end
 	    self:AddNpcDmg( combatData )
 	elseif combatData.scenario == 4 then                                                                                        -- client vs entity
 	    if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------client vs Object/structure(Melee)------------' ) end
@@ -256,7 +258,6 @@ function PLUGIN:OnKilled (takedamage, dmg)
 			combatData.netuserData.stats.kills.pve[combatData.npc.name] = combatData.netuserData.stats.kills.pve[combatData.npc.name]+1
 		end
 		combatData.netuserData.stats.kills.pve.total = combatData.netuserData.stats.kills.pve.total+1
-
 		self:xpDistributeSystem( combatData, xp )
 		if self.npc and self.npc[ combatData.npcvid ] then
 			self.npc[ combatData.npcvid ] = nil

@@ -24,10 +24,16 @@ function PLUGIN:gui( netuser, cmd, args )
 end
 
 function PLUGIN:cc( netuser )
-	local char = rust.GetCharacter( netuser )
-	local gObject = char:get_gameObject()
-	local cc = netuser:GetComponent( 'CharacterController' )
-	rust.BroadcastChat( tostring(cc ))
+	local Character = rust.GetCharacter( netuser )
+	local attacker = cs.gettype('IDBase, Facepunch.ID')
+	local victim = cs.gettype('IDBase, Facepunch.ID')
+	local damageQuantity = cs.gettype('TakeDamage+Quantity, Assembly-CSharp')
+	local extraData = System.Object
+	local Hurt = util.FindOverloadedMethod(Rust.TakeDamage, "Hurt", bf.public_static, {attacker,victim, damageQuantity, extraData})
+	cs.registerstaticmethod( "tmp", Hurt ) local Hurt = tmp tmp = nil
+	local dmg = Rust.DamageTypeList
+	Hurt(Character.idMain,Character.idMain,dmg,CharacterGameObject)
+	rust.BroadcastChat( 'Done.' )
 end
 
 function PLUGIN:AirStrike( netuser, _, args )
@@ -82,9 +88,11 @@ end
 
 function PLUGIN:a(netuser, _, _)
 	-- >>>>>>>>>>>>>>>>>>>> EXPLOSIVES! <<<<<<<<<<<<<<<<<<<<
+	--[[
 	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
-	local itemname = ';struct_wood_ramp'
+	local itemname = ';res_woodpile'
 	local coords = netuser.playerClient.lastKnownPosition
+	coords.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coords)
 	local v = coords
 	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
 	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { v } ))
@@ -93,7 +101,10 @@ function PLUGIN:a(netuser, _, _)
 	cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
 	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
 	local xgameObject = createABC:Invoke( nil, arr )
-
+]]
+	local char = rust.GetCharacter( netuser )
+	local charContr = char:GetComponent( "CharacterController" )
+	rust.BroadcastChat( tostring(charContr.height))
 	-- coords.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coords)
 
 	--[[

@@ -480,18 +480,16 @@ end
 --PLUGIN:GiveDp
 function PLUGIN:GiveDp(combatData, dp)
 	local requiredXp
-	if cmdData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP and cmdData.netuserData.lvl > 1 then
-		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]-core.Config.level.player[tostring(cmdData.netuserData.lvl)]
-	elseif cmdData.netuserData.lvl == core.Config.settings.PLAYER_LEVEL_CAP then
+	if combatData.netuserData.lvl < core.Config.settings.PLAYER_LEVEL_CAP and combatData.netuserData.lvl > 1 then
+		requiredXp = core.Config.level.player[tostring(combatData.netuserData.lvl+1)]-core.Config.level.player[tostring(combatData.netuserData.lvl)]
+	elseif combatData.netuserData.lvl == core.Config.settings.PLAYER_LEVEL_CAP then
 		requiredXp = core.Config.level.player[tostring(core.Config.settings.PLAYER_LEVEL_CAP)]
-	elseif cmdData.netuserData.lvl == 1 then
-		requiredXp = core.Config.level.player[tostring(cmdData.netuserData.lvl+1)]
+	elseif combatData.netuserData.lvl == 1 then
+		requiredXp = core.Config.level.player[tostring(combatData.netuserData.lvl+1)]
 	else
 		requiredXp = nil
 	end
-	--CALCULATE SOME STUFF
 	local totalAllowedDp = requiredXp*.5
-
     if ((combatData.vicuserData.dp+dp/totalAllowedDp) >= .5) then
         combatData.vicuserData.dp = totalAllowedDp*.5
         --rust.InventoryNotice( combatData.vicuser, '+' .. (dp - combatData.vicuserData.xp*.5) .. 'dp' )
@@ -499,7 +497,6 @@ function PLUGIN:GiveDp(combatData, dp)
         combatData.vicuserData.dp = combatData.vicuserData.dp + dp
         rust.InventoryNotice( combatData.vicuser, '+' .. (dp) .. 'dp' )
     end
-
     if combatData.netuser then self:Save( combatData.netuser ) end
     if combatData.vicuser then self:Save( combatData.vicuser ) end
 end
