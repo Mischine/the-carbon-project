@@ -122,7 +122,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:ActivatePerks(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildDefend(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
-		--local pet = hunter:getPetData( combatData.vicuser ) if pet then if pet.state ~= 5 then pet.state = 5 hunter:PetCounterAttackNPC( combatData, takedamage, pet ) end end
+		local pet = hunter:getPetData( combatData.vicuser ) if pet then if pet.state ~= 5 then pet.state = 5 hunter:PetCounterAttackNPC( combatData, takedamage, pet ) end end
     elseif combatData.scenario == 3 then
 		if debug.list[ combatData.debug] then debug:SendDebug( combatData.debug, '------------PVE------------' ) end
 		combatData.dmg.amount = self:WeaponSkill(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end

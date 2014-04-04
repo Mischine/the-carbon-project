@@ -127,9 +127,9 @@ function PLUGIN:PetAI( netuser, pet )
 
 			-- Player
 			if pet.state == 6 then
-				if attdis > 3 then
+				if attdis > 5 then
 					pet.NavMesh:SetMoveTarget( pet.targetObject, pet.RunSpeed )
-				else
+				elseif attdis < 15 then
 					pet.HosAI.nextScentListenTime = 0
 				end
 			-- NPC
@@ -147,7 +147,7 @@ function PLUGIN:PetAI( netuser, pet )
 						pet.NextAttack = pet.NextAttack - 1
 					end
 					if pet.target.health <= 0 then
-
+						self:PetStopAttack( pet )
 					end
 				end
 			end
@@ -272,12 +272,12 @@ function PLUGIN:cmdReleasePet( netuser, _, _ )
 		coords.z = math.random( coords.z - 500, coords.z + 500 )
 		coords.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coords) + 1
 		self.Pets[ netuser ].HosAI:GoScentBlind( 20 )
-		self.Pets[ netuser ].NavMesh:SetMovePosition( mycoords, 6 )
+		self.Pets[ netuser ].NavMesh:SetMovePosition( coords, 6 )
 		self.Pets[ netuser ].timer:Destroy()
-		timer.Once( 15, function()
-			Rust.WildlifeManager:RemoveWildlifeInstance( self.Pets[ netuser ].BaseWildAI) rust.BroadcastChat( 'Pet removed.' )
-			self.Pets[ netuser ] = nil
-		end)
+		--timer.Once( 15, function()
+		--	Rust.WildlifeManager:RemoveWildlifeInstance( self.Pets[ netuser ].BaseWildAI) rust.BroadcastChat( 'Pet removed.' )
+		--	self.Pets[ netuser ] = nil
+		--end)
 		rust.SendChatToUser(netuser, core.sysname, 'Pet has been released!' )
 	else
 		rust.SendChatToUser(netuser, core.sysname, 'No Pet timer found!' )
@@ -319,7 +319,12 @@ function PLUGIN:SyncPetPropertiesWithPlayerStats( pet )
 end
 
 function PLUGIN:OnPetKilled( pet )
-	
+
+end
+
+function PLUGIN:PetStopAttack( pet )
+	if pet.target then pet.target = nil end if pet.targetObject then pet.targetObject = nil end
+	pet.state = 0
 end
 
 -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
