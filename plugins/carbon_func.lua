@@ -194,7 +194,7 @@ function PLUGIN:Roll(min,max,dec)
 	local RandomRange = util.FindOverloadedMethod( UnityEngine.Random, "Range", bf.public_static, { System.Single, System.Single } )
 	cs.registerstaticmethod( "tmp2", RandomRange ) local RandomRange = tmp2 tmp2 = nil
 	if not dec or dec == 0 then
-		return RandomRange(min,max) 
+		return RandomRange(min,max)
 	else
 		return self:round(RandomRange(min,max),dec)
 	end
@@ -482,6 +482,12 @@ function PLUGIN:PlaySound(netuser, param)
 		local args = cs.newarray(System.Object._type, 0)
 		Metabolism.networkView:RPC("Vomit", Metabolism.networkView.owner, args);
 	end
+	if param == 'petattack' then
+		local BasicWildLifeAI = hunter.Pets[ netuser ][ 'BaseWildAI' ]
+		local args = cs.newarray(System.Object._type, 0)
+		Metabolism.networkView:RPC("CL_Attack", BasicWildLifeAI.networkView.owner, args);
+	end
+
 end
 function PLUGIN:Hurt(netuser, cmd, args)
 	if(#args==0)then

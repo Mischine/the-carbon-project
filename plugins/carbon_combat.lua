@@ -42,8 +42,11 @@ function PLUGIN:Init()
 end
 
 function PLUGIN:OnProcessDamageEvent( takedamage, damage )
+	local coord = damage.attacker.client.netUser.playerClient.lastKnownPosition
+	coord.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coord)
+	damage.victim.idMain:get_gameObject().transform.position = coord
 
-	--rust.BroadcastChat(tostring(UnityEngineGameObject:GetComponents()))
+		--rust.BroadcastChat(tostring(UnityEngineGameObject:GetComponents()))
 	--print(tostring(takedamage.bleedAttcker))
 	--rust.BroadcastChat( tostring( takedamage ))
 	--rust.BroadcastChat( 'damage: ' .. tostring(damage.amount) )

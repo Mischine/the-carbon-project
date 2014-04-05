@@ -80,6 +80,7 @@ function PLUGIN:Kill(netuser, cmd, args)
 		ClientVitalsSync:SendClientItsHealth()
 	end
 end
+
 function PLUGIN:sc(netuser, cmd, args)
 	--local validate,vicuser = rust.FindNetUsersByName( args[1] )
 
@@ -115,37 +116,46 @@ function PLUGIN:sc(netuser, cmd, args)
 	local Collider = CharacterGameObject:GetComponent( "Collider" )
 	local Physics = Collider:GetComponent( "Physics" )
 	local ClientConnection = controllable:GetComponent( "ClientConnection")
+	local Component = cs.gettype('Component, UnityEngine')
+	local MyComponent = Character:GetComponent("Component")
 
-	rust.BroadcastChat(tostring(CharacterGameObject.light))
-	local table = {
-	CharacterGameObject.activeInHierarchy,
-	CharacterGameObject.activeSelf,
-	CharacterGameObject.animation,
-	CharacterGameObject.audio,
-	CharacterGameObject.camera,
-	CharacterGameObject.collider,
-	CharacterGameObject.collider2D,
-	CharacterGameObject.constantForce,
-	CharacterGameObject.guiText,
-	CharacterGameObject.guiTexture,
-	CharacterGameObject.hingeJoint,
-	CharacterGameObject.isStatic,
-	CharacterGameObject.layer,
-	CharacterGameObject.light,
-	CharacterGameObject.networkView,
-	CharacterGameObject.particleEmitter,
-	CharacterGameObject.particleSystem,
-	CharacterGameObject.renderer,
-	CharacterGameObject.rigidbody,
-	CharacterGameObject.rigidbody2D,
-	CharacterGameObject.transform,
-	}
 
-	for k,v in pairs(table) do
-		rust.BroadcastChat(tostring(k) .. '    ' ..tostring(v))
-	end
-	rust.BroadcastChat(UnityEngine.GUI.color)
+--[[
+	Protected Sub NetworkSound(ByVal toPlay As BasicWildLifeAI.AISound)
+	MyBase.networkView.RPC(Of Byte)("Snd", RPCMode.Others, toPlay)
+	End Sub
+--]]
+	local BasicWildLifeAI = hunter.Pets[ netuser ][ 'BaseWildAI' ]
+	local args = cs.newarray(System.Object._type, 0)
+	BasicWildLifeAI.networkView:RPC("CL_Attack", uLink.RPCMode.OthersExceptOwner, args);
 
+	--BasicWildLifeAI.networkView:RPC("Attack", uLink.RPCMode.OthersExceptOwner, args);
+
+	--MyBase.networkView.RPC("Vomit", MyBase.networkView.owner, New Object(0) {})
+	--Metabolism.networkView:RPC("CL_Attack", BasicWildLifeAI.networkView.owner, args);
+--[[
+	local controllable = netuser.playerClient.controllable
+	local Character = controllable:GetComponent( "Character" )
+	local CharacterGameObject = Character:get_gameObject()
+
+	local attacker = cs.gettype('IDBase, Facepunch.ID')
+	local victim = cs.gettype('IDBase, Facepunch.ID')
+	local damageQuantity = cs.gettype('TakeDamage+Quantity, Assembly-CSharp')
+	local extraData = System.Object
+	local Hurt = util.FindOverloadedMethod(Rust.TakeDamage, "Hurt", bf.public_static, {attacker,victim, damageQuantity, extraData})
+	--cs.registerstaticmethod( "tmp", Hurt ) local Hurt = tmp tmp = nil
+	local a = Character.idMain
+	local b = Character.idMain
+	local c = 5
+	local d = CharacterGameObject
+	local arr = util.ArrayFromTable( cs.gettype( 'System.Object' ), { a, b, c, d  } )
+	cs.convertandsetonarray( arr, 0, a, attacker )
+	cs.convertandsetonarray( arr, 1, b, victim )
+	cs.convertandsetonarray( arr, 2, c, damageQuantity )
+	cs.convertandsetonarray( arr, 3, d, extraData )
+
+	local takedamage = Hurt:Invoke( nil, arr )
+]]
 --[[
 	local IDBase = cs.gettype("IDBase, Facepunch.ID")
 	local SystemObject = cs.gettype( 'System.Object' )
@@ -419,11 +429,12 @@ function PLUGIN:sc(netuser, cmd, args)
 	--avatar:ClearBlueprints()
 end
 function PLUGIN:KillSelf(netuser, cmd, args)
-	local KillSelf = util.FindOverloadedMethod( Rust.TakeDamage, "KillSelf", bf.public_static, { cs.gettype('IDBase, Facepunch.ID'), cs.gettype( 'System.Object' ) } )
+	local KillSelf = util.FindOverloadedMethod( Rust.TakeDamage, "KillSelf", bf.public_static, { cs.gettype('IDBase, System.SingleFacepunch.ID'), cs.gettype( 'System.Object' ) } )
 	cs.registerstaticmethod( "tmp2", KillSelf )
 	local KillSelf = tmp2
 	tmp2 = nil
 	KillSelf(Character.idMain, CharacterGameObject)
+
 	rust.BroadcastChat(tostring(KillSelf))
 end
 function PLUGIN:Blink(netuser, cmd, args)

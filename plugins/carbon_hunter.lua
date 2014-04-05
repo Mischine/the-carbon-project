@@ -234,7 +234,7 @@ end
  ]]
 
 -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
---                  Pet Chat Commands 
+--                  Pet Chat Commands
 -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 function PLUGIN:cmdPetCallBack( netuser )
 	if not dev:isDev( netuser ) then return end
