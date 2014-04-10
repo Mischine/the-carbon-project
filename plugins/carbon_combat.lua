@@ -110,7 +110,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:Attack(combatData)
 		combatData.dmg.amount = self:CritCheck(combatData)
 		combatData.dmg.amount = self:GuildAttack(combatData)
-		combatData.dmg.amount = self:ActivatePerks(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:ActivateAbilities(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:ThiefMod(combatData)
 		combatData.dmg.amount = self:GuildDefend(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
@@ -122,7 +122,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:DmgRandomizer(combatData)
 		combatData.dmg.amount = self:Attack(combatData)
 		combatData.dmg.amount = self:CritCheck(combatData)
-		combatData.dmg.amount = self:ActivatePerks(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:ActivateAbilities(combatData);if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildDefend(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
 		local pet = hunter:getPetData( combatData.vicuser ) if pet then if pet.state ~= 5 then pet.state = 5 hunter:PetCounterAttackNPC( combatData, takedamage, pet ) end end
@@ -134,7 +134,7 @@ function PLUGIN:CombatDamage (takedamage, dmg)
 		combatData.dmg.amount = self:RangeModifier(combatData)
 		combatData.dmg.amount = self:Attack(combatData)
 		combatData.dmg.amount = self:CritCheck(combatData)
-		combatData.dmg.amount = self:ActivatePerks(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
+		combatData.dmg.amount = self:ActivateAbilities(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end
 		combatData.dmg.amount = self:GuildAttack(combatData)
 		combatData.dmg.amount = self:Defend(combatData); if combatData.dmg.amount == 0 then return combatData.dmg, combatData end --TODO: ADD ARMOR MODIFICATIONS IN HERE
 		local pet = hunter:getPetData( combatData.netuser )if pet then if pet.state ~= 5 then pet.state = 5 hunter:PetAttackNPC( combatData, takedamage, pet ) end end
@@ -419,14 +419,14 @@ function PLUGIN:ThiefMod( combatData )
 	return combatData.dmg.amount
 end
 
-function PLUGIN:ActivatePerks(combatData)
+function PLUGIN:ActivateAbilities(combatData)
 	if combatData.scenario == 1 then
-		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
-		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = abilities[k](abilities, combatData) end
+		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = abilities[k](abilities, combatData) end
 	elseif combatData.scenario == 2 then
-		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+		for k,v in pairs(combatData.vicuserData.perks) do combatData.dmg.amount = abilities[k](abilities, combatData) end
 	elseif combatData.scenario == 3 then
-		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = perk[k](perk, combatData) end
+		for k,v in pairs(combatData.netuserData.perks) do combatData.dmg.amount = abilities[k](abilities, combatData) end
 	end
 	return combatData.dmg.amount
 end
