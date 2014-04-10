@@ -368,6 +368,7 @@ function PLUGIN:OnUserDisconnect( netplayer )
 	rust.BroadcastChat( netuser.displayName .. ' has left the server!' )
 	local netuserID = tostring(rust.GetUserID( netuser ) ) if not char[netuserID] then return end
 	if thief:hasStealth( netuser ) then thief:Unstealth( netuser ) end
+	local pet = hunter:getPetData( netuser ) if pet then hunter:LogOffPetHandler( pet ) end	-- TODO: Fix this.
 	if not char[netuserID].reg then
 		if self.tmpusers[netuser.displayName] then
 			self.tmpusers[ netuser.displayName] = nil

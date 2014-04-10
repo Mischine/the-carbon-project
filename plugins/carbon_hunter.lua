@@ -12,10 +12,34 @@ function PLUGIN:Init()
 	self:AddChatCommand( 'petcall', self.cmdPetCallBack )
 	self:AddChatCommand( 'petstay', self.cmdPetStay )
 	self:AddChatCommand( 'state', self.SetState )
+	self:AddChatCommand( 'petdebug', self.PetDebug )
 	--self:AddChatCommand( 'tppet', self.PetTP )
 
 	self.Pets = {}      -- Database of pets
 	self.BL = {}        -- Blacklist for NPC that aren't pets [ To increase performance ]
+end
+
+function PLUGIN:PetDebug( netuser, cmd, args )
+	if not dev:isDev( netuser ) then return end
+	if not args[2] then rust.Notice( netuser, 'Missing argument 2, "true/false"' )return end
+	local targuser = netuser
+	if args[1] then
+		local b, targuser = rust.FindNetUsersByName( args[1] )
+		if not b then rust.SendChatToUser( netuser, core.sysname, 'player not found with name ' .. args[1] ) return end
+	end
+	local pet = self:getPetData( netuser )
+	if not pet then rust.Notice( netuser , 'No pet found.' )return end
+	local set = args[2]:lower()
+	if set == 'true' then
+		pet.debug = true
+		rust.Notice( netuser ,'Pet debug set to true' )
+	elseif set == 'false' then
+		pet.debug = false
+		rust.Notice( netuser ,'Pet debug set to false' )
+	else
+		rust.Notice( netuser ,'Invalid argument.' )
+	end
+
 end
 
 -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -65,12 +89,12 @@ function PLUGIN:PetCall( netuser, _, _ )
 	self.Pets[ netuser ][ 'state' ] = 0
 	self.Pets[ netuser ][ 'attackspeed' ] = 3
 	self.Pets[ netuser ][ 'NextAttack' ] = self.Pets[ netuser ].attackspeed
+	self.Pets[ netuser ][ 'debug' ] = true
 	self.Pets[ netuser ].TakeDamage.maxHealth = 200
 	self.Pets[ netuser ].TakeDamage.health = self.Pets[ netuser ].TakeDamage.maxHealth
 	self.Pets[ netuser ].HosAI:GoScentBlind( 3 )
-	local pet = self.Pets[ netuser ]
-	--pet = self:SyncPetPropertiesWithPlayerStats( pet )
-	self:PetAI( netuser, pet )
+	self.Pets[ netuser ] = self:SyncPetPropertiesWithPlayerStats( self.Pets[ netuser ] )
+	timers:InitTimer( self.Pets[ netuser ] )
 	rust.SendChatToUser( netuser, 'Your pet has been called!' )
 end
 
@@ -94,16 +118,15 @@ end
 
 
 function PLUGIN:PetAI( netuser, pet )
-	timers.Pets[ netuser ] = timer.Repeat( 1,
-	function()
-		if pet.TakeDamage.health <= 0 then self:OnPetKilled( pet ) return end
-		------------------------
-		-- DistanceCalculator --
-		local coords = pet.BaseWildAI.transform:get_position()
-		local mycoords = pet.pClient.lastKnownPosition
-		local dis = func:round(UnityEngine.Vector3.Distance( coords, mycoords ),2 )
+	if pet.TakeDamage.health <= 0 then self:OnPetKilled( pet ) return end
+	------------------------
+	-- DistanceCalculator --
+	local coords = pet.BaseWildAI.transform:get_position()
+	local mycoords = pet.pClient.lastKnownPosition
+	local dis = func:round(UnityEngine.Vector3.Distance( coords, mycoords ),2 )
 
-		--[ [ Debug
+	--[ [ Debug
+	if pet.debug then
 		if not pet[ 'update' ] then pet[ 'update' ] = 0 end
 		if pet.update > 2 then
 			rust.BroadcastChat( tostring('Distance: '..dis..'  |State: '..pet.state..' | ScentBlind: '..tostring(pet.HosAI:IsScentBlind() )..'  | NextScent: '..tostring(pet.HosAI.nextScentListenTime)))
@@ -111,95 +134,96 @@ function PLUGIN:PetAI( netuser, pet )
 		else
 			pet.update = pet.update + 1
 		end
-		-- ]]
+	end
+	-- ]]
 
-		------------------------
-		-- CombatIntelligence --
-		if pet.target and pet.targetObject then rust.BroadcastChat( 'Pet changed to state 5 ' ) pet.state = 5 end
-		if pet.state == 5 or pet.state == 6 then
-			local attdis = func:round(UnityEngine.Vector3.Distance( pet.targetObject.transform.position, coords ),2 )
-			rust.BroadcastChat( 'attdis: ' .. tostring(attdis))
-			if pet.target and pet.target.health <= 0 then
-				pet.NavMesh:Stop()
-				pet.HosAI:GoScentBlind( 2 )
-				pet.state = 0
-				-- self:GivePetXP( pet, xp ) // Maybe?
-				if pet.target then pet.target = nil end if pet.targetObject then pet.targetObject = nil end
-			end
-
-			-- Player
-			if pet.state == 6 then
-				if attdis > 5 then
-					pet.NavMesh:SetMoveTarget( pet.targetObject, pet.RunSpeed )
-				elseif attdis < 15 then
-					pet.HosAI.nextScentListenTime = 0
-				end
-			-- NPC
-			elseif pet.state == 5 then
-				pet.HosAI:GoScentBlind( 2 )
-				if attdis > 3 then
-					pet.NavMesh:SetMoveTarget( pet.targetObject, pet.RunSpeed )
-				else
-					if pet.NextAttack == 0 then
-						rust.BroadcastChat( 'Pet Hit for: ' .. tostring(pet.dmg) )
-						rust.BroadcastChat( 'New health: ' .. pet.target.health )
-						pet.target.health = pet.target.health - pet.dmg
-						pet.NextAttack = pet.attackspeed
-					else
-						pet.NextAttack = pet.NextAttack - 1
-					end
-					if pet.target.health <= 0 then
-						self:PetStopAttack( pet )
-					end
-				end
-			end
-		end
-
-		--------------------------
-		-- MovementIntelligence --
-		if pet.state == 0 or pet.state == 1 or pet.state == 2 or pet.state == 3 or pet.state == 4 then
-			rust.BroadcastChat('Movement.')
+	------------------------
+	-- CombatIntelligence --
+	if pet.target and pet.targetObject then rust.BroadcastChat( 'Pet changed to state 5 ' ) pet.state = 5 end
+	if pet.state == 5 or pet.state == 6 then
+		local attdis = func:round(UnityEngine.Vector3.Distance( pet.targetObject.transform.position, coords ),2 )
+		rust.BroadcastChat( 'attdis: ' .. tostring(attdis))
+		if pet.target and pet.target.health <= 0 then
+			pet.NavMesh:Stop()
 			pet.HosAI:GoScentBlind( 2 )
+			pet.state = 0
+			-- self:GivePetXP( pet, xp ) // Maybe?
 			if pet.target then pet.target = nil end if pet.targetObject then pet.targetObject = nil end
-			if dis > 8 and dis < 10 then
-				mycoords.x = mycoords.x + math.random( 3 )
-				mycoords.z = mycoords.z + math.random( 3 )
-				pet.NavMesh:SetMovePosition( mycoords, 1.5 )
-				pet.State = 2
-			elseif dis >= 12 then
-				if self.Pets[ netuser ].char.stateFlags.sprint then
-					pet.NavMesh:SetMovePosition( mycoords, pet.RunSpeed )
-					pet.State = 4
-				elseif not self.Pets[ netuser ].char.stateFlags.sprint then
-					pet.NavMesh:SetMovePosition( mycoords, pet.WalkSpeed )
-					pet.State = 3
-				end
-			else
-				pet.State = 1
-			end
 		end
 
-		-----------------------------
-		-- Pet Regen % Unagressive --
-		if pet.state ~= 6 then
+		-- Player
+		if pet.state == 6 then
+			if attdis > 5 then
+				pet.NavMesh:SetMoveTarget( pet.targetObject, pet.RunSpeed )
+			elseif attdis < 15 then
+				pet.HosAI.nextScentListenTime = 0
+			end
+		-- NPC
+		elseif pet.state == 5 then
 			pet.HosAI:GoScentBlind( 2 )
-			if pet.TakeDamage.health < pet.TakeDamage.MaxHealth then
-				if pet.state == 0 or pet.state == 1 then
-					pet.TakeDamage.health = pet.TakeDamage.health + pet.RegenRate
-				elseif pet.state == 2 then
-					pet.TakeDamage.health = pet.TakeDamage.health + (pet.RegenRate * 0.75)
-				elseif pet.state == 3 then
-					pet.TakeDamage.health = pet.TakeDamage.health + (pet.RegenRate * 0.50)
-				elseif pet.state == 4 then
-					pet.TakeDamage.health = pet.TakeDamage.health + (pet.RegenRate * 0.35)
+			if attdis > 3 then
+				pet.NavMesh:SetMoveTarget( pet.targetObject, pet.RunSpeed )
+			else
+				if pet.NextAttack == 0 then
+					rust.BroadcastChat( 'Pet Hit for: ' .. tostring(pet.dmg) )
+					rust.BroadcastChat( 'New health: ' .. pet.target.health )
+					pet.target.health = pet.target.health - pet.dmg
+					pet.NextAttack = pet.attackspeed
+				else
+					pet.NextAttack = pet.NextAttack - 1
+				end
+				if pet.target.health <= 0 then
+					self:PetStopAttack( pet )
 				end
 			end
 		end
-		-----------------
-		-- AbuseChecks --
-		if pet.state ~= 8 and dis > 60 then self:PetReturnToOwnerTeleport( pet ) pet.state = 0 if pet.target then pet.target = nil end if pet.targetObject  then pet.targetObject = nil end end
-		rust.BroadcastChat( 'Pet State at the end of func: ' .. tostring( pet.state) )
-	end)
+	end
+
+	--------------------------
+	-- MovementIntelligence --
+	if pet.state == 0 or pet.state == 1 or pet.state == 2 or pet.state == 3 or pet.state == 4 then
+		rust.BroadcastChat('Movement.')
+		pet.HosAI:GoScentBlind( 2 )
+		if pet.target then pet.target = nil end if pet.targetObject then pet.targetObject = nil end
+		if dis > 8 and dis < 10 then
+			mycoords.x = mycoords.x + math.random( 3 )
+			mycoords.z = mycoords.z + math.random( 3 )
+			pet.NavMesh:SetMovePosition( mycoords, 1.5 )
+			pet.state = 2
+		elseif dis >= 12 then
+			if self.Pets[ netuser ].char.stateFlags.sprint then
+				pet.NavMesh:SetMovePosition( mycoords, pet.RunSpeed )
+				pet.state = 4
+			elseif not self.Pets[ netuser ].char.stateFlags.sprint then
+				pet.NavMesh:SetMovePosition( mycoords, pet.WalkSpeed )
+				pet.state = 3
+			end
+		else
+			pet.state = 1
+		end
+	end
+
+	-----------------------------
+	-- Pet Regen % Unagressive --
+	if pet.state ~= 6 then
+		pet.HosAI:GoScentBlind( 2 )
+		if pet.TakeDamage.health < pet.TakeDamage.MaxHealth then
+			if pet.state == 0 or pet.state == 1 then
+				pet.TakeDamage.health = pet.TakeDamage.health + pet.RegenRate
+			elseif pet.state == 2 then
+				pet.TakeDamage.health = pet.TakeDamage.health + (pet.RegenRate * 0.75)
+			elseif pet.state == 3 then
+				pet.TakeDamage.health = pet.TakeDamage.health + (pet.RegenRate * 0.50)
+			elseif pet.state == 4 then
+				pet.TakeDamage.health = pet.TakeDamage.health + (pet.RegenRate * 0.35)
+			end
+		end
+	end
+	-----------------
+	-- AbuseChecks --
+	if pet.state ~= 8 and dis > 60 then self:PetReturnToOwnerTeleport( pet ) pet.state = 0 if pet.target then pet.target = nil end if pet.targetObject  then pet.targetObject = nil end end
+	rust.BroadcastChat( 'Pet State at the end of func: ' .. tostring( pet.state) )
+
 end
 
 -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
