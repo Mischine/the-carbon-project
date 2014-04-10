@@ -120,14 +120,15 @@ function PLUGIN:sc(netuser, cmd, args)
 	local MyComponent = Character:GetComponent("Component")
 
 
+	rust.BroadcastChat(tostring(Rust.ServerManagement:RemovePlayerSpawn()))
 --[[
 	Protected Sub NetworkSound(ByVal toPlay As BasicWildLifeAI.AISound)
 	MyBase.networkView.RPC(Of Byte)("Snd", RPCMode.Others, toPlay)
 	End Sub
 --]]
-	local BasicWildLifeAI = hunter.Pets[ netuser ][ 'BaseWildAI' ]
-	local args = cs.newarray(System.Object._type, 0)
-	BasicWildLifeAI.networkView:RPC("CL_Attack", uLink.RPCMode.OthersExceptOwner, args);
+	--local BasicWildLifeAI = hunter.Pets[ netuser ][ 'BaseWildAI' ]
+	--local args = cs.newarray(System.Object._type, 0)
+	--BasicWildLifeAI.networkView:RPC("CL_Attack", uLink.RPCMode.OthersExceptOwner, args);
 
 	--BasicWildLifeAI.networkView:RPC("Attack", uLink.RPCMode.OthersExceptOwner, args);
 
