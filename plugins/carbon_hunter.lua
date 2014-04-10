@@ -26,9 +26,9 @@ function PLUGIN:PetCall( netuser, _, _ )
 	if not dev:isDev( netuser ) then return end
 	if self:hasPet( netuser ) then rust.Notice( netuser,  'Your pet is already summoned!' ) return end
 	self.Pets[ netuser ] = {}
-	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, "InstantiateClassic", bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion, System.Int32 } )
-	local itemname = "Wolf"
-
+	----------------
+	local createABC = util.FindOverloadedMethod( Rust.NetCull._type, 'InstantiateStatic', bf.public_static, { System.String, UnityEngine.Vector3, UnityEngine.Quaternion } )
+	local itemname = ':bear_prefab'
 	local coords = netuser.playerClient.lastKnownPosition
 	coords.x = math.random( coords.x - 50, coords.x + 50 )
 	coords.z = math.random( coords.z - 50, coords.z + 50 )
@@ -36,11 +36,12 @@ function PLUGIN:PetCall( netuser, _, _ )
 	local char = rust.GetCharacter( netuser )
 	local gObject = char:get_gameObject()
 	local v = coords
-	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, "LookRotation" )
-	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( "System.Object" ), { v } ))
-	local arr = util.ArrayFromTable( cs.gettype( "System.Object" ), { itemname, v, q , 0 } )  ;
-	cs.convertandsetonarray( arr, 0, itemname, System.String._type ) cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
-	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type ) cs.convertandsetonarray( arr, 3, 0, System.Int32._type )
+	local _LookRotation = util.GetStaticMethod( UnityEngine.Quaternion._type, 'LookRotation' )
+	local q = _LookRotation[1]:Invoke( nil, util.ArrayFromTable( cs.gettype( 'System.Object' ), { v } ))
+	local arr = util.ArrayFromTable( cs.gettype( 'System.Object' ), { itemname, v, q  } )
+	cs.convertandsetonarray( arr, 0, itemname, System.String._type )
+	cs.convertandsetonarray( arr, 1, v, UnityEngine.Vector3._type )
+	cs.convertandsetonarray( arr, 2, q, UnityEngine.Quaternion._type )
 	local xgameObject = createABC:Invoke( nil, arr )
 	--func:DumpGameObject( xgameObject )
 	self.Pets[ netuser ][ 'HosAI' ] = xgameObject:GetComponent( 'HostileWildlifeAI' )
@@ -64,7 +65,7 @@ function PLUGIN:PetCall( netuser, _, _ )
 	self.Pets[ netuser ][ 'state' ] = 0
 	self.Pets[ netuser ][ 'attackspeed' ] = 3
 	self.Pets[ netuser ][ 'NextAttack' ] = self.Pets[ netuser ].attackspeed
-	self.Pets[ netuser ].TakeDamage.maxHealth = 500
+	self.Pets[ netuser ].TakeDamage.maxHealth = 200
 	self.Pets[ netuser ].TakeDamage.health = self.Pets[ netuser ].TakeDamage.maxHealth
 	self.Pets[ netuser ].HosAI:GoScentBlind( 3 )
 	local pet = self.Pets[ netuser ]
@@ -87,14 +88,15 @@ end
 	npcattack             = 5
 	playerattack          = 6
 
-	npcalonetime          = 8
+	// npcalonetime          = 8
 
  ]]
 
 
 function PLUGIN:PetAI( netuser, pet )
-	pet[ 'timer' ] = timer.Repeat( 1,
+	timers.Pets[ netuser ] = timer.Repeat( 1,
 	function()
+		if pet.TakeDamage.health <= 0 then self:OnPetKilled( pet ) return end
 		------------------------
 		-- DistanceCalculator --
 		local coords = pet.BaseWildAI.transform:get_position()
@@ -266,19 +268,22 @@ end
 
 -- TODO: Refine.
 function PLUGIN:cmdReleasePet( netuser, _, _ )
-	if self.Pets[ netuser ] and self.Pets[ netuser ].timer then
+	if self.Pets[ netuser ] and timers.Pets[ netuser ] then
 		local coords = netuser.playerClient.lastKnownPosition
 		coords.x = math.random( coords.x - 500, coords.x + 500 )
 		coords.z = math.random( coords.z - 500, coords.z + 500 )
 		coords.y = UnityEngine.Terrain.activeTerrain:SampleHeight(coords) + 1
 		self.Pets[ netuser ].HosAI:GoScentBlind( 20 )
 		self.Pets[ netuser ].NavMesh:SetMovePosition( coords, 6 )
-		self.Pets[ netuser ].timer:Destroy()
-		--timer.Once( 15, function()
-		--	Rust.WildlifeManager:RemoveWildlifeInstance( self.Pets[ netuser ].BaseWildAI) rust.BroadcastChat( 'Pet removed.' )
-		--	self.Pets[ netuser ] = nil
-		--end)
+		timers.Pets[ netuser ]:Destroy()
+		timer.Once( 15, function()
+			self.Pets[ netuser ] = nil
+		end)
 		rust.SendChatToUser(netuser, core.sysname, 'Pet has been released!' )
+	elseif self.Pets[ netuser ] and not timers.Pets[ netuser ] then
+		self.Pets[ netuser ] = nil
+	elseif timers.Pets[ netuser ] and not self.Pets[ netuser ] then
+		timers.Pets[ netuser ]:Destroy()
 	else
 		rust.SendChatToUser(netuser, core.sysname, 'No Pet timer found!' )
 	end
