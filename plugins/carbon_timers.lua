@@ -8,16 +8,15 @@ function PLUGIN:Init()
 
 	self.Pets = {}
 
-
 	self:AddChatCommand( 'timerkill', self.KillPetTimer )
 
 end
 
-function PLUGIN:InitTimer( pet )
+function PLUGIN:InitTimer( netuser, pet )
 	if not pet then rust.Notice( netuser, 'Failed to initiate the timer. [ < Pet data not found. > ]' ) return end
 	self.Pets[ netuser ] = timer.Repeat( 1, function()
-		if not pet then rust.Notice( netuser , 'Pet data is lost. Pet AI is cancelled.' ) return end
-		self:PetAI( pet.netuser, pet )
+		if not pet then rust.Notice( netuser , 'Pet data is lost. Pet AI is cancelled.' ) if netuser then self:KillTimerRequest( netuser ) end return end
+		self:PetUpdate( pet.netuser, pet )
 	end )
 end
 
@@ -35,4 +34,9 @@ function PLUGIN:KillPetTimer( netuser, _, args )
 	else
 		rust.Notice( netuser, 'No pet timer found for: ' .. targuser.displayName )
 	end
+end
+
+function PLUGIN:KillTimerRequest( netuser )
+	if self.Pets[ netuser ] then self.Pets[ netuser ]:Destroy() rust.Notice( netuser, 'Pet AI timer has been destroyed.' ) return
+	else rust.Notice( netuser,'Timer not found. Could not destroy.' ) return end
 end

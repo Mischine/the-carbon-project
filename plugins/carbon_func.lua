@@ -487,7 +487,6 @@ function PLUGIN:PlaySound(netuser, param)
 		local args = cs.newarray(System.Object._type, 0)
 		Metabolism.networkView:RPC("CL_Attack", BasicWildLifeAI.networkView.owner, args);
 	end
-
 end
 function PLUGIN:Hurt(netuser, cmd, args)
 	if(#args==0)then

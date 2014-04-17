@@ -94,8 +94,8 @@ function PLUGIN:PetCall( netuser, _, _ )
 	self.Pets[ netuser ].TakeDamage.health = self.Pets[ netuser ].TakeDamage.maxHealth
 	self.Pets[ netuser ].HosAI:GoScentBlind( 3 )
 	self.Pets[ netuser ] = self:SyncPetPropertiesWithPlayerStats( self.Pets[ netuser ] )
-	timers:InitTimer( self.Pets[ netuser ] )
-	rust.SendChatToUser( netuser, 'Your pet has been called!' )
+	if self.Pets[ netuser ] then timers:InitTimer( netuser, self.Pets[ netuser ] ) rust.SendChatToUser( netuser, 'Your pet has been called!' )
+	else rust.Notice( netuser, 'Pet data not found, try again.' ) return end
 end
 
 --[[ PetStates
@@ -117,7 +117,7 @@ end
  ]]
 
 
-function PLUGIN:PetAI( netuser, pet )
+function PLUGIN:PetUpdate( netuser, pet )
 	if pet.TakeDamage.health <= 0 then self:OnPetKilled( pet ) return end
 	------------------------
 	-- DistanceCalculator --
@@ -164,10 +164,11 @@ function PLUGIN:PetAI( netuser, pet )
 			if attdis > 3 then
 				pet.NavMesh:SetMoveTarget( pet.targetObject, pet.RunSpeed )
 			else
-				if pet.NextAttack == 0 then
+				if pet.NextAttack <= 0 then
+					anim:PetAttackAnim( pet )
 					rust.BroadcastChat( 'Pet Hit for: ' .. tostring(pet.dmg) )
-					rust.BroadcastChat( 'New health: ' .. pet.target.health )
 					pet.target.health = pet.target.health - pet.dmg
+					rust.BroadcastChat( 'New health: ' .. tostring(pet.target.health) )
 					pet.NextAttack = pet.attackspeed
 				else
 					pet.NextAttack = pet.NextAttack - 1
@@ -221,9 +222,11 @@ function PLUGIN:PetAI( netuser, pet )
 	end
 	-----------------
 	-- AbuseChecks --
-	if pet.state ~= 8 and dis > 60 then self:PetReturnToOwnerTeleport( pet ) pet.state = 0 if pet.target then pet.target = nil end if pet.targetObject  then pet.targetObject = nil end end
-	rust.BroadcastChat( 'Pet State at the end of func: ' .. tostring( pet.state) )
-
+	if pet.state ~= 8 and dis > 60 then
+		self:PetReturnToOwnerTeleport( pet ) pet.state = 0
+		if pet.target then pet.target = nil end
+		if pet.targetObject  then pet.targetObject = nil end
+	end
 end
 
 -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -231,7 +234,10 @@ end
 -- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 function PLUGIN:PetAttackPlayer( combatData, takedamage, pet )
+rust.BroadcastChat( 'PLAYER ATTACK START' )
 	if not combatData.vicuser or not takedamage then return end
+	if pet.target == takedamage then return end
+rust.BroadcastChat( 'PLAYER ATTACK PAST CHECK' )
 	local TargObject = rust.GetCharacter( combatData.vicuser ):get_gameObject()
 	pet.target = takedamage
 	pet.targetObject = TargObject
@@ -240,10 +246,11 @@ function PLUGIN:PetAttackPlayer( combatData, takedamage, pet )
 end
 
 function PLUGIN:PetAttackNPC( combatData, takedamage, pet )
-	rust.BroadcastChat( 'NPC ATTACK START' )
-	--if not combatData.npc or not combatData.npc.gObject or not takedamage then return end
+rust.BroadcastChat( 'NPC ATTACK START' )
+	if not combatData.npc or not combatData.npc.gObject or not takedamage then return end
+	if pet.target == takedamage then return end
+rust.BroadcastChat( 'NPC ATTACK PAST CHECK' )
 	local TargObject = combatData.npc.gObject
-	rust.BroadcastChat( tostring( TargObject ))
 	pet.target = takedamage
 	pet.state = 5
 	pet.targetObject = TargObject
